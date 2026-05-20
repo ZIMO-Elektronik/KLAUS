@@ -5,6 +5,8 @@ import { Cv } from "cv.slint";
 export component CvList inherits Rectangle {
     in property <[Cv]> cv-list;
 
+    callback data_changed(int, Cv);
+
     VerticalBox {
         padding: 10px;
         Text {
@@ -15,6 +17,10 @@ export component CvList inherits Rectangle {
             for single-cv[idx] in cv-list: CvRow {
                 cv: single-cv;
                 is-even: Math.mod(idx, 2) == 0;
+                toggled(checked) => {
+                    single-cv.selected = checked;
+                    root.data_changed(idx, single-cv)
+                }
             }
         }
     }

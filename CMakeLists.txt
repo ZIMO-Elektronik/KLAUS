@@ -50,6 +50,8 @@ if(NOT TARGET KLUG::KLUG)
     master)
 endif()
 
+target_include_directories(Updater PRIVATE .)
+
 target_link_libraries(Updater PRIVATE Slint::Slint KLUG)
 slint_target_sources(Updater ui/app-window.slint)
 
@@ -62,4 +64,13 @@ if(WIN32)
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:my_application>
             $<TARGET_FILE_DIR:my_application>
     COMMAND_EXPAND_LISTS)
+endif()
+
+if(PROJECT_IS_TOP_LEVEL)
+  file(
+    DOWNLOAD
+    "https://github.com/ZIMO-Elektronik/.github/raw/master/data/.clang-format"
+    ${CMAKE_CURRENT_LIST_DIR}/.clang-format)
+  file(GLOB_RECURSE SRC include/*.*pp src/*.*pp tests/*.*pp)
+  add_clang_format_target(KLUGFormat OPTIONS -i FILES ${SRC})
 endif()

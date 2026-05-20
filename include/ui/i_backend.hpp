@@ -1,7 +1,23 @@
+/**
+ * Backend interface
+ *
+ * \file    include/ui/i_backend.hpp
+ * \author  Jonas Gahlert
+ * \date    20.05.2026
+ */
+
 #pragma once
 
-namespace gui {
+#include <slint.h>
 
-struct IBackend {};
+namespace ui {
 
-} // namespace gui
+/**
+ * Backend interface
+ *
+ */
+struct IBackend {
+  virtual void connect(slint::ComponentHandle<AppWindow>) = 0;
+};
+
+} // namespace ui

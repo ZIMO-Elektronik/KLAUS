@@ -6,36 +6,15 @@ import {
     HorizontalBox,
     SpinBox,
 } from "std-widgets.slint";
+import { CvProgrammingPage } from "cv-programming.slint";
+import { Cv } from "cv/cv.slint";
 
 export component AppWindow inherits Window {
-    in-out property <int> counter;
-    callback request-increase-value();
+    in-out property <[Cv]> cv-list <=> cv-programmer.cv-list;
+
+    callback cv-data-changed <=> cv-programmer.data_changed;
+
     HorizontalBox {
-        VerticalBox {
-            Text {
-                text: "Counter: \{root.counter}";
-            }
-
-            Button {
-                accessible-role: AccessibleRole.none;
-                colorize-icon: false;
-                text: "Increase value";
-                visible: true;
-                clicked => {
-                    root.request-increase-value();
-                }
-            }
-        }
-
-        VerticalLayout {
-            alignment: LayoutAlignment.start;
-            Text {
-                text: "A very important text";
-            }
-
-            Text {
-                text: "Some more very important text";
-            }
-        }
+        cv-programmer := CvProgrammingPage { }
     }
 }

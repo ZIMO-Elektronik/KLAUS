@@ -1,13 +1,16 @@
 #include "app-window.h"
 
-int main(int argc, char **argv)
-{
-    auto ui = AppWindow::create();
+// Dummy include
+#include "include/ui/cv/cv_programmer.hpp"
 
-    ui->on_request_increase_value([&]{
-        ui->set_counter(ui->get_counter() + 1);
-    });
+int main(int argc, char** argv) {
+  auto ui = AppWindow::create();
 
-    ui->run();
-    return 0;
+  ui::cv::CvProgrammer programmer{};
+  programmer.connect(ui);
+
+  ui->run();
+
+  programmer.check();
+  return 0;
 }

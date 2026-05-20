@@ -16,10 +16,10 @@ export component CvRow inherits Rectangle {
         spacing: 10px;
         padding: 5px;
 
-        CheckBox {
+        checkbox := CheckBox {
             checked: root.cv.selected;
             toggled => {
-                root.toggled(self.checked);
+                root.toggled(self.checked)
             }
         }
 
