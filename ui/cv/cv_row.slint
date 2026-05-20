@@ -1,0 +1,47 @@
+import { Cv } from "cv.slint";
+import { CheckBox } from "std-widgets.slint";
+
+export component CvRow inherits Rectangle {
+    in property <Cv> cv;
+    in property <bool> is-even;
+
+    callback toggled(bool);
+
+    //height: 55px;
+    background: root.is-even ? #f9f9f9 : #eeeeee;
+    border-radius: 4px;
+
+    HorizontalLayout {
+        alignment: LayoutAlignment.start;
+        spacing: 10px;
+        padding: 5px;
+
+        CheckBox {
+            checked: root.cv.selected;
+            toggled => {
+                root.toggled(self.checked);
+            }
+        }
+
+        Text {
+            text: root.cv.address;
+            font-size: 14px;
+        }
+
+        Text {
+            text: root.cv.value;
+            font-size: 14px;
+        }
+
+        Text {
+            text: root.cv.name;
+            font-size: 14px;
+        }
+
+        Text {
+            text: root.cv.description;
+            font-size: 11px;
+            color: #666;
+        }
+    }
+}

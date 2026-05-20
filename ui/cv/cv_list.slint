@@ -1,0 +1,21 @@
+import { ListView, VerticalBox } from "std-widgets.slint";
+import { CvRow } from "cv_row.slint";
+import { Cv } from "cv.slint";
+
+export component CvList inherits Rectangle {
+    in property <[Cv]> cv-list;
+
+    VerticalBox {
+        padding: 10px;
+        Text {
+            text: "Liste von Cvs";
+        }
+
+        ListView {
+            for single-cv[idx] in cv-list: CvRow {
+                cv: single-cv;
+                is-even: Math.mod(idx, 2) == 0;
+            }
+        }
+    }
+}

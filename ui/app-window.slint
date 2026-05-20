@@ -1,0 +1,41 @@
+import {
+    Button,
+    VerticalBox,
+    GridBox,
+    CheckBox,
+    HorizontalBox,
+    SpinBox,
+} from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    in-out property <int> counter;
+    callback request-increase-value();
+    HorizontalBox {
+        VerticalBox {
+            Text {
+                text: "Counter: \{root.counter}";
+            }
+
+            Button {
+                accessible-role: AccessibleRole.none;
+                colorize-icon: false;
+                text: "Increase value";
+                visible: true;
+                clicked => {
+                    root.request-increase-value();
+                }
+            }
+        }
+
+        VerticalLayout {
+            alignment: LayoutAlignment.start;
+            Text {
+                text: "A very important text";
+            }
+
+            Text {
+                text: "Some more very important text";
+            }
+        }
+    }
+}
