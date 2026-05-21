@@ -23,6 +23,8 @@ struct CvProgrammer : public IBackend {
                      .value = 3,
                      .name = "Address",
                      .description = "Address description"});
+    _cvs->push_back(
+      {.address = 3, .value = 145, .name = "Vendor ID", .description = ""});
 
     window->set_cv_list(_cvs);
 

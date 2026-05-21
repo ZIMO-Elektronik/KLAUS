@@ -62,7 +62,7 @@ if(WIN32)
     TARGET Updater
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:my_application>
-            $<TARGET_FILE_DIR:my_application>
+    $<TARGET_FILE_DIR:my_application>
     COMMAND_EXPAND_LISTS)
 endif()
 

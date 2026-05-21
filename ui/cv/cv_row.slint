@@ -1,5 +1,5 @@
 import { Cv } from "cv.slint";
-import { CheckBox } from "std-widgets.slint";
+import { CheckBox, HorizontalBox } from "std-widgets.slint";
 
 export component CvRow inherits Rectangle {
     in property <Cv> cv;
@@ -7,11 +7,13 @@ export component CvRow inherits Rectangle {
 
     callback toggled(bool);
 
-    //height: 55px;
     background: root.is-even ? #f9f9f9 : #eeeeee;
     border-radius: 4px;
 
-    HorizontalLayout {
+    preferred-height: layout.preferred-height;
+    preferred-width: layout.preferred-width;
+
+    layout := HorizontalLayout {
         alignment: LayoutAlignment.start;
         spacing: 10px;
         padding: 5px;
@@ -24,21 +26,25 @@ export component CvRow inherits Rectangle {
         }
 
         Text {
+            width: 30px;
             text: root.cv.address;
             font-size: 14px;
         }
 
         Text {
+            width: 30px;
             text: root.cv.value;
             font-size: 14px;
         }
 
         Text {
+            width: 100px;
             text: root.cv.name;
             font-size: 14px;
         }
 
         Text {
+            width: 150px;
             text: root.cv.description;
             font-size: 11px;
             color: #666;
