@@ -17,8 +17,6 @@ namespace process {
 struct IProcess {
   virtual void execute() = 0;
   virtual void abort() = 0;
-
-  virtual void update() = 0;
 };
 
 } // namespace process
