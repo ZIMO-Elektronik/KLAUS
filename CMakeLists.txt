@@ -10,7 +10,7 @@ FetchContent_MakeAvailable(CMakeModules)
 
 version_from_git()
 project(
-  my_application
+  Updater
   VERSION ${VERSION_FROM_GIT}
   LANGUAGES CXX)
 
@@ -25,6 +25,23 @@ FetchContent_Declare(
   SOURCE_SUBDIR api/cpp)
 FetchContent_MakeAvailable(Slint)
 
+set(SLINT_OPTIONS "SLINT_BUILD_EXAMPLES ON")
+
+# if(WIN32) list(APPEND SLINT_OPTIONS "SLINT_NO_DEFAULT_FEATURES ON"
+# "SLINT_FEATURE_RENDERER_FEMTOVG OFF" "SLINT_FEATURE_RENDERER_SOFTWAE ON"
+# "SLINT_FEATURE_BACKEND_WINIT ON") endif()
+
+if(WIN32)
+  list(
+    APPEND
+    SLINT_OPTIONS
+    "SLINT_FEATURE_RENDERER_FEMTOVG OFF"
+    "SLINT_FEATURE_RENDERER_SOFTWARE ON"
+    "SLINT_FEATURE_RENDERER_WINIT_SKIA ON"
+    "SLINT_FEATURE_BACKEND_WINIT ON"
+    "SKIA_GN_ARGS win_vc=\"\"")
+endif()
+
 if(NOT TARGET Slint::Slint)
   cpmaddpackage(
     NAME
@@ -34,8 +51,7 @@ if(NOT TARGET Slint::Slint)
     GIT_TAG
     release/1
     OPTIONS
-    SLINT_BUILD_EXAMPLES
-    ON)
+    ${SLINT_OPTIONS})
 endif()
 
 if(NOT TARGET KLUG::KLUG)
@@ -61,8 +77,8 @@ if(WIN32)
   add_custom_command(
     TARGET Updater
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:my_application>
-    $<TARGET_FILE_DIR:my_application>
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:Updater>
+            $<TARGET_FILE_DIR:Updater>
     COMMAND_EXPAND_LISTS)
 endif()
 

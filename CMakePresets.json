@@ -1,0 +1,68 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "include": [],
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "displayName": "Base Preset",
+            "description": "Base Preset providing base config",
+            "binaryDir": "${sourceDir}/build",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_BUILD_PARALLEL_LEVEL": "16"
+            }
+        },
+        {
+            "name": "debug_base",
+            "hidden": true,
+            "displayName": "Debug Base Preset",
+            "description": "Debug Base Preset providing base config for DEBUG builds",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release_base",
+            "hidden": true,
+            "displayName": "Release Base Preset",
+            "description": "Release Base Preset providing base config for RELEASE builds",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "debug_amd64",
+            "displayName": "Debug AMD64",
+            "description": "Debug build for AMD64 architecture",
+            "inherits": "debug_base"
+        },
+        {
+            "name": "release_amd64",
+            "displayName": "Release AMD64",
+            "description": "Release build for AMD64 architecture",
+            "inherits": "release_base"
+        },
+        {
+            "name": "debug_amd64_windows",
+            "displayName": "Debug AMD64 Windows",
+            "description": "Cross-Compiled Debug build for Windows on AMD64 architecture",
+            "toolchainFile": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
+            "inherits": "debug_base"
+        },
+        {
+            "name": "release_amd64_windows",
+            "displayName": "Release AMD64 Windows",
+            "description": "Cross-Compiled Release build for Windows on AMD64 architecture",
+            "toolchainFile": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
+            "inherits": "release_base"
+        }
+    ]
+}
