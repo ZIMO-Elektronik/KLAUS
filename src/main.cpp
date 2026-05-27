@@ -3,6 +3,8 @@
 #include "app-window.h"
 #include "include/ui/cv/cv_programmer.hpp"
 
+#include "include/process/mdu_ein/update.hpp"
+
 #ifdef _WIN32
 #  include <windows.h>
 
@@ -41,6 +43,16 @@ int main(int argc, char* argv[]) {
     _putenv_s("SLINT_BACKEND", "winit-skia");
   }
 #endif
+
+  auto process{std::make_shared<process::mdu_ein::Update>()};
+  process->setup(process);
+  process->execute();
+
+  std::this_thread::sleep_for(std::chrono::seconds{200});
+
+  process.reset();
+
+  return 0;
 
   auto ui = AppWindow::create();
 

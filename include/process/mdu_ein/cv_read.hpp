@@ -13,6 +13,7 @@
 #include <vector>
 #include <ztl/ztl.hpp>
 #include "include/process/base.hpp"
+#include "include/process/i_cv_process.hpp"
 #include "include/type/cv/cv.hpp"
 #include "include/type/step.hpp"
 
@@ -23,7 +24,7 @@ namespace process::mdu_ein {
 
  */
 
-struct CvRead : public Base {
+struct CvRead : public Base, public ICvProcess {
   using list_type = std::vector<type::cv::Cv>;
 
   CvRead();

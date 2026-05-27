@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <functional>
+
 namespace process {
 
 /**
@@ -17,6 +19,8 @@ namespace process {
 struct IProcess {
   virtual void execute() = 0;
   virtual void abort() = 0;
+
+  virtual void onUpdateProgress(std::function<void(double)>) = 0;
 };
 
 } // namespace process

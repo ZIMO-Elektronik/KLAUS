@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <libklug/libklug.hpp>
 #include "i_process.hpp"
 
 namespace process {
@@ -16,12 +17,15 @@ namespace process {
  * Base process
  *
  */
-struct Base : public IProcess {
-  Base();  // Create handle
-  ~Base(); // Destroy handle
+struct Base {
+  Base();            // Create handle
+  ~Base() = default; // Destroy handle
+
+  bool connect();
+  void disconnect();
 
 protected:
-  // libklug handle
+  libklug::LibKLUG _lib;
 };
 
 } // namespace process

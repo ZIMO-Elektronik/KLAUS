@@ -12,6 +12,7 @@
 #include <functional>
 #include <vector>
 #include "include/process/base.hpp"
+#include "include/process/i_cv_process.hpp"
 #include "include/type/cv/cv.hpp"
 #include "include/type/step.hpp"
 
@@ -21,7 +22,7 @@ namespace process::mdu_ein {
  * CvWrite process
 
  */
-struct CvWrite : public Base {
+struct CvWrite : public Base, public ICvProcess {
   using list_type = std::vector<type::cv::Cv>;
 
   CvWrite();
@@ -46,12 +47,12 @@ private:
   void cvWriteAction();
   void cvWriteResult(result const& r);
 
-  void reset_action();
-  void reset_result(result const& r);
+  void resetAction();
+  void resetResult(result const& r);
 
   void (CvWrite::*_state)(result const&){CvWrite::modeResult};
 
-  std::function<void()> _updateStep{};
+  std::function<void(type::CvStep)> _updateStep{};
   std::function<void(double)> _updateProgress{};
 
   libklug_handle _lib{};

@@ -14,7 +14,8 @@ project(
   VERSION ${VERSION_FROM_GIT}
   LANGUAGES CXX)
 
-add_executable(Updater src/main.cpp)
+add_executable(Updater src/main.cpp src/process/mdu_ein/update.cpp
+                       src/process/base.cpp)
 
 FetchContent_Declare(
   Slint
@@ -63,7 +64,7 @@ if(NOT TARGET KLUG::KLUG)
     SYSTEM
     YES
     GIT_TAG
-    master)
+    api_documentation)
 endif()
 
 target_include_directories(Updater PRIVATE .)
