@@ -1,0 +1,31 @@
+import { ProgressIndicator } from "std-widgets.slint";
+
+export component ProgressView inherits Rectangle {
+    in property <string> title_text <=> title.text;
+    in property <string> step_text <=> step.text;
+    in property <float> progress <=> bar.progress;
+
+    preferred-height: layout.preferred-height;
+    preferred-width: layout.preferred-width;
+
+    layout := VerticalLayout {
+        alignment: center;
+        padding: 10px;
+
+        min-width: 300px;
+
+        title := Text {
+            text: "Hier könnte ihre Werbung stehen";
+        }
+
+        step := Text {
+            text: "Auch hier könnte ihre Werbung stehen";
+        }
+
+        bar := ProgressIndicator {
+            width: 90%;
+            height: 20px;
+            progress: 50%;
+        }
+    }
+}

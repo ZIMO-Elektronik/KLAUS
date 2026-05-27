@@ -28,19 +28,19 @@ void Update::onUpdateStep(std::function<void(type::UpdateStep)> cb) {
 }
 
 void Update::handle_result(res::Result r) {
-  if (!_abort) std::invoke(_state, this, r);
-
-  // Abort code
+  if (_abort) resetAction();
+  std::invoke(_state, this, r);
 }
 
 void Update::modeAction() {
+  _updateStep(type::UpdateStep::Start);
   _lib.com().mdu_ein();
   _state = &Update::modeResult;
 }
 
 void Update::modeResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
-    std::cout << "Mode MDU_EIN" << std::endl;
+    // std::cout << "Mode MDU_EIN" << std::endl;
     enterAction();
     return;
   }
@@ -56,7 +56,7 @@ void Update::enterAction() {
 
 void Update::enterResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
-    std::cout << "Entered via MDU" << std::endl;
+    // std::cout << "Entered via MDU" << std::endl;
     configAction();
     return;
   }
@@ -66,6 +66,7 @@ void Update::enterResult(res::Result const r) {
 }
 
 void Update::configAction() {
+  _updateStep(type::UpdateStep::Init);
   _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow);
   _state = &Update::initResult;
 }
@@ -73,7 +74,7 @@ void Update::configAction() {
 void Update::configResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
-      std::cout << "Data rate set to slow" << std::endl;
+      // std::cout << "Data rate set to slow" << std::endl;
       searchAction();
       return;
     }
@@ -83,6 +84,7 @@ void Update::configResult(res::Result const r) {
 }
 
 void Update::searchAction() {
+  _updateStep(type::UpdateStep::Search);
   _lib.mdu_ein().ping(0, _fwIt.id());
   _state = &Update::searchResult;
 }
@@ -97,8 +99,9 @@ void Update::searchResult(res::Result const r) {
       return;
 
     } else {
-      std::cout << "Unsuccessful at Id 0x" << std::hex << _fwIt.id() << std::dec
-                << std::endl;
+      // std::cout << "Unsuccessful at Id 0x" << std::hex << _fwIt.id() <<
+      // std::dec
+      //           << std::endl;
       ++_fwIt;
       if (_fwIt == _fwItEnd) {
         std::cout << "No decoder found" << std::endl;
@@ -123,7 +126,7 @@ void Update::initAction() {
 void Update::initResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
-      std::cout << "Salsa20 initialized" << std::endl;
+      // std::cout << "Salsa20 initialized" << std::endl;
       eraseAction();
       return;
     }
@@ -134,6 +137,7 @@ void Update::initResult(res::Result const r) {
 }
 
 void Update::eraseAction() {
+  _updateStep(type::UpdateStep::Erase);
   _lib.mdu_ein().zsuErase(_fwIt);
   _state = &Update::eraseResult;
 }
@@ -141,7 +145,7 @@ void Update::eraseAction() {
 void Update::eraseResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
-      std::cout << "Erasing" << std::endl;
+      // std::cout << "Erasing" << std::endl;
       waitAction();
       return;
     }
@@ -152,6 +156,7 @@ void Update::eraseResult(res::Result const r) {
 }
 
 void Update::waitAction() {
+  _updateProgress(static_cast<double>(_index) / 20.0);
   _lib.mdu_ein().busy();
   _state = &Update::waitResult;
 }
@@ -159,12 +164,12 @@ void Update::waitAction() {
 void Update::waitResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (_index++ >= 20) {
-      std::cout << "Finished erasing" << std::endl;
+      // std::cout << "Finished erasing" << std::endl;
       _index = 0;
       updateAction();
       return;
     }
-    std::cout << "Still erasing" << std::endl;
+    // std::cout << "Still erasing" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     waitAction();
     return;
@@ -176,6 +181,7 @@ void Update::waitResult(res::Result const r) {
 }
 
 void Update::updateAction() {
+  _updateStep(type::UpdateStep::Update);
   _lib.mdu_ein().zsuUpdate(_fwIt, _index);
   _state = &Update::updateResult;
 }
@@ -183,12 +189,14 @@ void Update::updateAction() {
 void Update::updateResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
-      if (_index % 256 == 0) {
-        std::cout << "Written " << _index << " Blocks" << std::endl;
-      }
+      _updateProgress(static_cast<double>(_index + 1.0) /
+                      static_cast<double>(_fwIt.blocks()));
+      // if (_index % 256 == 0) {
+      //   std::cout << "Written " << _index << " Blocks" << std::endl;
+      // }
 
       if (++_index >= _fwIt.blocks()) {
-        std::cout << "Written " << _fwIt.blocks() << " Blocks" << std::endl;
+        // std::cout << "Written " << _fwIt.blocks() << " Blocks" << std::endl;
         verifyAction();
         return;
       }
@@ -201,6 +209,7 @@ void Update::updateResult(res::Result const r) {
 }
 
 void Update::verifyAction() {
+  _updateStep(type::UpdateStep::Verify);
   _lib.mdu_ein().zsuCrc32Start(_fwIt);
   _state = &Update::verifyResult;
 }
@@ -208,7 +217,7 @@ void Update::verifyAction() {
 void Update::verifyResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
-      std::cout << "Started CRC32 verification" << std::endl;
+      // std::cout << "Started CRC32 verification" << std::endl;
       endAction();
       return;
     }
@@ -218,6 +227,7 @@ void Update::verifyResult(res::Result const r) {
 }
 
 void Update::endAction() {
+  _updateStep(type::UpdateStep::Cleanup);
   _lib.mdu_ein().zsuCrc32ResultExit();
   _state = &Update::endResult;
 }
@@ -242,11 +252,13 @@ void Update::resetAction() {
 }
 
 void Update::resetResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    std::cout << "Reset success" << std::endl;
-    return;
-  }
-  std::cout << "Reset NOT successful" << std::endl;
+  // if (std::holds_alternative<res::Status>(r)) {
+  //  std::cout << "Reset success" << std::endl;
+  //
+  //  return;
+  //}
+  // std::cout << "Reset NOT successful" << std::endl;
+  _updateStep(type::UpdateStep::Done);
   return;
 }
 

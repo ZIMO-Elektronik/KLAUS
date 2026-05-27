@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <app-window.h>
 #include <slint.h>
 
 namespace ui {

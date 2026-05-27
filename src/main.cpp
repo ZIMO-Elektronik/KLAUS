@@ -1,9 +1,10 @@
 #include <cstdlib>
 #include <iostream>
 #include "app-window.h"
-#include "include/ui/cv/cv_programmer.hpp"
+// #include "include/ui/cv/cv_programmer.hpp"
 
 #include "include/process/mdu_ein/update.hpp"
+#include "include/ui/update.hpp"
 
 #ifdef _WIN32
 #  include <windows.h>
@@ -44,24 +45,73 @@ int main(int argc, char* argv[]) {
   }
 #endif
 
+  /*
   auto process{std::make_shared<process::mdu_ein::Update>()};
   process->setup(process);
+   process->onUpdateProgress([](double progress) {
+    int barWidth = 70;
+    std::cout << "[";
+    int pos = static_cast<int>(barWidth * progress);
+    for (int j{0}; j < barWidth; j++) {
+      if (j < pos) std::cout << "=";
+      else if (j == pos) std::cout << ">";
+      else std::cout << " ";
+    }
+    std::cout << "] Progress " << static_cast<int>(progress * 100) << "%";
+    std::cout << "\r";
+    std::cout.flush();
+
+    if (progress >= 1) std::cout << std::endl;
+  });
+
+  bool done{false};
+  type::UpdateStep last{type::UpdateStep::Done};
+
+  process->onUpdateStep([&done, &last](type::UpdateStep step) {
+    if (step == last) return;
+    switch (step) {
+      case type::UpdateStep::Start: std::cout << "Starting" << std::endl; break;
+      case type::UpdateStep::Init:
+        std::cout << "Initializing" << std::endl;
+        break;
+      case type::UpdateStep::Search:
+        std::cout << "Searching Decoder" << std::endl;
+        break;
+      case type::UpdateStep::Erase:
+        std::cout << "Erase Flash" << std::endl;
+        break;
+      case type::UpdateStep::Update:
+        std::cout << "Updating" << std::endl;
+        break;
+      case type::UpdateStep::Verify:
+        std::cout << "Verify Update" << std::endl;
+        break;
+      case type::UpdateStep::Cleanup:
+        std::cout << "Cleanup" << std::endl;
+        break;
+      case type::UpdateStep::Done:
+        std::cout << "Done" << std::endl;
+        done = true;
+        break;
+    }
+    last = step;
+  });
+
   process->execute();
 
-  std::this_thread::sleep_for(std::chrono::seconds{200});
+  while (!done) std::this_thread::sleep_for(std::chrono::seconds{2});
 
   process.reset();
 
   return 0;
+  */
 
   auto ui = AppWindow::create();
 
-  ui::cv::CvProgrammer programmer{};
-  programmer.connect(ui);
+  ui::Update update{};
+  update.connect(ui);
 
   ui->run();
-
-  programmer.check();
 
   return 0;
 }

@@ -18,6 +18,7 @@ enum class UpdateStep {
   Start,
   Search,
   Init,
+  Erase,
   Update,
   Verify,
   Cleanup,

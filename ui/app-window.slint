@@ -7,14 +7,18 @@ import {
     SpinBox,
 } from "std-widgets.slint";
 import { CvProgrammingPage } from "cv-programming.slint";
+import { UpdatePage } from "update.slint";
 import { Cv } from "cv/cv.slint";
 
 export component AppWindow inherits Window {
-    in-out property <[Cv]> cv-list <=> cv-programmer.cv-list;
+    in property update-page-progress-title-text <=> update.progress-title-text;
+    in property update-page-progress-step-text <=> update.progress-step-text;
+    in property update-page-progress-progress <=> update.progress-progress;
 
-    callback cv-data-changed <=> cv-programmer.data_changed;
+    callback update-start-clicked <=> update.start-clicked;
+    callback update-abort-clicked <=> update.abort-clicked;
 
     HorizontalLayout {
-        cv-programmer := CvProgrammingPage { }
+        update := UpdatePage { }
     }
 }

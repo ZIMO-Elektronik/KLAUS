@@ -15,7 +15,7 @@ project(
   LANGUAGES CXX)
 
 add_executable(Updater src/main.cpp src/process/mdu_ein/update.cpp
-                       src/process/base.cpp)
+                       src/process/base.cpp src/ui/update.cpp)
 
 FetchContent_Declare(
   Slint
