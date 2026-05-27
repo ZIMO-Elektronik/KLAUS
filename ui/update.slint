@@ -13,6 +13,7 @@ export component UpdatePage inherits Rectangle {
     in property progress-step-text <=> progress.step_text;
     in property progress-progress <=> progress.progress;
 
+    callback choose-clicked <=> choose.clicked;
     callback start-clicked <=> start.clicked;
     callback abort-clicked <=> abort.clicked;
 
@@ -20,6 +21,10 @@ export component UpdatePage inherits Rectangle {
     preferred-width: layout.preferred-width;
 
     layout := HorizontalLayout {
+
+        choose := Button {
+            text: "Choose File";
+        }
 
         start := Button {
             text: "Start Update";

@@ -55,6 +55,18 @@ if(NOT TARGET Slint::Slint)
     ${SLINT_OPTIONS})
 endif()
 
+if(NOT TARGET tinyfiledialogs::tinyfiledialogs)
+  cpmaddpackage(
+    NAME
+    Tinyfiledialogs
+    GITHUB_REPOSITORY
+    D31m05z/tinyfiledialogs
+    SYSTEM
+    YES
+    GIT_TAG
+    master)
+endif()
+
 if(NOT TARGET KLUG::KLUG)
   cpmaddpackage(
     NAME
@@ -69,7 +81,8 @@ endif()
 
 target_include_directories(Updater PRIVATE .)
 
-target_link_libraries(Updater PRIVATE Slint::Slint KLUG)
+target_link_libraries(Updater PRIVATE Slint::Slint KLUG
+                                      tinyfiledialogs::tinyfiledialogs)
 slint_target_sources(Updater ui/app-window.slint)
 
 # On Windows, copy the Slint DLL next to the application binary so that it's

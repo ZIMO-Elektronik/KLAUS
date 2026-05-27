@@ -16,6 +16,8 @@ struct Update : IBackend {
   virtual void connect(slint::ComponentHandle<AppWindow>);
 
 private:
+  void choose();
+
   void start();
   void abort();
 

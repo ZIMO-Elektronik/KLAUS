@@ -15,6 +15,7 @@ export component AppWindow inherits Window {
     in property update-page-progress-step-text <=> update.progress-step-text;
     in property update-page-progress-progress <=> update.progress-progress;
 
+    callback update-choose-clicked <=> update.choose-clicked;
     callback update-start-clicked <=> update.start-clicked;
     callback update-abort-clicked <=> update.abort-clicked;
 
