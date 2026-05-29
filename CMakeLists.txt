@@ -76,13 +76,12 @@ if(NOT TARGET KLUG::KLUG)
     SYSTEM
     YES
     GIT_TAG
-    api_documentation)
+    usb_backend)
 endif()
 
 target_include_directories(Updater PRIVATE .)
 
-target_link_libraries(Updater PRIVATE Slint::Slint KLUG
-                                      tinyfiledialogs::tinyfiledialogs)
+target_link_libraries(Updater PRIVATE Slint::Slint KLUG ::tinyfiledialogs)
 slint_target_sources(Updater ui/app-window.slint)
 
 # On Windows, copy the Slint DLL next to the application binary so that it's

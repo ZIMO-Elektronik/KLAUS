@@ -55,7 +55,10 @@
             "displayName": "Debug AMD64 Windows",
             "description": "Cross-Compiled Debug build for Windows on AMD64 architecture",
             "toolchainFile": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
-            "inherits": "debug_base"
+            "inherits": "debug_base",
+            "cacheVariables": {
+                "CPM_KLUG_SOURCE": "${sourceDir}/../libklug/"
+            }
         },
         {
             "name": "release_amd64_windows",

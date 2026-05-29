@@ -33,6 +33,8 @@ private:
   std::shared_ptr<process::IUpdateProcess> _process{};
 
   type::UpdateStep _step{type::UpdateStep::Done};
+
+  std::filesystem::path _path{};
 };
 
 } // namespace ui

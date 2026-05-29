@@ -23,7 +23,7 @@ namespace process::mdu_ein {
 
  */
 struct Update : public Base, public IUpdateProcess {
-  Update();
+  Update(std::filesystem::path path);
   virtual ~Update();
 
   virtual void execute();

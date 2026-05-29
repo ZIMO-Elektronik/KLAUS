@@ -5,10 +5,7 @@
 
 namespace process::mdu_ein {
 
-Update::Update()
-  : Base{}, _zsu{"/home/jonas/Downloads/MSDecoder-5.20.4/MS-5.20.4.zsu"} {
-  connect();
-}
+Update::Update(std::filesystem::path path) : Base{}, _zsu{path} { connect(); }
 Update::~Update() { disconnect(); }
 
 void Update::execute() { modeAction(); }
