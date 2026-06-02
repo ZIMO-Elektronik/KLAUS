@@ -1,21 +1,30 @@
-#include "include/ui/update.hpp"
+#include "include/ui/update_backend.hpp"
 #include <tinyfiledialogs/tinyfiledialogs.h>
 
 namespace ui {
 
-void Update::connect(slint::ComponentHandle<AppWindow> window) {
+void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>{window};
 
-  window->on_update_choose_clicked([this]() { this->choose(); });
-  window->on_update_start_clicked([this]() { this->start(); });
-  window->on_update_abort_clicked([this]() { this->abort(); });
+  window->on_choose_file([this]() { this->choose_file(); });
+  window->on_start_process([this]() { this->start_process(); });
+  window->on_abort_process([this]() { this->abort_process(); });
 
-  window->set_update_page_progress_title_text({"Update"});
-  window->set_update_page_progress_step_text({"Awaiting start"});
-  window->set_update_page_progress_progress(0.0);
+  window->set_show_progress(static_cast<bool>(_process));
+
+  window->set_step_name({"Awaiting start"});
+  window->set_progress_value(0.0);
+
+  auto const has_file{this->_path.has_filename()};
+  if (has_file) {
+    window->set_has_file(true);
+    window->set_file_path({_path.string().data()});
+  } else {
+    window->set_has_file(false);
+  }
 }
 
-void Update::choose() {
+void UpdateBackend::choose_file() {
   // 1. Filter für den Dialog definieren
   // tinyfiledialogs erwartet ein Array aus Zeichenketten für die Endungen
   char const* filterPatterns[] = {"*.zsu"};
@@ -46,10 +55,17 @@ void Update::choose() {
 
   _path = zsuPath;
 
+  if (auto ui{_weakUi.lock()}) {
+    (*ui)->set_has_file(true);
+    (*ui)->set_file_path(_path.string().data());
+  }
+
   return;
 }
 
-void Update::start() {
+void UpdateBackend::start_process() {
+  if (auto ui{_weakUi.lock()}) { (*ui)->set_show_progress(true); }
+
   auto tmp_ = std::make_shared<process::mdu_ein::Update>(_path);
   tmp_->setup(tmp_);
   _process = tmp_;
@@ -61,83 +77,83 @@ void Update::start() {
   _process->execute();
 }
 
-void Update::abort() { _process->abort(); }
+void UpdateBackend::abort_process() { _process->abort(); }
 
-void Update::done() { _process.reset(); }
+void UpdateBackend::done() { _process.reset(); }
 
-void Update::updateProgress(double progress) {
+void UpdateBackend::updateProgress(double progress) {
   updateUi([this, progress]() {
-    if (auto ui{this->_weakUi.lock()}) {
-      (*ui)->set_update_page_progress_progress(progress);
-    }
+    if (auto ui{this->_weakUi.lock()}) { (*ui)->set_progress_value(progress); }
   });
 }
 
-void Update::updateStep(type::UpdateStep const step) {
+void UpdateBackend::updateStep(type::UpdateStep const step) {
   if (step == _step) return;
 
   switch (step) {
     case type::UpdateStep::Start:
       updateUi([this]() {
         if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_update_page_progress_step_text({"Started"});
+          (*ui)->set_step_name({"Started"});
         }
       });
       break;
     case type::UpdateStep::Init:
       updateUi([this]() {
         if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_update_page_progress_step_text({"Initializing"});
+          (*ui)->set_step_name({"Initializing"});
         }
       });
       break;
     case type::UpdateStep::Search:
       updateUi([this]() {
         if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_update_page_progress_step_text({"Searching decoder"});
+          (*ui)->set_step_name({"Searching decoder"});
         }
       });
       break;
     case type::UpdateStep::Erase:
       updateUi([this]() {
         if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_update_page_progress_step_text({"Erasing Flash"});
+          (*ui)->set_step_name({"Erasing Flash"});
         }
       });
       break;
     case type::UpdateStep::Update:
       updateUi([this]() {
         if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_update_page_progress_step_text({"Writing update"});
+          (*ui)->set_step_name({"Writing update"});
         }
       });
       break;
     case type::UpdateStep::Verify:
       updateUi([this]() {
         if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_update_page_progress_step_text({"Verifying"});
+          (*ui)->set_step_name({"Verifying"});
         }
       });
       break;
     case type::UpdateStep::Cleanup:
       updateUi([this]() {
         if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_update_page_progress_step_text({"Cleanup"});
+          (*ui)->set_step_name({"Cleanup"});
         }
       });
       break;
     case type::UpdateStep::Done:
       updateUi([this]() {
         if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_update_page_progress_step_text({"Done"});
+          (*ui)->set_step_name({"Done"});
+          (*ui)->set_show_progress(false);
         }
+        this->done();
       });
       break;
   }
   _step = step;
 }
 
-void Update::updateUi(std::function<void()> fn) {
+void UpdateBackend::updateUi(std::function<void()> fn) {
   slint::invoke_from_event_loop(fn);
 }
 

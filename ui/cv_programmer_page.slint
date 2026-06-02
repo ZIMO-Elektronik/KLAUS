@@ -1,0 +1,30 @@
+import { VerticalBox } from "std-widgets.slint";
+import { ProgressPanel } from "progress_panel.slint";
+
+export component CvProgrammerPage {
+    in property <bool> show-progress: false;
+    in property <string> step-name: "Hier könnte ihre Werbung stehen";
+    in property <float> progress-value: 0.0;
+    callback abort-process();
+
+    VerticalBox {
+        padding: 20px;
+        Text {
+            text: "CvProgrammer Bereich";
+            font-size: 20px;
+            color: #000000;
+        }
+
+        Rectangle {
+            vertical-stretch: 1;
+        }
+
+        if root.show-progress: ProgressPanel {
+            step-name: root.step-name;
+            progress-value: root.progress-value;
+            abort-clicked => {
+                root.abort-process();
+            }
+        }
+    }
+}

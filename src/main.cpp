@@ -4,7 +4,7 @@
 // #include "include/ui/cv/cv_programmer.hpp"
 
 #include "include/process/mdu_ein/update.hpp"
-#include "include/ui/update.hpp"
+#include "include/ui/app_backend.hpp"
 
 #ifdef _WIN32
 #  include <windows.h>
@@ -108,8 +108,8 @@ int main(int argc, char* argv[]) {
 
   auto ui = AppWindow::create();
 
-  ui::Update update{};
-  update.connect(ui);
+  ui::AppBackend app{};
+  app.connect(ui);
 
   ui->run();
 

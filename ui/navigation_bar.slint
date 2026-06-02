@@ -1,0 +1,54 @@
+import { Button, VerticalBox } from "std-widgets.slint";
+import { AppPage } from "types.slint";
+
+export component NavigationBar {
+    in-out property <AppPage> active-page: Update;
+
+    callback change_page(AppPage);
+
+    Rectangle {
+        width: 180px;
+        background: #2c3e50;
+
+        VerticalBox {
+            padding: 10px;
+            spacing: 8px;
+            alignment: start;
+
+            Text {
+                text: "Navigation";
+                color: white;
+                font-size: 16px;
+                horizontal-alignment: center;
+            }
+
+            Rectangle {
+                height: 10px;
+            }
+
+            Button {
+                text: "Update";
+                clicked => {
+                    root.active-page = AppPage.Update;
+                    root.change_page(root.active-page);
+                }
+            }
+
+            Button {
+                text: "SoundLoad";
+                clicked => {
+                    root.active-page = AppPage.Soundload;
+                    root.change_page(root.active-page);
+                }
+            }
+
+            Button {
+                text: "CvProgrammer";
+                clicked => {
+                    root.active-page = AppPage.CvProgrammer;
+                    root.change_page(root.active-page);
+                }
+            }
+        }
+    }
+}

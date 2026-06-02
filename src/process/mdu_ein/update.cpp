@@ -248,12 +248,10 @@ void Update::resetAction() {
 }
 
 void Update::resetResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
+  if (std::holds_alternative<res::Status>(r))
     std::cout << "Reset success" << std::endl;
+  else std::cout << "Reset NOT successful" << std::endl;
 
-    return;
-  }
-  std::cout << "Reset NOT successful" << std::endl;
   _updateStep(type::UpdateStep::Done);
   return;
 }
