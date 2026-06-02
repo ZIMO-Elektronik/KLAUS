@@ -37,7 +37,7 @@ void Update::modeAction() {
 
 void Update::modeResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
-    // std::cout << "Mode MDU_EIN" << std::endl;
+    std::cout << "Mode MDU_EIN" << std::endl;
     enterAction();
     return;
   }
@@ -53,7 +53,7 @@ void Update::enterAction() {
 
 void Update::enterResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
-    // std::cout << "Entered via MDU" << std::endl;
+    std::cout << "Entered via MDU" << std::endl;
     configAction();
     return;
   }
@@ -65,13 +65,13 @@ void Update::enterResult(res::Result const r) {
 void Update::configAction() {
   _updateStep(type::UpdateStep::Init);
   _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow);
-  _state = &Update::initResult;
+  _state = &Update::configResult;
 }
 
 void Update::configResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
-      // std::cout << "Data rate set to slow" << std::endl;
+      std::cout << "Data rate set to slow" << std::endl;
       searchAction();
       return;
     }
@@ -96,9 +96,8 @@ void Update::searchResult(res::Result const r) {
       return;
 
     } else {
-      // std::cout << "Unsuccessful at Id 0x" << std::hex << _fwIt.id() <<
-      // std::dec
-      //           << std::endl;
+      std::cout << "Unsuccessful at Id 0x" << std::hex << _fwIt.id() << std::dec
+                << std::endl;
       ++_fwIt;
       if (_fwIt == _fwItEnd) {
         std::cout << "No decoder found" << std::endl;
@@ -123,7 +122,7 @@ void Update::initAction() {
 void Update::initResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
-      // std::cout << "Salsa20 initialized" << std::endl;
+      std::cout << "Salsa20 initialized" << std::endl;
       eraseAction();
       return;
     }
@@ -142,7 +141,7 @@ void Update::eraseAction() {
 void Update::eraseResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
-      // std::cout << "Erasing" << std::endl;
+      std::cout << "Erasing" << std::endl;
       waitAction();
       return;
     }
@@ -161,12 +160,12 @@ void Update::waitAction() {
 void Update::waitResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (_index++ >= 20) {
-      // std::cout << "Finished erasing" << std::endl;
+      std::cout << "Finished erasing" << std::endl;
       _index = 0;
       updateAction();
       return;
     }
-    // std::cout << "Still erasing" << std::endl;
+    std::cout << "Still erasing" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     waitAction();
     return;
@@ -188,12 +187,12 @@ void Update::updateResult(res::Result const r) {
     if (std::get<res::Status>(r)) {
       _updateProgress(static_cast<double>(_index + 1.0) /
                       static_cast<double>(_fwIt.blocks()));
-      // if (_index % 256 == 0) {
-      //   std::cout << "Written " << _index << " Blocks" << std::endl;
-      // }
+      if (_index % 256 == 0) {
+        std::cout << "Written " << _index << " Blocks" << std::endl;
+      }
 
       if (++_index >= _fwIt.blocks()) {
-        // std::cout << "Written " << _fwIt.blocks() << " Blocks" << std::endl;
+        std::cout << "Written " << _fwIt.blocks() << " Blocks" << std::endl;
         verifyAction();
         return;
       }
@@ -214,7 +213,7 @@ void Update::verifyAction() {
 void Update::verifyResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
-      // std::cout << "Started CRC32 verification" << std::endl;
+      std::cout << "Started CRC32 verification" << std::endl;
       endAction();
       return;
     }
@@ -249,12 +248,12 @@ void Update::resetAction() {
 }
 
 void Update::resetResult(res::Result const r) {
-  // if (std::holds_alternative<res::Status>(r)) {
-  //  std::cout << "Reset success" << std::endl;
-  //
-  //  return;
-  //}
-  // std::cout << "Reset NOT successful" << std::endl;
+  if (std::holds_alternative<res::Status>(r)) {
+    std::cout << "Reset success" << std::endl;
+
+    return;
+  }
+  std::cout << "Reset NOT successful" << std::endl;
   _updateStep(type::UpdateStep::Done);
   return;
 }

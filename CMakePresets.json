@@ -15,6 +15,7 @@
             "binaryDir": "${sourceDir}/build",
             "generator": "Ninja",
             "cacheVariables": {
+                "CPM_KLUG_SOURCE": "${sourceDir}/../libklug/",
                 "CMAKE_BUILD_PARALLEL_LEVEL": "16"
             }
         },
@@ -55,10 +56,7 @@
             "displayName": "Debug AMD64 Windows",
             "description": "Cross-Compiled Debug build for Windows on AMD64 architecture",
             "toolchainFile": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
-            "inherits": "debug_base",
-            "cacheVariables": {
-                "CPM_KLUG_SOURCE": "${sourceDir}/../libklug/"
-            }
+            "inherits": "debug_base"
         },
         {
             "name": "release_amd64_windows",
