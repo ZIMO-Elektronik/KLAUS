@@ -15,8 +15,14 @@ project(
   LANGUAGES CXX)
 
 add_executable(
-  Updater src/main.cpp src/process/mdu_ein/update.cpp src/process/base.cpp
-          src/ui/update_backend.cpp src/ui/app_backend.cpp)
+  Updater
+  src/main.cpp
+  src/process/mdu_ein/update.cpp
+  src/process/susiv2/soundload.cpp
+  src/process/base.cpp
+  src/ui/update_backend.cpp
+  src/ui/soundload_backend.cpp
+  src/ui/app_backend.cpp)
 
 FetchContent_Declare(
   Slint

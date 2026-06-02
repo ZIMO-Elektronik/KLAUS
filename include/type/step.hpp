@@ -29,10 +29,11 @@ enum class UpdateStep {
  * Soundload (ZPP) steps
  *
  */
-enum class SoundloadStep {
+enum class SoundLoadStep {
   Start,
   Search,
   Init,
+  Erase,
   Load,
   Cleanup,
   Done,

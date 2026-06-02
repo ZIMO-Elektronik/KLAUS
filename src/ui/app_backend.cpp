@@ -2,7 +2,9 @@
 
 namespace ui {
 
-AppBackend::AppBackend() : _updateBackend{std::make_unique<UpdateBackend>()} {}
+AppBackend::AppBackend()
+  : _updateBackend{std::make_unique<UpdateBackend>()},
+    _soundLoadBackend{std::make_unique<SoundLoadBackend>()} {}
 
 void AppBackend::connect(slint::ComponentHandle<AppWindow> ui) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>(ui);
@@ -16,7 +18,7 @@ void AppBackend::change_page(AppPage page) {
   if (auto ui{_weakUi.lock()}) {
     switch (page) {
       case AppPage::Update: _updateBackend->connect(*ui); break;
-      case AppPage::Soundload: break;
+      case AppPage::Soundload: _soundLoadBackend->connect(*ui); break;
       case AppPage::CvProgrammer: break;
       default: assert(false);
     }

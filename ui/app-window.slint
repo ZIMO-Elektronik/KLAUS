@@ -17,7 +17,7 @@ export component AppWindow inherits Window {
     in property <bool> has-file: false;
     in property <string> file-path: "";
 
-    in-out property <AppPage> active-page;
+    in-out property active-page <=> nav.active-page;
 
     // Globale Callbacks für C++ Registrierung
     callback change_page(AppPage);
@@ -28,8 +28,7 @@ export component AppWindow inherits Window {
 
     HorizontalLayout {
         // Linke Navigationsleiste
-        NavigationBar {
-            active-page: root.active-page;
+        nav := NavigationBar {
             change-page(page) => {
                 root.change_page(page);
             }
@@ -61,6 +60,15 @@ export component AppWindow inherits Window {
                 show-progress: root.show-progress;
                 progress-value: root.progress-value;
                 step-name: root.step-name;
+
+                has-file: root.has-file;
+                file-path: root.file-path;
+                choose-file => {
+                    root.choose_file();
+                }
+                start-process => {
+                    root.start_process();
+                }
                 abort-process => {
                     root.abort-process();
                 }

@@ -1,26 +1,73 @@
-import { VerticalBox } from "std-widgets.slint";
+import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { ProgressPanel } from "progress_panel.slint";
 
 export component SoundLoadPage {
     in property <bool> show-progress: false;
     in property <string> step-name: "Hier könnte ihre Werbung stehen";
     in property <float> progress-value: 0.0;
+
+    in property <bool> has-file: false;
+    in property <string> file-path: "";
+
+    callback choose-file();
+    callback start-process();
     callback abort-process();
 
     VerticalBox {
         padding: 20px;
+        spacing: 15px;
+        alignment: start;
+
         Text {
             text: "SoundLoad";
             font-size: 20px;
             color: #000000;
         }
 
+        // Bereich für die Dateiauswahl
+        HorizontalBox {
+            spacing: 10px;
+            alignment: start;
+
+            Button {
+                text: "Choose file";
+                // Deaktivieren, wenn der Prozess bereits läuft
+                enabled: !root.show-progress;
+                clicked => {
+                    root.choose-file();
+                }
+            }
+
+            Text {
+                text: root.file-path == "" ? "No file selected" : root.file-path;
+                vertical-alignment: center;
+                color: root.has-file ? #2c3e50 : #7f8c8d;
+                font-italic: !root.has-file;
+            }
+        }
+
+        // Start-Button
+        HorizontalBox {
+            alignment: start;
+
+            Button {
+                text: "Start update";
+                // Aktiv, wenn eine Datei existiert UND kein Update läuft
+                enabled: root.has-file && !root.show-progress;
+                clicked => {
+                    root.start-process();
+                }
+            }
+        }
+
+        // Schiebt das Fortschritts-Panel an das untere Ende der Seite
         Rectangle {
             vertical-stretch: 1;
         }
 
+        // Bedingte Anzeige des Fortschritts-Panels
         if root.show-progress: ProgressPanel {
-            step-name: root.step-name;
+            step-name: step-name;
             progress-value: root.progress-value;
             abort-clicked => {
                 root.abort-process();

@@ -18,8 +18,8 @@ namespace process {
  * Soundload process interface
  *
  */
-struct ISoundloadProcess : public IProcess {
-  virtual void onUpdateStep(std::function<void(type::SoundloadStep)>) = 0;
+struct ISoundLoadProcess : public IProcess {
+  virtual void onUpdateStep(std::function<void(type::SoundLoadStep)>) = 0;
 };
 
 } // namespace process

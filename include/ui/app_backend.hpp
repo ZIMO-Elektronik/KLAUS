@@ -19,6 +19,7 @@ private:
   slint::ComponentWeakHandle<AppWindow> _weakUi{};
 
   std::unique_ptr<UpdateBackend> _updateBackend{};
+  std::unique_ptr<SoundLoadBackend> _soundLoadBackend{};
 };
 
 } // namespace ui
