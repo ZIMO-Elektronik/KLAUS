@@ -57,6 +57,8 @@ private:
 
   libklug::ZPP _zpp;
 
+  int _err_cnt{0};
+
   bool _abort{};
 
   unsigned int _index{};

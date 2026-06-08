@@ -185,19 +185,22 @@ void Update::updateAction() {
 void Update::updateResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
+      // Block transferred
+      _err_cnt = 0;
       _updateProgress(static_cast<double>(_index + 1.0) /
                       static_cast<double>(_fwIt.blocks()));
-      if (_index % 256 == 0) {
-        std::cout << "Written " << _index << " Blocks" << std::endl;
-      }
-
       if (++_index >= _fwIt.blocks()) {
-        std::cout << "Written " << _fwIt.blocks() << " Blocks" << std::endl;
-        verifyAction();
-        return;
+        return verifyAction();
+        
       }
-      updateAction();
-      return;
+      return updateAction();
+      
+    } else {
+      // Block rejected
+      _err_cnt++;
+      if (_err_cnt < 3) return updateAction();
+
+      // Too many errors
     }
   }
   std::cout << "Error while updating" << std::endl;

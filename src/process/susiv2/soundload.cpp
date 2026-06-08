@@ -90,18 +90,21 @@ void SoundLoad::loadAction() {
 void SoundLoad::loadResult(res::Result const& r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
+      // Block written
       _progressCb(static_cast<double>(_index + 1.0) /
                   static_cast<double>(_zpp.blocks()));
-    }
-    if (_index % 256 == 0) {
-      std::cout << "Written " << _index << " Blocks" << std::endl;
-    }
 
-    if (++_index >= _zpp.blocks()) {
-      std::cout << "Written " << _zpp.blocks() << " Blocks" << std::endl;
-      return endAction();
+      if (++_index >= _zpp.blocks()) { return endAction(); }
+      return loadAction();
+    } else {
+      // Block rejected
+      if (_err_cnt++ < 3) {
+        // Retry
+        return loadAction();
+      }
+
+      // Too many errors
     }
-    return loadAction();
   }
 
   std::cout << "Unable to write flash" << std::endl;

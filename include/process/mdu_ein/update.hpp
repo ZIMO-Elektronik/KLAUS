@@ -79,6 +79,8 @@ private:
   libklug::ZSU::FirmwareIterator _fwIt{_zsu.begin()};
   libklug::ZSU::FirmwareIterator const _fwItEnd{_zsu.end()};
 
+  int _err_cnt{0};
+
   bool _abort{};
 
   unsigned int _index{};

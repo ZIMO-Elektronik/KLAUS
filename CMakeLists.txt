@@ -15,7 +15,7 @@ project(
   LANGUAGES CXX)
 
 add_executable(
-  Updater
+  Updater WIN32
   src/main.cpp
   src/process/mdu_ein/update.cpp
   src/process/susiv2/soundload.cpp
