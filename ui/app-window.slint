@@ -13,6 +13,7 @@ export component AppWindow inherits Window {
     in property <bool> show-progress;
     in property <string> step-name: "Hier könnte ihre Werbung stehen";
     in property <float> progress-value: 0.0;
+    in property <string> progress-estimate;
 
     in property <bool> has-file: false;
     in property <string> file-path: "";
@@ -45,6 +46,7 @@ export component AppWindow inherits Window {
             if root.active-page == AppPage.Update: UpdatePage {
                 show-progress: root.show-progress;
                 progress-value: root.progress-value;
+                progress-estimate: root.progress-estimate;
                 step-name: root.step-name;
 
                 has-file: root.has-file;
@@ -63,6 +65,7 @@ export component AppWindow inherits Window {
             if root.active-page == AppPage.Soundload: SoundLoadPage {
                 show-progress: root.show-progress;
                 progress-value: root.progress-value;
+                progress-estimate: root.progress-estimate;
                 step-name: root.step-name;
 
                 has-file: root.has-file;

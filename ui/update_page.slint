@@ -5,6 +5,7 @@ export component UpdatePage {
     in property <bool> show-progress: false;
     in property <string> step-name: "Hier könnte ihre Werbung stehen";
     in property <float> progress-value: 0.0;
+    in property <string> progress-estimate;
 
     in property <bool> has-file: false;
     in property <string> file-path: "";
@@ -69,6 +70,7 @@ export component UpdatePage {
         if root.show-progress: ProgressPanel {
             step-name: step-name;
             progress-value: root.progress-value;
+            estimate: root.progress-estimate;
             abort-clicked => {
                 root.abort-process();
             }

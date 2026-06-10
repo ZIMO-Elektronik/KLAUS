@@ -6,6 +6,7 @@
 #include "include/process/i_update_process.hpp"
 #include "include/process/susiv2/soundload.hpp"
 #include "include/type/step.hpp"
+#include "include/ui/helper/progress_tracker.hpp"
 
 namespace ui {
 
@@ -36,6 +37,8 @@ private:
   type::SoundLoadStep _step{type::SoundLoadStep::Done};
 
   std::filesystem::path _path{};
+
+  helper::ProgressTracker _tracker{};
 };
 
 } // namespace ui

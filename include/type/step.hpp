@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <variant>
+
 namespace type {
 
 /**
@@ -49,6 +51,37 @@ enum class CvStep {
   CvWrite,
   Cleanup,
   Done,
+};
+
+enum class MessageId {
+  Start,
+  StartComplete,
+  SearchDecoder,
+  FoundDecoder,
+  EraseFlash,
+  EraseFlashComplete,
+  WriteFlash,
+  WriteFlashComplete,
+  ReadCv,
+  ReadCvComplete,
+  WriteCv,
+  WriteCvComplete,
+  Verify,
+  VerifyComplete,
+  VerifyError,
+  Cleanup,
+  CleanupComplete,
+  Done,
+
+  None,
+};
+
+using Payload = std::variant<std::monostate>;
+
+struct ProcessUpdate {
+  MessageId id{MessageId::None};
+  float progress{0.0f};
+  Payload payload{};
 };
 
 } // namespace type

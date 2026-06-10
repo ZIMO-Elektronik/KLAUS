@@ -8,6 +8,8 @@ import {
 export component ProgressPanel {
     in property <string> step-name: "Hier könnte ihre Werbung stehen";
     in property <float> progress-value: 0.0; // Wert zwischen 0.0 und 1.0
+    in property <string> estimate;
+
     callback abort-clicked();
 
     Rectangle {
@@ -27,8 +29,26 @@ export component ProgressPanel {
                 color: #333333;
             }
 
-            ProgressIndicator {
-                progress: root.progress-value;
+            Rectangle {
+                //width: 100%;
+                //height: 100%;
+                width: 100%;
+                preferred-height: progress-text.preferred-height + 5px;
+                ProgressIndicator {
+                    progress: root.progress-value;
+                    width: 90%;
+                    preferred-height: progress-text.preferred-height + 5px;
+                }
+
+                progress-text := Text {
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    text: Math.round(root.progress-value * 100) + "%";
+                }
+            }
+
+            Text {
+                text: "Estimated time remaining: " + root.estimate;
             }
 
             HorizontalBox {

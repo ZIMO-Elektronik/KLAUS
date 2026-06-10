@@ -21,6 +21,7 @@ add_executable(
   src/process/mdu_ein/soundload.cpp
   src/process/susiv2/soundload.cpp
   src/process/base.cpp
+  src/ui/helper/progress_tracker.cpp
   src/ui/update_backend.cpp
   src/ui/soundload_backend.cpp
   src/ui/app_backend.cpp)

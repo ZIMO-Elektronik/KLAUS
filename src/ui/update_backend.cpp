@@ -75,6 +75,8 @@ void UpdateBackend::start_process() {
     [this](double progress) { this->updateProgress(progress); });
 
   _process->execute();
+
+  _tracker.reset();
 }
 
 void UpdateBackend::abort_process() { _process->abort(); }
@@ -82,8 +84,14 @@ void UpdateBackend::abort_process() { _process->abort(); }
 void UpdateBackend::done() { _process.reset(); }
 
 void UpdateBackend::updateProgress(double progress) {
+  using std::operator""sv;
   updateUi([this, progress]() {
-    if (auto ui{this->_weakUi.lock()}) { (*ui)->set_progress_value(progress); }
+    std::string_view str{_tracker.update(progress) ? _tracker.estimate()
+                                                   : ""sv};
+    if (auto ui{this->_weakUi.lock()}) {
+      (*ui)->set_progress_value(progress);
+      if (!str.empty()) (*ui)->set_progress_estimate({str.data()});
+    }
   });
 }
 
