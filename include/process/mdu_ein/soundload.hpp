@@ -29,8 +29,6 @@ struct SoundLoad : public Base, public ISoundLoadProcess {
   virtual void execute();
   virtual void abort();
 
-  void setup(std::shared_ptr<SoundLoad>);
-
   virtual void onUpdateProgress(std::function<void(double)>);
   virtual void onUpdateStep(std::function<void(type::SoundLoadStep)>);
 

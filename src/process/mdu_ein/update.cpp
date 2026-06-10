@@ -5,16 +5,20 @@
 
 namespace process::mdu_ein {
 
-Update::Update(std::filesystem::path path) : Base{}, _zsu{path} { connect(); }
-Update::~Update() { disconnect(); }
+Update::Update(std::filesystem::path path) : Base{}, _zsu{path} {
+  connect();
+  _lib.registerCb<[] {}>(
+    [this](res::Result const result) { this->handle_result(result); });
+}
+
+Update::~Update() {
+  _lib.deregisterCb();
+  disconnect();
+}
 
 void Update::execute() { modeAction(); }
 
 void Update::abort() { _abort = true; }
-
-void Update::setup(std::shared_ptr<Update> thiz) {
-  _lib.registerCb(thiz, &Update::handle_result);
-}
 
 void Update::onUpdateProgress(std::function<void(double)> cb) {
   _updateProgress = cb;

@@ -71,18 +71,12 @@ void SoundLoadBackend::start_process() {
   if (auto ui{_weakUi.lock()}) { (*ui)->set_show_progress(true); }
 
   switch (_mode) {
-    case SoundLoadMode::ZUSI: {
-      auto tmp_ = std::make_shared<process::susiv2::SoundLoad>(_path);
-      tmp_->setup(tmp_);
-      _process = tmp_;
+    case SoundLoadMode::ZUSI:
+      _process = std::make_shared<process::susiv2::SoundLoad>(_path);
       break;
-    }
-    case SoundLoadMode::MDU: {
-      auto tmp_ = std::make_shared<process::mdu_ein::SoundLoad>(_path);
-      tmp_->setup(tmp_);
-      _process = tmp_;
+    case SoundLoadMode::MDU:
+      _process = std::make_shared<process::mdu_ein::SoundLoad>(_path);
       break;
-    }
   }
   _process->onUpdateStep(
     [this](type::SoundLoadStep const step) { this->updateStep(step); });

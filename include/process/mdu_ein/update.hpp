@@ -29,8 +29,6 @@ struct Update : public Base, public IUpdateProcess {
   virtual void execute();
   virtual void abort();
 
-  void setup(std::shared_ptr<Update>);
-
   virtual void onUpdateProgress(std::function<void(double)>);
   virtual void onUpdateStep(std::function<void(type::UpdateStep)>);
 

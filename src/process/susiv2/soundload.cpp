@@ -3,16 +3,20 @@
 
 namespace process::susiv2 {
 
-SoundLoad::SoundLoad(std::filesystem::path path) : _zpp{path} { connect(); }
-SoundLoad::~SoundLoad() { disconnect(); }
+SoundLoad::SoundLoad(std::filesystem::path path) : _zpp{path} {
+  connect();
+  _lib.registerCb<[] {}>(
+    [this](res::Result const result) { this->handle_result(result); });
+}
+
+SoundLoad::~SoundLoad() {
+  _lib.deregisterCb();
+  disconnect();
+}
 
 void SoundLoad::execute() { modeAction(); }
 
 void SoundLoad::abort() { _abort = true; }
-
-void SoundLoad::setup(std::shared_ptr<SoundLoad> thiz) {
-  _lib.registerCb(thiz, &SoundLoad::handle_result);
-}
 
 void SoundLoad::onUpdateProgress(std::function<void(double)> cb) {
   _progressCb = cb;

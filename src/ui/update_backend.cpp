@@ -66,9 +66,7 @@ void UpdateBackend::choose_file() {
 void UpdateBackend::start_process() {
   if (auto ui{_weakUi.lock()}) { (*ui)->set_show_progress(true); }
 
-  auto tmp_ = std::make_shared<process::mdu_ein::Update>(_path);
-  tmp_->setup(tmp_);
-  _process = tmp_;
+  _process = std::make_shared<process::mdu_ein::Update>(_path);
   _process->onUpdateStep(
     [this](type::UpdateStep const step) { this->updateStep(step); });
   _process->onUpdateProgress(
