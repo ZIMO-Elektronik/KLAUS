@@ -189,12 +189,9 @@ void Update::updateResult(res::Result const r) {
       _err_cnt = 0;
       _updateProgress(static_cast<double>(_index + 1.0) /
                       static_cast<double>(_fwIt.blocks()));
-      if (++_index >= _fwIt.blocks()) {
-        return verifyAction();
-        
-      }
+      if (++_index >= _fwIt.blocks()) { return verifyAction(); }
       return updateAction();
-      
+
     } else {
       // Block rejected
       _err_cnt++;

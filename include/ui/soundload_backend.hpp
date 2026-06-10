@@ -27,6 +27,8 @@ private:
 
   void updateUi(std::function<void()>);
 
+  SoundLoadMode _mode{SoundLoadMode::ZUSI};
+
   slint::ComponentWeakHandle<AppWindow> _weakUi{};
 
   std::shared_ptr<process::ISoundLoadProcess> _process{};

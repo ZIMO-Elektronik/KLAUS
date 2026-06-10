@@ -1,11 +1,15 @@
 #include "include/ui/soundload_backend.hpp"
 #include <tinyfiledialogs/tinyfiledialogs.h>
+#include "include/process/mdu_ein/soundload.hpp"
+#include "include/process/susiv2/soundload.hpp"
 
 namespace ui {
 
 void SoundLoadBackend::connect(slint::ComponentHandle<AppWindow> window) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>{window};
 
+  window->on_sound_mode_changed(
+    [this](SoundLoadMode mode) { this->_mode = mode; });
   window->on_choose_file([this]() { this->choose_file(); });
   window->on_start_process([this]() { this->start_process(); });
   window->on_abort_process([this]() { this->abort_process(); });
@@ -66,9 +70,20 @@ void SoundLoadBackend::choose_file() {
 void SoundLoadBackend::start_process() {
   if (auto ui{_weakUi.lock()}) { (*ui)->set_show_progress(true); }
 
-  auto tmp_ = std::make_shared<process::susiv2::SoundLoad>(_path);
-  tmp_->setup(tmp_);
-  _process = tmp_;
+  switch (_mode) {
+    case SoundLoadMode::ZUSI: {
+      auto tmp_ = std::make_shared<process::susiv2::SoundLoad>(_path);
+      tmp_->setup(tmp_);
+      _process = tmp_;
+      break;
+    }
+    case SoundLoadMode::MDU: {
+      auto tmp_ = std::make_shared<process::mdu_ein::SoundLoad>(_path);
+      tmp_->setup(tmp_);
+      _process = tmp_;
+      break;
+    }
+  }
   _process->onUpdateStep(
     [this](type::SoundLoadStep const step) { this->updateStep(step); });
   _process->onUpdateProgress(
@@ -126,13 +141,6 @@ void SoundLoadBackend::updateStep(type::SoundLoadStep const step) {
         }
       });
       break;
-    // case type::SoundLoadStep::Verify:
-    //   updateUi([this]() {
-    //     if (auto ui{this->_weakUi.lock()}) {
-    //       (*ui)->set_step_name({"Verifying"});
-    //     }
-    //   });
-    //   break;
     case type::SoundLoadStep::Cleanup:
       updateUi([this]() {
         if (auto ui{this->_weakUi.lock()}) {

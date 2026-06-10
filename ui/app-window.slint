@@ -1,6 +1,6 @@
 import { NavigationBar } from "navigation_bar.slint";
 import { UpdatePage } from "update_page.slint";
-import { SoundLoadPage } from "soundload_page.slint";
+import { SoundLoadPage, SoundLoadMode } from "soundload_page.slint";
 import { CvProgrammerPage } from "cv_programmer_page.slint";
 import { AppPage } from "types.slint";
 
@@ -19,8 +19,12 @@ export component AppWindow inherits Window {
 
     in-out property active-page <=> nav.active-page;
 
+    in-out property <SoundLoadMode> sound-mode;
+
     // Globale Callbacks für C++ Registrierung
     callback change_page(AppPage);
+
+    callback sound_mode_changed(SoundLoadMode);
 
     callback choose_file();
     callback start_process();
@@ -68,6 +72,9 @@ export component AppWindow inherits Window {
                 }
                 start-process => {
                     root.start_process();
+                }
+                mode-changed(mode) => {
+                    root.sound_mode_changed(mode);
                 }
                 abort-process => {
                     root.abort-process();

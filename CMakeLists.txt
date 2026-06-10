@@ -18,6 +18,7 @@ add_executable(
   Updater WIN32
   src/main.cpp
   src/process/mdu_ein/update.cpp
+  src/process/mdu_ein/soundload.cpp
   src/process/susiv2/soundload.cpp
   src/process/base.cpp
   src/ui/update_backend.cpp
