@@ -5,7 +5,6 @@
 namespace process::mdu_ein {
 
 SoundLoad::SoundLoad(std::filesystem::path path) : _zpp{path} {
-  connect();
   _lib.registerCb<[] {}>(
     [this](res::Result const result) { this->handle_result(result); });
 }
@@ -15,7 +14,11 @@ SoundLoad::~SoundLoad() {
   disconnect();
 }
 
-void SoundLoad::execute() { return modeAction(); }
+bool SoundLoad::execute() {
+  if (!connect()) return false;
+  modeAction();
+  return true;
+}
 
 void SoundLoad::abort() { _abort = true; }
 

@@ -3,7 +3,7 @@
 
 namespace process {
 
-Base::Base() { bool donezo = false; }
+Base::Base() {}
 
 bool Base::connect() {
   auto rc{_lib.init()};

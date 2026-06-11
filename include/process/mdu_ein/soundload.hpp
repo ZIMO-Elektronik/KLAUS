@@ -26,7 +26,7 @@ struct SoundLoad : public Base, public ISoundLoadProcess {
   SoundLoad(std::filesystem::path path);
   virtual ~SoundLoad();
 
-  virtual void execute();
+  virtual bool execute();
   virtual void abort();
 
   virtual void onUpdateProgress(std::function<void(double)>);

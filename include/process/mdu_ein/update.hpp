@@ -26,7 +26,7 @@ struct Update : public Base, public IUpdateProcess {
   Update(std::filesystem::path path);
   virtual ~Update();
 
-  virtual void execute();
+  virtual bool execute();
   virtual void abort();
 
   virtual void onUpdateProgress(std::function<void(double)>);

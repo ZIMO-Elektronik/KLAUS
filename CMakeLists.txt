@@ -22,6 +22,7 @@ add_executable(
   src/process/susiv2/soundload.cpp
   src/process/base.cpp
   src/ui/helper/progress_tracker.cpp
+  src/ui/process_manager.cpp
   src/ui/update_backend.cpp
   src/ui/soundload_backend.cpp
   src/ui/app_backend.cpp)
@@ -100,7 +101,7 @@ if(WIN32)
     TARGET Updater
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:Updater>
-            $<TARGET_FILE_DIR:Updater>
+    $<TARGET_FILE_DIR:Updater>
     COMMAND_EXPAND_LISTS)
 endif()
 

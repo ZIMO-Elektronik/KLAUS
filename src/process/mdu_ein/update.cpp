@@ -6,7 +6,6 @@
 namespace process::mdu_ein {
 
 Update::Update(std::filesystem::path path) : Base{}, _zsu{path} {
-  connect();
   _lib.registerCb<[] {}>(
     [this](res::Result const result) { this->handle_result(result); });
 }
@@ -16,7 +15,11 @@ Update::~Update() {
   disconnect();
 }
 
-void Update::execute() { modeAction(); }
+bool Update::execute() {
+  if (!connect()) return false;
+  modeAction();
+  return true;
+}
 
 void Update::abort() { _abort = true; }
 
