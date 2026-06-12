@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <optional>
 #include <variant>
 
 namespace type {
@@ -53,9 +54,12 @@ enum class CvStep {
   Done,
 };
 
-enum class MessageId {
+enum class MessageID {
   Start,
   StartComplete,
+  StartError,
+  Init,
+  InitComplete,
   SearchDecoder,
   FoundDecoder,
   EraseFlash,
@@ -79,8 +83,8 @@ enum class MessageId {
 using Payload = std::variant<std::monostate>;
 
 struct ProcessUpdate {
-  MessageId id{MessageId::None};
-  float progress{0.0f};
+  MessageID id{MessageID::None};
+  std::optional<float> progress{};
   Payload payload{};
 };
 

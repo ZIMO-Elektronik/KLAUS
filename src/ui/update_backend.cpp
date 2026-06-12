@@ -3,6 +3,9 @@
 
 namespace ui {
 
+UpdateBackend::UpdateBackend(std::shared_ptr<ProcessManager> pManager)
+  : _pManager{pManager} {}
+
 void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>{window};
 
@@ -64,17 +67,8 @@ void UpdateBackend::choose_file() {
 }
 
 void UpdateBackend::start_process() {
-  if (auto ui{_weakUi.lock()}) { (*ui)->set_show_progress(true); }
-
-  _process = std::make_shared<process::mdu_ein::Update>(_path);
-  _process->onUpdateStep(
-    [this](type::UpdateStep const step) { this->updateStep(step); });
-  _process->onUpdateProgress(
-    [this](double progress) { this->updateProgress(progress); });
-
-  _process->execute();
-
-  _tracker.reset();
+  if (_pManager->emplace<process::mdu_ein::Update>(_path)) _pManager->execute();
+  else std::cerr << "Manager is busy" << std::endl;
 }
 
 void UpdateBackend::abort_process() { _process->abort(); }

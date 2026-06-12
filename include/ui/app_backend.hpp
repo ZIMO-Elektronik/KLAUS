@@ -2,6 +2,7 @@
 
 #include <slint.h>
 #include "i_backend.hpp"
+#include "process_manager.hpp"
 #include "soundload_backend.hpp"
 #include "update_backend.hpp"
 
@@ -17,6 +18,8 @@ struct AppBackend : IBackend {
 
 private:
   slint::ComponentWeakHandle<AppWindow> _weakUi{};
+
+  std::shared_ptr<ProcessManager> _pManager{};
 
   std::unique_ptr<UpdateBackend> _updateBackend{};
   std::unique_ptr<SoundLoadBackend> _soundLoadBackend{};

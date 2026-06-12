@@ -27,6 +27,8 @@ struct SoundLoad : public Base, public ISoundLoadProcess {
   virtual void onUpdateProgress(std::function<void(double)>);
   virtual void onUpdateStep(std::function<void(type::SoundLoadStep)>);
 
+  virtual void onUpdate(std::function<void(type::ProcessUpdate)>) override {}
+
 private:
   void handle_result(res::Result r);
 

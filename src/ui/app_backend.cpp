@@ -3,7 +3,8 @@
 namespace ui {
 
 AppBackend::AppBackend()
-  : _updateBackend{std::make_unique<UpdateBackend>()},
+  : _pManager{std::make_shared<ProcessManager>()},
+    _updateBackend{std::make_unique<UpdateBackend>(_pManager)},
     _soundLoadBackend{std::make_unique<SoundLoadBackend>()} {}
 
 void AppBackend::connect(slint::ComponentHandle<AppWindow> ui) {
@@ -16,6 +17,7 @@ void AppBackend::connect(slint::ComponentHandle<AppWindow> ui) {
 
 void AppBackend::change_page(AppPage page) {
   if (auto ui{_weakUi.lock()}) {
+    _pManager->connect((*ui));
     switch (page) {
       case AppPage::Update: _updateBackend->connect(*ui); break;
       case AppPage::Soundload: _soundLoadBackend->connect(*ui); break;

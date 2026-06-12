@@ -32,6 +32,8 @@ struct Update : public Base, public IUpdateProcess {
   virtual void onUpdateProgress(std::function<void(double)>);
   virtual void onUpdateStep(std::function<void(type::UpdateStep)>);
 
+  virtual void onUpdate(std::function<void(type::ProcessUpdate)>) override;
+
 private:
   void handle_result(res::Result r);
 
@@ -72,6 +74,8 @@ private:
 
   std::function<void(type::UpdateStep)> _updateStep{};
   std::function<void(double)> _updateProgress{};
+
+  std::function<void(type::ProcessUpdate)> _updateCb{};
 
   libklug::ZSU _zsu;
   libklug::ZSU::FirmwareIterator _fwIt{_zsu.begin()};

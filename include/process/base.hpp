@@ -24,8 +24,12 @@ struct Base {
   bool connect();
   void disconnect();
 
+  bool done();
+
 protected:
   libklug::LibKLUG _lib;
+
+  bool _done{false};
 };
 
 } // namespace process
