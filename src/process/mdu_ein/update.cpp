@@ -16,7 +16,10 @@ Update::~Update() {
 }
 
 bool Update::execute() {
-  if (!connect()) return false;
+  if (!connect()) {
+    _done = true;
+    return false;
+  }
   modeAction();
   return true;
 }

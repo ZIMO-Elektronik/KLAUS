@@ -1,4 +1,5 @@
 #include "include/process/base.hpp"
+#include <cassert>
 #include <iostream>
 
 namespace process {
@@ -6,25 +7,18 @@ namespace process {
 Base::Base() {}
 
 bool Base::connect() {
-  auto rc{_lib.init()};
-  if (rc) return false;
 
-  std::cout << "Inited" << std::endl;
-
-  rc = _lib.open(0x1FC9u, 0x81C1u);
-  if (rc) return false;
-
-  std::cout << "Opened" << std::endl;
-
-  rc = _lib.config();
-  if (rc) return false;
-
-  std::cout << "Configured" << std::endl;
-
-  rc = _lib.claim();
-  if (rc) return false;
-
-  std::cout << "Claimed" << std::endl;
+  for (int i{0}; i < 4; i++) {
+    int rc{0};
+    switch (i) {
+      case 0: rc = _lib.init(); break;
+      case 1: rc = _lib.open(0x1FC9u, 0x81C1u); break;
+      case 2: rc = _lib.config(); break;
+      case 3: rc = _lib.claim(); break;
+      default: assert(false);
+    }
+    if (rc) return false;
+  }
 
   return true;
 }

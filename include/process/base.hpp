@@ -18,8 +18,8 @@ namespace process {
  *
  */
 struct Base : IProcess {
-  Base();            // Create handle
-  ~Base() = default; // Destroy handle
+  Base();                             // Create handle
+  virtual ~Base() override = default; // Destroy handle
 
   bool connect();
   void disconnect();

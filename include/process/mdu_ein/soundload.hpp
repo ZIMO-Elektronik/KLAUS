@@ -23,7 +23,7 @@ namespace process::mdu_ein {
  */
 struct SoundLoad : public Base {
   SoundLoad(std::filesystem::path path);
-  virtual ~SoundLoad();
+  virtual ~SoundLoad() final;
 
   virtual bool execute();
   virtual void abort();

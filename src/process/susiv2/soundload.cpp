@@ -14,7 +14,10 @@ SoundLoad::~SoundLoad() {
 }
 
 bool SoundLoad::execute() {
-  if (!connect()) return false;
+  if (!connect()) {
+    _done = true;
+    return false;
+  }
   modeAction();
   return true;
 }

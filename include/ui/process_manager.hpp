@@ -27,7 +27,6 @@ struct ProcessManager : IBackend {
     if (_process) {
       // Check if existing process is done
       if (!_process->done()) return false;
-      _process.reset();
     }
 
     _process = std::make_unique<T>(std::forward<Args>(args)...);

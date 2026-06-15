@@ -18,6 +18,8 @@ namespace process {
  *
  */
 struct IProcess {
+  virtual ~IProcess() = default;
+
   virtual bool execute() = 0;
   virtual void abort() = 0;
 
