@@ -1,23 +1,29 @@
-import { Button } from "std-widgets.slint";
+import { Button, ProgressIndicator } from "std-widgets.slint";
 import { ProgressViewContext } from "progress_context.slint";
 import { ProgressPanel } from "progress_panel.slint";
+import { ProgressBar } from "progress_bar.slint";
 
-export component ProgressPopup {
-    show-popup-button := Button {
-        text: "<";
-        visible: ProgressViewContext.has-process;
-        clicked => {
-            popup.show();
+export component ProgressPopup inherits VerticalLayout {
+    alignment: LayoutAlignment.end;
+    padding: 10px;
+    spacing: 10px;
+
+    if (ProgressViewContext.is-open): ProgressPanel {
+        close-clicked => {
+            ProgressViewContext.is-open = false;
         }
+        abort-clicked => ProgressViewContext.abort();
     }
 
-    popup := PopupWindow {
-        close-policy: close-on-click-outside;
+    if (!ProgressViewContext.is-open && ProgressViewContext.has-process): TouchArea {
+        bar := ProgressBar {
+            preferred-height: 25px;
+            width: 100%;
+            progress <=> ProgressViewContext.progress;
+        }
 
-        // Position relative of show-popup-button (left)
-        x: show-popup-button.x - panel.width - 3px;
-        panel := ProgressPanel {
-            abort-clicked => ProgressViewContext.abort();
+        clicked => {
+            ProgressViewContext.is-open = !ProgressViewContext.is-open;
         }
     }
 }

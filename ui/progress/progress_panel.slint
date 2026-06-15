@@ -2,15 +2,16 @@ import {
     Button,
     VerticalBox,
     HorizontalBox,
-    ProgressIndicator,
 } from "std-widgets.slint";
 import { ProgressViewContext } from "progress_context.slint";
+import { ProgressBar } from "progress_bar.slint";
 
 export component ProgressPanel {
     in property step <=> ProgressViewContext.step;
     in property progress <=> ProgressViewContext.progress;
     in property time-estimate <=> ProgressViewContext.time-estimate;
 
+    callback close-clicked();
     callback abort-clicked();
 
     Rectangle {
@@ -21,46 +22,60 @@ export component ProgressPanel {
 
         min-width: 300px;
 
-        VerticalBox {
-            spacing: 10px;
-            padding: 15px;
+        HorizontalLayout {
+            alignment: space-between;
 
-            Text {
-                text: root.step;
-                font-size: 14px;
-                font-weight: 700;
-                color: #333333;
-            }
+            VerticalBox {
+                spacing: 10px;
 
-            HorizontalLayout {
-                alignment: LayoutAlignment.space-between;
+                HorizontalLayout {
+                    alignment: LayoutAlignment.space-between;
 
-                width: 100%;
-                preferred-height: progress-text.preferred-height + 5px;
+                    Text {
+                        text: root.step;
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #333333;
+                    }
 
-                ProgressIndicator {
-                    progress <=> root.progress;
-                    width: 90%;
+                    TouchArea {
+                        Text {
+                            text: "x";
+                            font-size: 20px;
+                        }
+
+                        clicked => root.close-clicked();
+                    }
+                }
+
+                Rectangle {
+                    width: 100%;
                     preferred-height: progress-text.preferred-height + 5px;
+
+                    ProgressBar {
+                        progress <=> root.progress;
+                        width: 100%;
+                        preferred-height: progress-text.preferred-height + 5px;
+                    }
+
+                    progress-text := Text {
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        text: Math.round(root.progress * 100) + "%";
+                    }
                 }
 
-                progress-text := Text {
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                    text: Math.round(root.progress * 100) + "%";
+                Text {
+                    text: "Estimated time remaining: " + root.time-estimate;
                 }
-            }
 
-            Text {
-                text: "Estimated time remaining: " + root.time-estimate;
-            }
-
-            HorizontalBox {
-                alignment: end;
-                Button {
-                    text: "Abort";
-                    clicked => {
-                        root.abort-clicked();
+                HorizontalBox {
+                    alignment: end;
+                    Button {
+                        text: "Abort";
+                        clicked => {
+                            root.abort-clicked();
+                        }
                     }
                 }
             }
