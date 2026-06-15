@@ -142,6 +142,8 @@ void SoundLoad::resetResult(res::Result const& r) {
   else std::cout << "Reset NOT successful" << std::endl;
 
   _updateCb({.id = type::MessageID::Done});
+
+  _done = true;
   return;
 }
 

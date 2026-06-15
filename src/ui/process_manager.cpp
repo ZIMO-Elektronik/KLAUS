@@ -27,6 +27,13 @@ void ProcessManager::connect(slint::ComponentHandle<AppWindow> ui) {
  * \return false  Not Executed
  */
 bool ProcessManager::execute() {
+  _process->onUpdate([this](type::ProcessUpdate update) {
+    this->updateText(update.id, false);
+    if (update.id == type::MessageID::Done) done();
+
+    if (update.progress) this->updateProgress(*update.progress);
+  });
+
   if (!_process->execute()) return false;
 
   _tracker.reset();
@@ -35,13 +42,6 @@ bool ProcessManager::execute() {
     (*ui)->global<ProgressViewContext>().set_has_process(true);
     (*ui)->global<ProgressViewContext>().set_is_process_running(true);
   }
-
-  _process->onUpdate([this](type::ProcessUpdate update) {
-    this->updateText(update.id, false);
-    if (update.id == type::MessageID::Done) done();
-
-    if (update.progress) this->updateProgress(*update.progress);
-  });
 
   return true;
 }

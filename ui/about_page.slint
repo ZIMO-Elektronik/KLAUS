@@ -1,0 +1,101 @@
+import {
+    AboutSlint,
+    HorizontalBox,
+    Button,
+    TabWidget,
+} from "std-widgets.slint";
+import { AppContext } from "app_context.slint";
+export component AboutPage inherits Rectangle {
+    callback open_website;
+    callback open_support;
+    callback report_bug;
+
+    open_website => {
+        Platform.open-url("https://zimo.at");
+    }
+
+    open_support => {
+        Platform.open-url("https://zimo.at");
+    }
+
+    report_bug => {
+        Platform.open-url("https://mantis.zimo.at");
+    }
+
+    VerticalLayout {
+        alignment: LayoutAlignment.center;
+        spacing: 4px;
+
+        HorizontalBox {
+            alignment: center;
+            Rectangle {
+                width: 80px;
+                height: 80px;
+                background: lightblue;
+                border-radius: 16px;
+
+                Text {
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    height: 100%;
+                    width: 100%;
+                    text: "Imagine the logo here";
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        Text {
+            text: AppContext.tool-name;
+            font-size: 22px;
+            horizontal-alignment: center;
+            color: blue;
+        }
+
+        Text {
+            text: AppContext.tool-version;
+            font-size: 13px;
+            horizontal-alignment: center;
+        }
+
+        Text {
+            text: AppContext.tool-description;
+            font-size: 14px;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+
+        HorizontalLayout {
+            alignment: center;
+            spacing: 12px;
+            padding: 8px;
+
+            Button {
+                text: "Website";
+                clicked => root.open_website();
+            }
+
+            Button {
+                text: "Support";
+                clicked => root.open_support();
+            }
+
+            Button {
+                text: "Report bug";
+                clicked => root.report_bug();
+            }
+        }
+
+        Rectangle {
+            height: 1px;
+            background: black;
+        }
+
+        HorizontalBox {
+            alignment: center;
+            height: 100px;
+            width: 100%;
+            AboutSlint { }
+        }
+    }
+}

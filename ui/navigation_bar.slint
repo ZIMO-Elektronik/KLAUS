@@ -8,7 +8,7 @@ export component NavigationBar {
 
     Rectangle {
         width: 180px;
-        background: #2c3e50;
+        background: darkslategray;
 
         VerticalBox {
             padding: 10px;
@@ -42,10 +42,18 @@ export component NavigationBar {
                 }
             }
 
+            Rectangle {
+                vertical-stretch: 1.0;
+            }
+        }
+
+        VerticalBox {
+            alignment: LayoutAlignment.end;
+
             Button {
-                text: "CvProgrammer";
+                text: "About";
                 clicked => {
-                    root.active-page = AppPage.CvProgrammer;
+                    root.active-page = AppPage.About;
                     root.change_page(root.active-page);
                 }
             }

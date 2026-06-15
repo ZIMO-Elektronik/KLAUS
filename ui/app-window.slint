@@ -1,15 +1,16 @@
 import { NavigationBar } from "navigation_bar.slint";
 import { UpdatePage } from "update_page.slint";
 import { SoundLoadPage, SoundLoadMode } from "soundload_page.slint";
-import { CvProgrammerPage } from "cv_programmer_page.slint";
 import { AppPage } from "types.slint";
 
 // Re-export context
 import { ProgressViewContext } from "progress/progress_context.slint";
+import { AboutPage } from "about_page.slint";
+import { AppContext } from "app_context.slint";
 export { ProgressViewContext }
 
 export component AppWindow inherits Window {
-    title: "Hier könnte ihre Werbung stehen";
+    title: AppContext.tool-name;
     min-width: 800px;
     min-height: 500px;
 
@@ -66,7 +67,7 @@ export component AppWindow inherits Window {
                 }
             }
 
-            if root.active-page == AppPage.CvProgrammer: CvProgrammerPage { }
+            if root.active-page == AppPage.About: AboutPage { }
         }
     }
 }

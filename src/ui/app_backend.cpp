@@ -21,7 +21,7 @@ void AppBackend::change_page(AppPage page) {
     switch (page) {
       case AppPage::Update: _updateBackend->connect(*ui); break;
       case AppPage::Soundload: _soundLoadBackend->connect(*ui); break;
-      case AppPage::CvProgrammer: break;
+      case AppPage::About: break;
       default: assert(false);
     }
   }
