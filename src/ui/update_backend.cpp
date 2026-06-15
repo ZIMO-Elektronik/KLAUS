@@ -11,10 +11,6 @@ void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
 
   window->on_choose_file([this]() { this->choose_file(); });
   window->on_start_process([this]() { this->start_process(); });
-  window->on_abort_process([this]() { this->abort_process(); });
-
-  window->set_step_name({"Awaiting start"});
-  window->set_progress_value(0.0);
 
   auto const has_file{this->_path.has_filename()};
   if (has_file) {
@@ -68,7 +64,5 @@ void UpdateBackend::start_process() {
   if (_pManager->emplace<process::mdu_ein::Update>(_path)) _pManager->execute();
   else std::cerr << "Manager is busy" << std::endl;
 }
-
-void UpdateBackend::abort_process() { _pManager->abort(); }
 
 } // namespace ui

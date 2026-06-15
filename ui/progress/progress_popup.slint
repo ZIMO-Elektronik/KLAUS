@@ -1,0 +1,23 @@
+import { Button } from "std-widgets.slint";
+import { ProgressViewContext } from "progress_context.slint";
+import { ProgressPanel } from "progress_panel.slint";
+
+export component ProgressPopup {
+    show-popup-button := Button {
+        text: "<";
+        visible: ProgressViewContext.has-process;
+        clicked => {
+            popup.show();
+        }
+    }
+
+    popup := PopupWindow {
+        close-policy: close-on-click-outside;
+
+        // Position relative of show-popup-button (left)
+        x: show-popup-button.x - panel.width - 3px;
+        panel := ProgressPanel {
+            abort-clicked => ProgressViewContext.abort();
+        }
+    }
+}

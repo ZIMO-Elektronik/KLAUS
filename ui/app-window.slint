@@ -4,16 +4,14 @@ import { SoundLoadPage, SoundLoadMode } from "soundload_page.slint";
 import { CvProgrammerPage } from "cv_programmer_page.slint";
 import { AppPage } from "types.slint";
 
+// Re-export context
+import { ProgressViewContext } from "progress/progress_context.slint";
+export { ProgressViewContext }
+
 export component AppWindow inherits Window {
     title: "Hier könnte ihre Werbung stehen";
     min-width: 800px;
     min-height: 500px;
-
-    // Globale Properties für C++ Zugriff
-    in property <bool> show-progress;
-    in property <string> step-name: "Hier könnte ihre Werbung stehen";
-    in property <float> progress-value: 0.0;
-    in property <string> progress-estimate;
 
     in property <bool> has-file: false;
     in property <string> file-path: "";
@@ -29,9 +27,9 @@ export component AppWindow inherits Window {
 
     callback choose_file();
     callback start_process();
-    callback abort_process();
 
     HorizontalLayout {
+
         // Linke Navigationsleiste
         nav := NavigationBar {
             change-page(page) => {
@@ -44,11 +42,6 @@ export component AppWindow inherits Window {
             background: #ffffff;
 
             if root.active-page == AppPage.Update: UpdatePage {
-                show-progress: root.show-progress;
-                progress-value: root.progress-value;
-                progress-estimate: root.progress-estimate;
-                step-name: root.step-name;
-
                 has-file: root.has-file;
                 file-path: root.file-path;
                 choose-file => {
@@ -57,17 +50,9 @@ export component AppWindow inherits Window {
                 start-process => {
                     root.start_process();
                 }
-                abort-process => {
-                    root.abort-process();
-                }
             }
 
             if root.active-page == AppPage.Soundload: SoundLoadPage {
-                show-progress: root.show-progress;
-                progress-value: root.progress-value;
-                progress-estimate: root.progress-estimate;
-                step-name: root.step-name;
-
                 has-file: root.has-file;
                 file-path: root.file-path;
                 choose-file => {
@@ -79,19 +64,9 @@ export component AppWindow inherits Window {
                 mode-changed(mode) => {
                     root.sound_mode_changed(mode);
                 }
-                abort-process => {
-                    root.abort-process();
-                }
             }
 
-            if root.active-page == AppPage.CvProgrammer: CvProgrammerPage {
-                show-progress: root.show-progress;
-                progress-value: root.progress-value;
-                step-name: root.step-name;
-                abort-process => {
-                    root.abort-process();
-                }
-            }
+            if root.active-page == AppPage.CvProgrammer: CvProgrammerPage { }
         }
     }
 }

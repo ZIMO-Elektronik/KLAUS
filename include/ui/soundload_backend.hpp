@@ -20,7 +20,6 @@ struct SoundLoadBackend : IBackend {
 private:
   void choose_file();
   void start_process();
-  void abort_process();
 
   SoundLoadMode _mode{SoundLoadMode::ZUSI};
 

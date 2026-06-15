@@ -1,79 +1,71 @@
 import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
-import { ProgressPanel } from "progress_panel.slint";
+import { ProgressPopup } from "progress/progress_popup.slint";
+import { ProgressViewContext } from "progress/progress_context.slint";
 
-export component UpdatePage {
-    in property <bool> show-progress: false;
-    in property <string> step-name: "Hier könnte ihre Werbung stehen";
-    in property <float> progress-value: 0.0;
-    in property <string> progress-estimate;
-
+export component UpdatePage inherits Rectangle {
     in property <bool> has-file: false;
     in property <string> file-path: "";
 
     callback choose-file();
     callback start-process();
-    callback abort-process();
 
-    VerticalBox {
-        padding: 20px;
-        spacing: 15px;
-        alignment: start;
+    HorizontalLayout {
+        alignment: LayoutAlignment.space-between;
 
-        Text {
-            text: "Update";
-            font-size: 20px;
-            color: #000000;
-        }
-
-        // Bereich für die Dateiauswahl
-        HorizontalBox {
-            spacing: 10px;
+        VerticalBox {
+            padding: 20px;
+            spacing: 15px;
             alignment: start;
-
-            Button {
-                text: "Choose file";
-                // Deaktivieren, wenn der Prozess bereits läuft
-                enabled: !root.show-progress;
-                clicked => {
-                    root.choose-file();
-                }
-            }
 
             Text {
-                text: root.file-path == "" ? "No file selected" : root.file-path;
-                vertical-alignment: center;
-                color: root.has-file ? #2c3e50 : #7f8c8d;
-                font-italic: !root.has-file;
+                text: "Update";
+                font-size: 20px;
+                color: #000000;
             }
-        }
 
-        // Start-Button
-        HorizontalBox {
-            alignment: start;
+            // Bereich für die Dateiauswahl
+            HorizontalBox {
+                spacing: 10px;
+                alignment: start;
 
-            Button {
-                text: "Start update";
+                Button {
+                    text: "Choose file";
+                // Deaktivieren, wenn der Prozess bereits läuft
+                enabled: !ProgressViewContext.is-process-running;
+                    clicked => {
+                        root.choose-file();
+                    }
+                }
+
+                Text {
+                    text: root.file-path == "" ? "No file selected" : root.file-path;
+                    vertical-alignment: center;
+                    color: root.has-file ? #2c3e50 : #7f8c8d;
+                    font-italic: !root.has-file;
+                }
+            }
+
+            // Start-Button
+            HorizontalBox {
+                alignment: start;
+
+                Button {
+                    text: "Start update";
                 // Aktiv, wenn eine Datei existiert UND kein Update läuft
-                enabled: root.has-file && !root.show-progress;
-                clicked => {
-                    root.start-process();
+                enabled: root.has-file && !ProgressViewContext.is-process-running;
+                    clicked => {
+                        root.start-process();
+                    }
                 }
             }
         }
 
-        // Schiebt das Fortschritts-Panel an das untere Ende der Seite
-        Rectangle {
-            vertical-stretch: 1;
-        }
+        VerticalLayout {
+            padding-top: 20px;
+            padding-right: 10px; // Avoid placing this on the edge of the window
+            alignment: LayoutAlignment.start;
 
-        // Bedingte Anzeige des Fortschritts-Panels
-        if root.show-progress: ProgressPanel {
-            step-name: step-name;
-            progress-value: root.progress-value;
-            estimate: root.progress-estimate;
-            abort-clicked => {
-                root.abort-process();
-            }
+            ProgressPopup { }
         }
     }
 }
