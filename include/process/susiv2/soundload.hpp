@@ -12,22 +12,16 @@
 #include <libklug/libklug.hpp>
 #include <vector>
 #include "include/process/base.hpp"
-#include "include/process/i_soundload_process.hpp"
 #include "include/type/step.hpp"
 
 namespace process::susiv2 {
 
-struct SoundLoad : public Base, public ISoundLoadProcess {
+struct SoundLoad : public Base {
   SoundLoad(std::filesystem::path path);
   virtual ~SoundLoad();
 
   virtual bool execute();
   virtual void abort();
-
-  virtual void onUpdateProgress(std::function<void(double)>);
-  virtual void onUpdateStep(std::function<void(type::SoundLoadStep)>);
-
-  virtual void onUpdate(std::function<void(type::ProcessUpdate)>) override {}
 
 private:
   void handle_result(res::Result r);
@@ -51,9 +45,6 @@ private:
   void resetResult(res::Result const& r);
 
   void (SoundLoad::*_state)(res::Result const&){};
-
-  std::function<void(type::SoundLoadStep)> _stepCb{};
-  std::function<void(double)> _progressCb{};
 
   libklug::ZPP _zpp;
 

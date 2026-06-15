@@ -34,4 +34,10 @@ void Base::disconnect() {
   _lib.close();
 }
 
+bool Base::done() { return _done; }
+
+void Base::onUpdate(std::function<void(type::ProcessUpdate)> cb) {
+  _updateCb = cb;
+}
+
 } // namespace process

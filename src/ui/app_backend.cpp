@@ -5,7 +5,7 @@ namespace ui {
 AppBackend::AppBackend()
   : _pManager{std::make_shared<ProcessManager>()},
     _updateBackend{std::make_unique<UpdateBackend>(_pManager)},
-    _soundLoadBackend{std::make_unique<SoundLoadBackend>()} {}
+    _soundLoadBackend{std::make_unique<SoundLoadBackend>(_pManager)} {}
 
 void AppBackend::connect(slint::ComponentHandle<AppWindow> ui) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>(ui);

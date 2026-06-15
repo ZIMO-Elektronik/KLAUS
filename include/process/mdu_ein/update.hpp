@@ -12,7 +12,6 @@
 #include <libklug/libklug.hpp>
 #include <vector>
 #include "include/process/base.hpp"
-#include "include/process/i_update_process.hpp"
 #include "include/type/cv/cv.hpp"
 #include "include/type/step.hpp"
 
@@ -22,17 +21,12 @@ namespace process::mdu_ein {
  * Update process
 
  */
-struct Update : public Base, public IUpdateProcess {
+struct Update : public Base {
   Update(std::filesystem::path path);
   virtual ~Update();
 
   virtual bool execute();
   virtual void abort();
-
-  virtual void onUpdateProgress(std::function<void(double)>);
-  virtual void onUpdateStep(std::function<void(type::UpdateStep)>);
-
-  virtual void onUpdate(std::function<void(type::ProcessUpdate)>) override;
 
 private:
   void handle_result(res::Result r);
@@ -71,11 +65,6 @@ private:
   void resetResult(res::Result const r);
 
   void (Update::*_state)(res::Result const){&Update::modeResult};
-
-  std::function<void(type::UpdateStep)> _updateStep{};
-  std::function<void(double)> _updateProgress{};
-
-  std::function<void(type::ProcessUpdate)> _updateCb{};
 
   libklug::ZSU _zsu;
   libklug::ZSU::FirmwareIterator _fwIt{_zsu.begin()};

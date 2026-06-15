@@ -5,6 +5,9 @@
 
 namespace ui {
 
+SoundLoadBackend::SoundLoadBackend(std::shared_ptr<ProcessManager> pManager)
+  : _pManager{pManager} {}
+
 void SoundLoadBackend::connect(slint::ComponentHandle<AppWindow> window) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>{window};
 
@@ -13,8 +16,6 @@ void SoundLoadBackend::connect(slint::ComponentHandle<AppWindow> window) {
   window->on_choose_file([this]() { this->choose_file(); });
   window->on_start_process([this]() { this->start_process(); });
   window->on_abort_process([this]() { this->abort_process(); });
-
-  window->set_show_progress(static_cast<bool>(_process));
 
   window->set_step_name({"Awaiting start"});
   window->set_progress_value(0.0);
@@ -68,102 +69,20 @@ void SoundLoadBackend::choose_file() {
 }
 
 void SoundLoadBackend::start_process() {
-  if (auto ui{_weakUi.lock()}) { (*ui)->set_show_progress(true); }
-
   switch (_mode) {
     case SoundLoadMode::ZUSI:
-      _process = std::make_shared<process::susiv2::SoundLoad>(_path);
+      if (_pManager->emplace<process::susiv2::SoundLoad>(_path))
+        _pManager->execute();
+      else std::cerr << "Manager is busy" << std::endl;
       break;
     case SoundLoadMode::MDU:
-      _process = std::make_shared<process::mdu_ein::SoundLoad>(_path);
+      if (_pManager->emplace<process::mdu_ein::SoundLoad>(_path))
+        _pManager->execute();
+      else std::cerr << "Manager is busy" << std::endl;
       break;
   }
-  _process->onUpdateStep(
-    [this](type::SoundLoadStep const step) { this->updateStep(step); });
-  _process->onUpdateProgress(
-    [this](double progress) { this->updateProgress(progress); });
-
-  _process->execute();
-  _tracker.reset();
 }
 
-void SoundLoadBackend::abort_process() { _process->abort(); }
-
-void SoundLoadBackend::done() { _process.reset(); }
-
-void SoundLoadBackend::updateProgress(double progress) {
-  using std::operator""sv;
-  updateUi([this, progress]() {
-    std::string_view str{_tracker.update(progress) ? _tracker.estimate()
-                                                   : ""sv};
-    if (auto ui{this->_weakUi.lock()}) {
-      (*ui)->set_progress_value(progress);
-      if (!str.empty()) (*ui)->set_progress_estimate(str.data());
-    }
-  });
-}
-
-void SoundLoadBackend::updateStep(type::SoundLoadStep const step) {
-  if (step == _step) return;
-
-  switch (step) {
-    case type::SoundLoadStep::Start:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Started"});
-        }
-      });
-      break;
-    case type::SoundLoadStep::Init:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Initializing"});
-        }
-      });
-      break;
-    case type::SoundLoadStep::Search:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Searching decoder"});
-        }
-      });
-      break;
-    case type::SoundLoadStep::Erase:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Erasing Flash"});
-        }
-      });
-      break;
-    case type::SoundLoadStep::Load:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Writing update"});
-        }
-      });
-      break;
-    case type::SoundLoadStep::Cleanup:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Cleanup"});
-        }
-      });
-      break;
-    case type::SoundLoadStep::Done:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Done"});
-          (*ui)->set_show_progress(false);
-        }
-        this->done();
-      });
-      break;
-  }
-  _step = step;
-}
-
-void SoundLoadBackend::updateUi(std::function<void()> fn) {
-  slint::invoke_from_event_loop(fn);
-}
+void SoundLoadBackend::abort_process() { _pManager->abort(); }
 
 } // namespace ui

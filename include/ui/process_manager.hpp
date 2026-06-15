@@ -24,7 +24,11 @@ struct ProcessManager : IBackend {
     std::unique_lock<std::mutex> lock(_mut_process);
 
     // Check if a process exists
-    if (_process) { return false; }
+    if (_process) {
+      // Check if existing process is done
+      if (!_process->done()) return false;
+      _process.reset();
+    }
 
     _process = std::make_unique<T>(std::forward<Args>(args)...);
     return true;

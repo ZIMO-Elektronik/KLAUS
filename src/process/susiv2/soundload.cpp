@@ -21,21 +21,13 @@ bool SoundLoad::execute() {
 
 void SoundLoad::abort() { _abort = true; }
 
-void SoundLoad::onUpdateProgress(std::function<void(double)> cb) {
-  _progressCb = cb;
-}
-
-void SoundLoad::onUpdateStep(std::function<void(type::SoundLoadStep)> cb) {
-  _stepCb = cb;
-}
-
 void SoundLoad::handle_result(res::Result r) {
   if (_abort) return resetAction();
   std::invoke(_state, this, r);
 }
 
 void SoundLoad::modeAction() {
-  _stepCb(type::SoundLoadStep::Start);
+  _updateCb({.id = type::MessageID::Start});
   _state = &SoundLoad::modeResult;
   _lib.com().susiv2();
 }
@@ -53,7 +45,7 @@ void SoundLoad::modeResult(res::Result const& r) {
 }
 
 void SoundLoad::featuresAction() {
-  _stepCb(type::SoundLoadStep::Init);
+  _updateCb({.id = type::MessageID::Init});
   _state = &SoundLoad::featuresResult;
   _lib.susiv2().features();
 }
@@ -71,7 +63,7 @@ void SoundLoad::featuresResult(res::Result const& r) {
 }
 
 void SoundLoad::eraseAction() {
-  _stepCb(type::SoundLoadStep::Erase);
+  _updateCb({.id = type::MessageID::EraseFlash});
   _state = &SoundLoad::eraseResult;
   _lib.susiv2().zppErase();
 }
@@ -89,7 +81,9 @@ void SoundLoad::eraseResult(res::Result const& r) {
 }
 
 void SoundLoad::loadAction() {
-  _stepCb(type::SoundLoadStep::Load);
+  _updateCb({.id = type::MessageID::WriteFlash,
+             .progress = static_cast<double>(_index + 1.0) /
+                         static_cast<double>(_zpp.blocks())});
   _state = &SoundLoad::loadResult;
   _lib.susiv2().zppWrite(_zpp, _index);
 }
@@ -98,9 +92,6 @@ void SoundLoad::loadResult(res::Result const& r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
       // Block written
-      _progressCb(static_cast<double>(_index + 1.0) /
-                  static_cast<double>(_zpp.blocks()));
-
       if (++_index >= _zpp.blocks()) { return endAction(); }
       return loadAction();
     } else {
@@ -119,7 +110,7 @@ void SoundLoad::loadResult(res::Result const& r) {
 }
 
 void SoundLoad::endAction() {
-  _stepCb(type::SoundLoadStep::Cleanup);
+  _updateCb({.id = type::MessageID::Cleanup});
   _state = &SoundLoad::endResult;
   _lib.susiv2().exit(true, true);
 }
@@ -138,6 +129,7 @@ void SoundLoad::endResult(res::Result const& r) {
 
 void SoundLoad::resetAction() {
   _lib.com().reset();
+  _abort = false; // Else we'd loop forever on abort...
   _state = &SoundLoad::resetResult;
 }
 
@@ -146,7 +138,7 @@ void SoundLoad::resetResult(res::Result const& r) {
     std::cout << "Reset success" << std::endl;
   else std::cout << "Reset NOT successful" << std::endl;
 
-  _stepCb(type::SoundLoadStep::Done);
+  _updateCb({.id = type::MessageID::Done});
   return;
 }
 

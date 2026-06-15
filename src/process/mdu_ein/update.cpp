@@ -23,25 +23,12 @@ bool Update::execute() {
 
 void Update::abort() { _abort = true; }
 
-void Update::onUpdateProgress(std::function<void(double)> cb) {
-  if (_updateProgress) _updateProgress = cb;
-}
-
-void Update::onUpdateStep(std::function<void(type::UpdateStep)> cb) {
-  _updateStep = cb;
-}
-
-void Update::onUpdate(std::function<void(type::ProcessUpdate)> cb) {
-  _updateCb = cb;
-}
-
 void Update::handle_result(res::Result r) {
   if (_abort) resetAction();
   std::invoke(_state, this, r);
 }
 
 void Update::modeAction() {
-  if (_updateStep) _updateStep(type::UpdateStep::Start);
   if (_updateCb) _updateCb({.id = type::MessageID::Start});
   _lib.com().mdu_ein();
   _state = &Update::modeResult;
@@ -75,7 +62,6 @@ void Update::enterResult(res::Result const r) {
 }
 
 void Update::configAction() {
-  if (_updateStep) _updateStep(type::UpdateStep::Init);
   if (_updateCb) _updateCb({.id = type::MessageID::Init});
   _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow);
   _state = &Update::configResult;
@@ -94,7 +80,6 @@ void Update::configResult(res::Result const r) {
 }
 
 void Update::searchAction() {
-  if (_updateStep) _updateStep(type::UpdateStep::Search);
   if (_updateCb) _updateCb({.id = type::MessageID::SearchDecoder});
   _lib.mdu_ein().ping(0, _fwIt.id());
   _state = &Update::searchResult;
@@ -147,7 +132,6 @@ void Update::initResult(res::Result const r) {
 }
 
 void Update::eraseAction() {
-  if (_updateStep) _updateStep(type::UpdateStep::Erase);
   if (_updateCb) _updateCb({.id = type::MessageID::EraseFlash});
   _lib.mdu_ein().zsuErase(_fwIt);
   _state = &Update::eraseResult;
@@ -167,7 +151,6 @@ void Update::eraseResult(res::Result const r) {
 }
 
 void Update::waitAction() {
-  if (_updateProgress) _updateProgress(static_cast<double>(_index) / 20.0);
   if (_updateCb)
     _updateCb({.id = type::MessageID::EraseFlash,
                .progress = static_cast<double>(_index) / 20.0});
@@ -195,7 +178,6 @@ void Update::waitResult(res::Result const r) {
 }
 
 void Update::updateAction() {
-  if (_updateStep) _updateStep(type::UpdateStep::Update);
   if (_updateCb)
     _updateCb({.id = type::MessageID::WriteFlash,
                .progress = static_cast<double>(_index + 1.0) /
@@ -209,9 +191,6 @@ void Update::updateResult(res::Result const r) {
     if (std::get<res::Status>(r)) {
       // Block transferred
       _err_cnt = 0;
-      if (_updateProgress)
-        _updateProgress(static_cast<double>(_index + 1.0) /
-                        static_cast<double>(_fwIt.blocks()));
       if (++_index >= _fwIt.blocks()) { return verifyAction(); }
       return updateAction();
 
@@ -228,7 +207,6 @@ void Update::updateResult(res::Result const r) {
 }
 
 void Update::verifyAction() {
-  if (_updateStep) _updateStep(type::UpdateStep::Verify);
   if (_updateCb) _updateCb({.id = type::MessageID::Verify});
   _lib.mdu_ein().zsuCrc32Start(_fwIt);
   _state = &Update::verifyResult;
@@ -247,7 +225,6 @@ void Update::verifyResult(res::Result const r) {
 }
 
 void Update::endAction() {
-  if (_updateStep) _updateStep(type::UpdateStep::Cleanup);
   if (_updateCb) _updateCb({.id = type::MessageID::Cleanup});
   _lib.mdu_ein().zsuCrc32ResultExit();
   _state = &Update::endResult;
@@ -269,6 +246,7 @@ void Update::endResult(res::Result const r) {
 
 void Update::resetAction() {
   _lib.com().reset();
+  _abort = false; // Else we'd loop forever on reset...
   _state = &Update::resetResult;
 }
 
@@ -277,7 +255,6 @@ void Update::resetResult(res::Result const r) {
     std::cout << "Reset success" << std::endl;
   else std::cout << "Reset NOT successful" << std::endl;
 
-  if (_updateStep) _updateStep(type::UpdateStep::Done);
   if (_updateCb) _updateCb({.id = type::MessageID::Done});
 
   _done = true;

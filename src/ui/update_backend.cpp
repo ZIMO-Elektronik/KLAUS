@@ -13,8 +13,6 @@ void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
   window->on_start_process([this]() { this->start_process(); });
   window->on_abort_process([this]() { this->abort_process(); });
 
-  window->set_show_progress(static_cast<bool>(_process));
-
   window->set_step_name({"Awaiting start"});
   window->set_progress_value(0.0);
 
@@ -71,90 +69,6 @@ void UpdateBackend::start_process() {
   else std::cerr << "Manager is busy" << std::endl;
 }
 
-void UpdateBackend::abort_process() { _process->abort(); }
-
-void UpdateBackend::done() { _process.reset(); }
-
-void UpdateBackend::updateProgress(double progress) {
-  using std::operator""sv;
-  updateUi([this, progress]() {
-    std::string_view str{_tracker.update(progress) ? _tracker.estimate()
-                                                   : ""sv};
-    if (auto ui{this->_weakUi.lock()}) {
-      (*ui)->set_progress_value(progress);
-      if (!str.empty()) (*ui)->set_progress_estimate({str.data()});
-    }
-  });
-}
-
-void UpdateBackend::updateStep(type::UpdateStep const step) {
-  if (step == _step) return;
-
-  switch (step) {
-    case type::UpdateStep::Start:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Started"});
-        }
-      });
-      break;
-    case type::UpdateStep::Init:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Initializing"});
-        }
-      });
-      break;
-    case type::UpdateStep::Search:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Searching decoder"});
-        }
-      });
-      break;
-    case type::UpdateStep::Erase:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Erasing Flash"});
-        }
-      });
-      break;
-    case type::UpdateStep::Update:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Writing update"});
-        }
-      });
-      break;
-    case type::UpdateStep::Verify:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Verifying"});
-        }
-      });
-      break;
-    case type::UpdateStep::Cleanup:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Cleanup"});
-        }
-      });
-      break;
-    case type::UpdateStep::Done:
-      updateUi([this]() {
-        if (auto ui{this->_weakUi.lock()}) {
-          (*ui)->set_step_name({"Done"});
-          (*ui)->set_show_progress(false);
-        }
-        this->done();
-      });
-      break;
-  }
-  _step = step;
-}
-
-void UpdateBackend::updateUi(std::function<void()> fn) {
-  slint::invoke_from_event_loop(fn);
-}
+void UpdateBackend::abort_process() { _pManager->abort(); }
 
 } // namespace ui

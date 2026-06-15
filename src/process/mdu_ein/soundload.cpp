@@ -1,6 +1,7 @@
 #include "include/process/mdu_ein/soundload.hpp"
 #include <iostream>
 #include <thread>
+#include "include/type/step.hpp"
 
 namespace process::mdu_ein {
 
@@ -22,21 +23,12 @@ bool SoundLoad::execute() {
 
 void SoundLoad::abort() { _abort = true; }
 
-void SoundLoad::onUpdateProgress(std::function<void(double)> cb) {
-  _updateProgress = cb;
-}
-
-void SoundLoad::onUpdateStep(std::function<void(type::SoundLoadStep)> cb) {
-  _updateStep = cb;
-}
-
 void SoundLoad::handle_result(res::Result r) {
   if (_abort) resetAction();
   std::invoke(_state, this, r);
 }
 
 void SoundLoad::modeAction() {
-  _updateStep(type::SoundLoadStep::Start);
   _lib.com().mdu_ein();
   _state = &SoundLoad::modeResult;
 }
@@ -69,7 +61,7 @@ void SoundLoad::enterResult(res::Result const r) {
 }
 
 void SoundLoad::configAction() {
-  _updateStep(type::SoundLoadStep::Init);
+  _updateCb({.id = type::MessageID::Init});
   _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow);
   _state = &SoundLoad::configResult;
 }
@@ -87,7 +79,7 @@ void SoundLoad::configResult(res::Result const r) {
 }
 
 void SoundLoad::searchAction() {
-  _updateStep(type::SoundLoadStep::Search);
+  _updateCb({.id = type::MessageID::SearchDecoder});
   _lib.mdu_ein().ping(0uz, 0uz);
   _state = &SoundLoad::searchResult;
 }
@@ -118,7 +110,7 @@ void SoundLoad::searchResult(res::Result const r) {
 }
 
 void SoundLoad::initAction() {
-  _updateStep(type::SoundLoadStep::Init);
+  _updateCb({.id = type::MessageID::Init});
   _lib.mdu_ein().zppValidQuery(_zpp);
   _state = &SoundLoad::initResult;
 }
@@ -137,7 +129,7 @@ void SoundLoad::initResult(res::Result const r) {
 }
 
 void SoundLoad::eraseAction() {
-  _updateStep(type::SoundLoadStep::Erase);
+  _updateCb({.id = type::MessageID::EraseFlash});
   _lib.mdu_ein().zppErase(_zpp);
   _state = &SoundLoad::eraseResult;
 }
@@ -155,7 +147,8 @@ void SoundLoad::eraseResult(res::Result const r) {
 }
 
 void SoundLoad::waitAction() {
-  _updateProgress(static_cast<double>(_index) / 200.0);
+  _updateCb({.id = type::MessageID::EraseFlash,
+             .progress = static_cast<double>(_index) / 200.0});
   _lib.mdu_ein().busy();
   _state = &SoundLoad::waitResult;
 }
@@ -177,7 +170,9 @@ void SoundLoad::waitResult(res::Result const r) {
 }
 
 void SoundLoad::updateAction() {
-  _updateStep(type::SoundLoadStep::Load);
+  _updateCb({.id = type::MessageID::WriteFlash,
+             .progress{static_cast<double>(_index + 1.0) /
+                       static_cast<double>(_zpp.blocks())}});
   _lib.mdu_ein().zppUpdate(_zpp, _index);
   _state = &SoundLoad::updateResult;
 }
@@ -187,8 +182,6 @@ void SoundLoad::updateResult(res::Result const r) {
     if (std::get<res::Status>(r)) {
       // Block written
       _err_cnt = 0;
-      _updateProgress(static_cast<double>(_index + 1.0) /
-                      static_cast<double>(_zpp.blocks()));
       if (++_index >= _zpp.blocks()) { return endAction(); }
       return updateAction();
     }
@@ -200,7 +193,7 @@ void SoundLoad::updateResult(res::Result const r) {
 }
 
 void SoundLoad::endAction() {
-  _updateStep(type::SoundLoadStep::Cleanup);
+  _updateCb({.id = type::MessageID::Cleanup});
   _lib.mdu_ein().zppUpdateEnd(_zpp);
   _state = &SoundLoad::endResult;
 }
@@ -228,6 +221,7 @@ void SoundLoad::exitResult(res::Result const r) {
 
 void SoundLoad::resetAction() {
   _lib.com().reset();
+  _abort = false; // Else we'd loop forever on abort...
   _state = &SoundLoad::resetResult;
 }
 void SoundLoad::resetResult(res::Result const r) {
@@ -235,7 +229,7 @@ void SoundLoad::resetResult(res::Result const r) {
     std::cout << "Reset success" << std::endl;
   else std::cout << "Reset NOT successful" << std::endl;
 
-  _updateStep(type::SoundLoadStep::Done);
+  _updateCb({.id = type::MessageID::Done});
   return;
 }
 

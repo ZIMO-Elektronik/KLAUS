@@ -17,19 +17,23 @@ namespace process {
  * Base process
  *
  */
-struct Base {
+struct Base : IProcess {
   Base();            // Create handle
   ~Base() = default; // Destroy handle
 
   bool connect();
   void disconnect();
 
-  bool done();
+  virtual bool done() override;
+
+  virtual void onUpdate(std::function<void(type::ProcessUpdate)>) override;
 
 protected:
   libklug::LibKLUG _lib;
 
   bool _done{false};
+
+  std::function<void(type::ProcessUpdate)> _updateCb{};
 };
 
 } // namespace process
