@@ -1,0 +1,22 @@
+import { ScrollView } from "std-widgets.slint";
+import { FirmwareAdapter } from "firmware.slint";
+import { FirmwareEntry } from "firmware_entry.slint";
+
+export component FirmwareSelector inherits Rectangle {
+    in property <[FirmwareAdapter]> firmwares;
+    height: 100%;
+    width: 100%;
+
+    ScrollView {
+        height: 100%;
+        layout := VerticalLayout {
+            for fw[idx] in root.firmwares: FirmwareEntry {
+                name: fw.decoder-name;
+                id: fw.decoder-id;
+                version: fw.major-version + "." + fw.minor-version;
+
+                is-even: idx.mod(2) == 0;
+            }
+        }
+    }
+}

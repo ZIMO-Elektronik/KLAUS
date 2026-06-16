@@ -52,6 +52,16 @@ void UpdateBackend::choose_file() {
 
   _path = zsuPath;
 
+  _zsu = std::make_shared<libklug::ZSU>(_path);
+  if (!_zsu->valid()) {
+    // Cant read file
+    std::cerr << "Unable to read file";
+    _zsu.reset();
+    return;
+  }
+
+  create_firmware_list();
+
   if (auto ui{_weakUi.lock()}) {
     (*ui)->set_has_file(true);
     (*ui)->set_file_path(_path.string().data());
@@ -63,6 +73,22 @@ void UpdateBackend::choose_file() {
 void UpdateBackend::start_process() {
   if (_pManager->emplace<process::mdu_ein::Update>(_path)) _pManager->execute();
   else std::cerr << "Manager is busy" << std::endl;
+}
+
+void UpdateBackend::create_firmware_list() {
+  auto model{std::make_shared<slint::VectorModel<FirmwareAdapter>>()};
+
+  auto iter{_zsu->begin()};
+  auto const end{_zsu->end()};
+
+  do {
+    model->push_back(FirmwareAdapter{.decoder_name = iter.name(),
+                                     .decoder_id = static_cast<int>(iter.id()),
+                                     .major_version = iter.versionMajor(),
+                                     .minor_version = iter.versionMinor()});
+  } while (++iter != end);
+
+  if (auto ui{_weakUi.lock()}) { (*ui)->set_firmwares(model); }
 }
 
 } // namespace ui

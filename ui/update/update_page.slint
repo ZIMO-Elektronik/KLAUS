@@ -1,58 +1,31 @@
-import {
-    Button,
-    VerticalBox,
-    HorizontalBox,
-    ComboBox,
-} from "std-widgets.slint";
-import { ProgressPopup } from "progress/progress_popup.slint";
-import { ProgressViewContext } from "progress/progress_context.slint";
+import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { ProgressPopup } from "../progress/progress_popup.slint";
+import { ProgressViewContext } from "../progress/progress_context.slint";
+import { EntrySelector } from "entry_selector.slint";
+import { FirmwareSelector } from "firmware_selector.slint";
+import { FirmwareAdapter } from "firmware.slint";
 
-export enum SoundLoadMode {
-    ZUSI, 
-    MDU,
-}
-
-export component SoundLoadPage inherits Rectangle {
-    in-out property <SoundLoadMode> mode: SoundLoadMode.ZUSI;
-    callback mode-changed(SoundLoadMode);
-
+export component UpdatePage inherits Rectangle {
     in property <bool> has-file: false;
     in property <string> file-path: "";
+
+    in property <[FirmwareAdapter]> firmwares;
 
     callback choose-file();
     callback start-process();
 
     VerticalLayout {
         alignment: LayoutAlignment.space-between;
-        spacing: 5px;
 
         VerticalBox {
             padding: 20px;
             spacing: 15px;
             alignment: start;
 
-            HorizontalLayout {
-                Text {
-                    text: "SoundLoad";
-                    font-size: 20px;
-                    color: #000000;
-                }
-
-                ComboBox {
-                    model: ["ZUSI", "MDU"];
-
-                    current-index: root.mode == SoundLoadMode.ZUSI ? 0 : 1;
-
-                    selected(current-value) => {
-                        if (current-value == 0) {
-                            root.mode = SoundLoadMode.ZUSI;
-                        } else {
-                            root.mode = SoundLoadMode.MDU;
-                        }
-
-                        root.mode-changed(root.mode);
-                    }
-                }
+            Text {
+                text: "Update";
+                font-size: 20px;
+                color: #000000;
             }
 
             // Bereich für die Dateiauswahl
@@ -89,6 +62,12 @@ export component SoundLoadPage inherits Rectangle {
                         root.start-process();
                     }
                 }
+            }
+
+            EntrySelector { }
+
+            FirmwareSelector {
+                firmwares <=> root.firmwares;
             }
         }
 

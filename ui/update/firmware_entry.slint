@@ -1,0 +1,43 @@
+import { FirmwareAdapter } from "firmware.slint";
+import { HorizontalBox, CheckBox } from "std-widgets.slint";
+
+export component FirmwareEntry {
+    in property <string> name: "Name";
+    in property <string> id: "Id";
+    in property <string> version: "Version";
+
+    in property <bool> is-even: true;
+
+    in-out property <bool> selected;
+
+    Rectangle {
+        background: is-even ? white : lightgray;
+        max-width: 300px;
+
+        HorizontalLayout {
+            alignment: start;
+            spacing: 10px;
+
+            select := CheckBox {
+                changed checked => {
+                    root.selected = self.checked;
+                }
+            }
+
+            name-text := Text {
+                text: root.name;
+                width: 80px;
+            }
+
+            id-text := Text {
+                text: root.id;
+                width: 100px;
+            }
+
+            version-text := Text {
+                text: root.version;
+                width: 100px;
+            }
+        }
+    }
+}

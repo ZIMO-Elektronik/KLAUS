@@ -1,7 +1,8 @@
 import { NavigationBar } from "navigation_bar.slint";
-import { UpdatePage } from "update_page.slint";
-import { SoundLoadPage, SoundLoadMode } from "soundload_page.slint";
+import { UpdatePage } from "update/update_page.slint";
+import { SoundLoadPage, SoundLoadMode } from "soundload/soundload_page.slint";
 import { AppPage } from "types.slint";
+import { FirmwareAdapter } from "update/firmware.slint";
 
 // Re-export context
 import { ProgressViewContext } from "progress/progress_context.slint";
@@ -16,6 +17,8 @@ export component AppWindow inherits Window {
 
     in property <bool> has-file: false;
     in property <string> file-path: "";
+
+    in property <[FirmwareAdapter]> firmwares;
 
     in-out property active-page <=> nav.active-page;
 
@@ -45,6 +48,7 @@ export component AppWindow inherits Window {
             if root.active-page == AppPage.Update: UpdatePage {
                 has-file: root.has-file;
                 file-path: root.file-path;
+                firmwares <=> root.firmwares;
                 choose-file => {
                     root.choose_file();
                 }
