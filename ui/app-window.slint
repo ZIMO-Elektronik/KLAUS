@@ -3,6 +3,7 @@ import { UpdatePage } from "update/update_page.slint";
 import { SoundLoadPage, SoundLoadMode } from "soundload/soundload_page.slint";
 import { AppPage } from "types.slint";
 import { FirmwareAdapter } from "update/firmware.slint";
+import { EntryType } from "update/entry.slint";
 
 // Re-export context
 import { ProgressViewContext } from "progress/progress_context.slint";
@@ -19,6 +20,7 @@ export component AppWindow inherits Window {
     in property <string> file-path: "";
 
     in property <[FirmwareAdapter]> firmwares;
+    in-out property <EntryType> entry-type;
 
     in-out property active-page <=> nav.active-page;
 
@@ -49,6 +51,7 @@ export component AppWindow inherits Window {
                 has-file: root.has-file;
                 file-path: root.file-path;
                 firmwares <=> root.firmwares;
+                entry-type <=> root.entry-type;
                 choose-file => {
                     root.choose_file();
                 }

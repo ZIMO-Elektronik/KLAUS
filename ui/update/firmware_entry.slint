@@ -2,13 +2,13 @@ import { FirmwareAdapter } from "firmware.slint";
 import { HorizontalBox, CheckBox } from "std-widgets.slint";
 
 export component FirmwareEntry {
-    in property <string> name: "Name";
-    in property <string> id: "Id";
-    in property <string> version: "Version";
+    in property <string> name: "MS9000";
+    in property <string> id: "0.0.0.0";
+    in property <string> version: "0.0";
 
     in property <bool> is-even: true;
 
-    in-out property <bool> selected;
+    callback selected(bool);
 
     Rectangle {
         background: is-even ? white : lightgray;
@@ -19,9 +19,7 @@ export component FirmwareEntry {
             spacing: 10px;
 
             select := CheckBox {
-                changed checked => {
-                    root.selected = self.checked;
-                }
+                changed checked => root.selected(self.checked);
             }
 
             name-text := Text {

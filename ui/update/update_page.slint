@@ -2,6 +2,7 @@ import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { ProgressPopup } from "../progress/progress_popup.slint";
 import { ProgressViewContext } from "../progress/progress_context.slint";
 import { EntrySelector } from "entry_selector.slint";
+import { EntryType } from "entry.slint";
 import { FirmwareSelector } from "firmware_selector.slint";
 import { FirmwareAdapter } from "firmware.slint";
 
@@ -10,6 +11,8 @@ export component UpdatePage inherits Rectangle {
     in property <string> file-path: "";
 
     in property <[FirmwareAdapter]> firmwares;
+
+    in-out property <EntryType> entry-type;
 
     callback choose-file();
     callback start-process();
@@ -64,7 +67,9 @@ export component UpdatePage inherits Rectangle {
                 }
             }
 
-            EntrySelector { }
+            EntrySelector {
+                type <=> root.entry-type;
+            }
 
             FirmwareSelector {
                 firmwares <=> root.firmwares;

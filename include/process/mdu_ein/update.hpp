@@ -22,7 +22,12 @@ namespace process::mdu_ein {
 
  */
 struct Update : public Base {
-  Update(std::filesystem::path path);
+  Update(std::filesystem::path path,
+         type::MDUEntryType entry_type,
+         std::vector<uint32_t> decoder_ids = {});
+  Update(std::shared_ptr<libklug::ZSU> zsu,
+         type::MDUEntryType entry_type,
+         std::vector<uint32_t> decoder_ids = {});
   virtual ~Update() final;
 
   virtual bool execute();
@@ -66,9 +71,12 @@ private:
 
   void (Update::*_state)(res::Result const){&Update::modeResult};
 
-  libklug::ZSU _zsu;
-  libklug::ZSU::FirmwareIterator _fwIt{_zsu.begin()};
-  libklug::ZSU::FirmwareIterator const _fwItEnd{_zsu.end()};
+  std::shared_ptr<libklug::ZSU> _zsu;
+  libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()};
+  libklug::ZSU::FirmwareIterator const _fwItEnd{_zsu->end()};
+
+  std::vector<uint32_t> _decoderIDs;
+  type::MDUEntryType _entryType;
 
   int _err_cnt{0};
 

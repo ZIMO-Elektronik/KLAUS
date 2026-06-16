@@ -2,7 +2,7 @@ import { HorizontalBox, ComboBox } from "std-widgets.slint";
 import { EntryType } from "entry.slint";
 
 export component EntrySelector {
-    in-out property <EntryType> mode;
+    in-out property <EntryType> type;
 
     HorizontalBox {
         Text {
@@ -14,13 +14,13 @@ export component EntrySelector {
         ComboBox {
             model: ["MDU", "DCC"];
 
-            current-index: root.mode == EntryType.MDU ? 0 : 1;
+            current-index: root.type == EntryType.MDU ? 0 : 1;
 
             selected(current-value) => {
                 if (current-value == 0) {
-                    root.mode = EntryType.MDU;
+                    root.type = EntryType.MDU;
                 } else {
-                    root.mode = EntryType.DCC;
+                    root.type = EntryType.DCC;
                 }
             }
         }

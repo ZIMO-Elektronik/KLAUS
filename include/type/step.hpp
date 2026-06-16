@@ -54,6 +54,12 @@ enum class CvStep {
   Done,
 };
 
+enum class MDUEntryType {
+  MDU,
+  DCC_ZSU,
+  DCC_ZPP,
+};
+
 enum class MessageID {
   Start,
   StartComplete,

@@ -10,12 +10,18 @@ export component FirmwareSelector inherits Rectangle {
     ScrollView {
         height: 100%;
         layout := VerticalLayout {
+            spacing: 4px;
+
             for fw[idx] in root.firmwares: FirmwareEntry {
                 name: fw.decoder-name;
-                id: fw.decoder-id;
+                id: fw.decoder-id[3] + "." + fw.decoder-id[2] + "." + fw.decoder-id[1] + "." + fw.decoder-id[0];
                 version: fw.major-version + "." + fw.minor-version;
 
                 is-even: idx.mod(2) == 0;
+
+                selected(selected) => {
+                    fw.selected = selected;
+                }
             }
         }
     }

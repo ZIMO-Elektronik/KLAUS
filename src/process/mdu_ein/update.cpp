@@ -5,7 +5,22 @@
 
 namespace process::mdu_ein {
 
-Update::Update(std::filesystem::path path) : Base{}, _zsu{path} {
+Update::Update(std::filesystem::path path,
+               type::MDUEntryType entry_type,
+               std::vector<uint32_t> decoder_ids)
+  : Base{}, _zsu{std::make_shared<libklug::ZSU>(path)},
+    _decoderIDs{decoder_ids}, _entryType{entry_type} {
+  _lib.registerCb<[] {}>(
+    [this](res::Result const result) { this->handle_result(result); });
+}
+
+Update::Update(std::shared_ptr<libklug::ZSU> zsu,
+               type::MDUEntryType entry_type,
+               std::vector<uint32_t> decoder_ids)
+  : Base{}, _zsu{zsu}, _decoderIDs{decoder_ids}, _entryType{entry_type} {
+  assert(_zsu != nullptr);
+  assert(_zsu->valid());
+
   _lib.registerCb<[] {}>(
     [this](res::Result const result) { this->handle_result(result); });
 }
@@ -16,7 +31,7 @@ Update::~Update() {
 }
 
 bool Update::execute() {
-  if (!connect()) {
+  if (_zsu == nullptr || !_zsu->valid() || !connect()) {
     _done = true;
     return false;
   }
@@ -49,7 +64,12 @@ void Update::modeResult(res::Result const r) {
 }
 
 void Update::enterAction() {
-  _lib.mdu_ein().enterMDU();
+  switch (_entryType) {
+    case type::MDUEntryType::MDU: _lib.mdu_ein().enterMDU(); break;
+    case type::MDUEntryType::DCC_ZSU: _lib.mdu_ein().enterDCCZSU(); break;
+    default: assert(false);
+  }
+
   _state = &Update::enterResult;
 }
 
