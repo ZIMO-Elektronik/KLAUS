@@ -1,0 +1,15 @@
+import { HelpButton } from "help_button.slint";
+
+export component HelpModeButton inherits Rectangle {
+    in-out property <bool> help-mode;
+
+    width: button.width;
+
+    button := HelpButton {
+        size: 20px;
+
+        clicked => {
+            root.help-mode = !root.help-mode;
+        }
+    }
+}

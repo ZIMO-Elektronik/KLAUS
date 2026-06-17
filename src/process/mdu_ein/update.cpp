@@ -68,7 +68,7 @@ void Update::enterAction() {
     case type::MDUEntryType::MDU: _lib.mdu_ein().enterMDU(); break;
     case type::MDUEntryType::DCC_ZSU:
       if (_decoderIDs.empty()) _lib.mdu_ein().enterDCCZSU();
-      _lib.mdu_ein().enterDCCZSU(*_iter, 0uz, _iter == _lastIter);
+      else _lib.mdu_ein().enterDCCZSU(*_iter, 0uz, _iter == _lastIter);
       break;
     default: assert(false);
   }

@@ -1,39 +1,62 @@
-import { ScrollView } from "std-widgets.slint";
+import { ScrollView, VerticalBox } from "std-widgets.slint";
 import { FirmwareAdapter } from "firmware.slint";
 import { FirmwareEntry } from "firmware_entry.slint";
+import { HelpPopup } from "../utility/help_popup/help_popup.slint";
 
 export component FirmwareSelector inherits Rectangle {
     in property <[FirmwareAdapter]> firmwares;
 
-    height: 100%;
-    width: 100%;
+    in property <bool> help-mode;
+    vertical-stretch: 1;
+    horizontal-stretch: 1;
 
-    //preferred-height: view.preferred-height;
-    //preferred-width: view.preferred-width;
+    HelpPopup {
+        help-text: "Choose a selection of decoder IDs (preferably your model) for the update. This can help if the update repeadetly fails at the entry";
+        visible: root.help-mode;
 
-    view := ScrollView {
+        // This is placed relative to the center of the list container (the Rectangle). 
+        // Following its center is placed on the upper left edge of the parent (the Rectangle) 
+        // and then a minor correction is done. No, I'm not happy with this but it works and 
+        // should be rather stable (give or take a vew pixels) 
+        // This only works btw because the anchor withing a rectangle by default is it's center.
+        x: 0 - parent.width / 2 - 16px;
+        y: 0 - parent.height / 2 + 16px;
+    }
+
+    outer-layout := VerticalLayout {
+        width: 100%;
         height: 100%;
 
-        layout := VerticalLayout {
-            //spacing: 4px;
+        padding-bottom: 30px;
 
-            FirmwareEntry {
-                name: "Name";
-                id: "ID";
-                version: "Version";
-                is-even: false;
-                show-box: false;
-            }
+        FirmwareEntry {
+            name: "Name";
+            id: "ID";
+            version: "Version";
+            is-even: false;
+            show-box: false;
+        }
 
-            for fw[idx] in root.firmwares: FirmwareEntry {
-                name: fw.decoder-name;
-                id: fw.decoder-id[3] + "." + fw.decoder-id[2] + "." + fw.decoder-id[1] + "." + fw.decoder-id[0];
-                version: fw.major-version + "." + fw.minor-version;
+        Rectangle {
+            height: 2px;
+            background: black;
+        }
 
-                is-even: idx.mod(2) == 0;
+        view := ScrollView {
+            height: 100%;
+            preferred-width: layout.preferred-width;
 
-                selected(selected) => {
-                    fw.selected = selected;
+            layout := VerticalLayout {
+                for fw[idx] in root.firmwares: FirmwareEntry {
+                    name: fw.decoder-name;
+                    id: fw.decoder-id[3] + "." + fw.decoder-id[2] + "." + fw.decoder-id[1] + "." + fw.decoder-id[0];
+                    version: fw.major-version + "." + fw.minor-version;
+
+                    is-even: idx.mod(2) == 0;
+
+                    selected(selected) => {
+                        fw.selected = selected;
+                    }
                 }
             }
         }
