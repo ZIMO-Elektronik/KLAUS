@@ -20,6 +20,7 @@ export component AppWindow inherits Window {
     in property <string> file-path: "";
 
     in property <[FirmwareAdapter]> firmwares;
+    in property <[FirmwareAdapter]> filtered-firmwares;
     in-out property <EntryType> entry-type;
 
     in-out property active-page <=> nav.active-page;
@@ -50,7 +51,7 @@ export component AppWindow inherits Window {
             if root.active-page == AppPage.Update: UpdatePage {
                 has-file: root.has-file;
                 file-path: root.file-path;
-                firmwares <=> root.firmwares;
+                firmwares <=> root.filtered_firmwares;
                 entry-type <=> root.entry-type;
                 choose-file => {
                     root.choose_file();

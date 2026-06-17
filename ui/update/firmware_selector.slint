@@ -4,13 +4,18 @@ import { FirmwareEntry } from "firmware_entry.slint";
 
 export component FirmwareSelector inherits Rectangle {
     in property <[FirmwareAdapter]> firmwares;
+
     height: 100%;
     width: 100%;
 
-    ScrollView {
+    //preferred-height: view.preferred-height;
+    //preferred-width: view.preferred-width;
+
+    view := ScrollView {
         height: 100%;
+
         layout := VerticalLayout {
-            spacing: 4px;
+            //spacing: 4px;
 
             FirmwareEntry {
                 name: "Name";

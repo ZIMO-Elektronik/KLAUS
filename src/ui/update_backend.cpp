@@ -109,13 +109,29 @@ void UpdateBackend::create_firmware_list() {
       id_model->push_back(byte_val);
     }
 
-    model->push_back(FirmwareAdapter{.decoder_name = iter.name(),
+    model->push_back(FirmwareAdapter{.decoder_name = iter.name().substr(
+                                       0, iter.name().find_first_of("-") + 2uz),
                                      .decoder_id = id_model,
                                      .major_version = iter.versionMajor(),
                                      .minor_version = iter.versionMinor()});
   } while (++iter != end);
 
-  if (auto ui{_weakUi.lock()}) { (*ui)->set_firmwares(model); }
+  auto filter_model{std::make_shared<slint::SortModel<FirmwareAdapter>>(
+    model, [](FirmwareAdapter const& lhs, FirmwareAdapter const& rhs) {
+      return std::lexicographical_compare(
+        std::string_view(lhs.decoder_name).begin(),
+        std::string_view(lhs.decoder_name).end(),
+        std::string_view(rhs.decoder_name).begin(),
+        std::string_view(rhs.decoder_name).end(),
+        [](unsigned char c1, unsigned char c2) {
+          return std::tolower(c1) < std::tolower(c2);
+        });
+    })};
+
+  if (auto ui{_weakUi.lock()}) {
+    (*ui)->set_firmwares(model);
+    (*ui)->set_filtered_firmwares(filter_model);
+  }
 }
 
 } // namespace ui
