@@ -12,6 +12,14 @@ export component FirmwareSelector inherits Rectangle {
         layout := VerticalLayout {
             spacing: 4px;
 
+            FirmwareEntry {
+                name: "Name";
+                id: "ID";
+                version: "Version";
+                is-even: false;
+                show-box: false;
+            }
+
             for fw[idx] in root.firmwares: FirmwareEntry {
                 name: fw.decoder-name;
                 id: fw.decoder-id[3] + "." + fw.decoder-id[2] + "." + fw.decoder-id[1] + "." + fw.decoder-id[0];

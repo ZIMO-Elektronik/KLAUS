@@ -1,10 +1,18 @@
-import { HorizontalBox, ComboBox } from "std-widgets.slint";
+import { ComboBox } from "std-widgets.slint";
 import { EntryType } from "entry.slint";
+export { EntryType }
 
-export component EntrySelector {
+export component EntrySelector inherits Rectangle {
     in-out property <EntryType> type;
 
-    HorizontalBox {
+    preferred-height: layout.preferred-height;
+    preferred-width: layout.preferred-width;
+
+    layout := HorizontalLayout {
+        alignment: start;
+        spacing: 10px;
+        padding: 10px;
+
         Text {
             text: "Entry type";
             vertical-alignment: center;

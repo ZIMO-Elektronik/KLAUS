@@ -7,6 +7,7 @@ export component FirmwareEntry {
     in property <string> version: "0.0";
 
     in property <bool> is-even: true;
+    in property <bool> show-box: true;
 
     callback selected(bool);
 
@@ -19,6 +20,7 @@ export component FirmwareEntry {
             spacing: 10px;
 
             select := CheckBox {
+                visible: root.show-box;
                 changed checked => root.selected(self.checked);
             }
 
