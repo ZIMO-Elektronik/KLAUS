@@ -21,7 +21,6 @@ void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
   auto const has_file{this->_path.has_filename()};
   if (has_file) {
     window->set_has_file(true);
-    window->set_file_path({_path.string().data()});
   } else {
     window->set_has_file(false);
   }
@@ -68,10 +67,7 @@ void UpdateBackend::choose_file() {
 
   create_firmware_list();
 
-  if (auto ui{_weakUi.lock()}) {
-    (*ui)->set_has_file(true);
-    (*ui)->set_file_path(_path.string().data());
-  }
+  if (auto ui{_weakUi.lock()}) { (*ui)->set_has_file(true); }
 
   return;
 }

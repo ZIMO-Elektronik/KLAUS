@@ -17,7 +17,6 @@ export component AppWindow inherits Window {
     height: 500px;
 
     in property <bool> has-file: false;
-    in property <string> file-path: "";
 
     in property <[FirmwareAdapter]> firmwares;
     in property <[FirmwareAdapter]> filtered-firmwares;
@@ -25,12 +24,13 @@ export component AppWindow inherits Window {
 
     in-out property active-page <=> nav.active-page;
 
-    in-out property <SoundLoadMode> sound-mode;
+    in-out property <SoundLoadMode> sound-load-mode;
+    in property <string> zpp_name;
+    in property <string> zpp_author;
+    in property <string> zpp_email;
 
     // Globale Callbacks für C++ Registrierung
     callback change_page(AppPage);
-
-    callback sound_mode_changed(SoundLoadMode);
 
     callback choose_file();
     callback start_process();
@@ -49,8 +49,7 @@ export component AppWindow inherits Window {
             background: #ffffff;
 
             if root.active-page == AppPage.Update: UpdatePage {
-                has-file: root.has-file;
-                file-path: root.file-path;
+                has-file <=> root.has-file;
                 firmwares <=> root.filtered_firmwares;
                 entry-type <=> root.entry-type;
                 choose-file => {
@@ -62,16 +61,16 @@ export component AppWindow inherits Window {
             }
 
             if root.active-page == AppPage.Soundload: SoundLoadPage {
-                has-file: root.has-file;
-                file-path: root.file-path;
+                has-file <=> root.has-file;
+                mode <=> root.sound-load-mode;
+                project-name: root.zpp_name;
+                project-author: root.zpp_author;
+                project-email: root.zpp_email;
                 choose-file => {
                     root.choose_file();
                 }
                 start-process => {
                     root.start_process();
-                }
-                mode-changed(mode) => {
-                    root.sound_mode_changed(mode);
                 }
             }
 

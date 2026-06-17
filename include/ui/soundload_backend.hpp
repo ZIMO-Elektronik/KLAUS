@@ -30,6 +30,7 @@ private:
   type::SoundLoadStep _step{type::SoundLoadStep::Done};
 
   std::filesystem::path _path{};
+  std::shared_ptr<libklug::ZPP> _zpp{};
 
   helper::ProgressTracker _tracker{};
 };

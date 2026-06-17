@@ -6,98 +6,122 @@ import {
 } from "std-widgets.slint";
 import { ProgressPopup } from "../progress/progress_popup.slint";
 import { ProgressViewContext } from "../progress/progress_context.slint";
+import { ModeSelector, SoundLoadMode, ModeSelector } from "mode_selector.slint";
+import { HelpModeButton } from "../utility/help_popup/help_mode_button.slint";
+import {
+    OptionLevelSelector,
+    OptionLevel,
+} from "../utility/option_level_selector/option_level_selector.slint";
+import { HelpPopup } from "../utility/help_popup/help_popup.slint";
+import { ProjectInfoPanel } from "project_info.slint";
 
-export enum SoundLoadMode {
-    ZUSI, 
-    MDU,
-}
+// Re-export
+export { SoundLoadMode }
+
 
 export component SoundLoadPage inherits Rectangle {
     in-out property <SoundLoadMode> mode: SoundLoadMode.ZUSI;
-    callback mode-changed(SoundLoadMode);
+
+    property <OptionLevel> option-level;
 
     in property <bool> has-file: false;
-    in property <string> file-path: "";
+
+    in property <string> project-name;
+    in property <string> project-author;
+    in property <string> project-email;
 
     callback choose-file();
     callback start-process();
 
-    VerticalLayout {
+    HorizontalLayout {
         alignment: LayoutAlignment.space-between;
         spacing: 5px;
 
-        VerticalBox {
+        VerticalLayout {
             padding: 20px;
             spacing: 15px;
             alignment: start;
 
             HorizontalLayout {
+                spacing: 16px;
+                alignment: start;
+
                 Text {
                     text: "SoundLoad";
                     font-size: 20px;
                     color: #000000;
                 }
 
-                ComboBox {
-                    model: ["ZUSI", "MDU"];
-
-                    current-index: root.mode == SoundLoadMode.ZUSI ? 0 : 1;
-
-                    selected(current-value) => {
-                        if (current-value == 0) {
-                            root.mode = SoundLoadMode.ZUSI;
-                        } else {
-                            root.mode = SoundLoadMode.MDU;
-                        }
-
-                        root.mode-changed(root.mode);
-                    }
-                }
+                help-mode-button := HelpModeButton { }
             }
 
-            // Bereich für die Dateiauswahl
-            HorizontalBox {
-                spacing: 10px;
+            HorizontalLayout {
+                spacing: 16px;
                 alignment: start;
+
+                HelpPopup {
+                    help-text: "Opens a file dialog and requires you to choose an update file (.zpp)";
+                    visible: help-mode-button.help-mode;
+                }
 
                 Button {
                     text: "Choose file";
-                // Deaktivieren, wenn der Prozess bereits läuft
-                enabled: !ProgressViewContext.is-process-running;
+                    // Deaktivieren, wenn der Prozess bereits läuft
+                    enabled: !ProgressViewContext.is-process-running;
                     clicked => {
                         root.choose-file();
                     }
                 }
-
-                Text {
-                    text: root.file-path == "" ? "No file selected" : root.file-path;
-                    vertical-alignment: center;
-                    color: root.has-file ? #2c3e50 : #7f8c8d;
-                    font-italic: !root.has-file;
-                }
             }
 
             // Start-Button
-            HorizontalBox {
+            HorizontalLayout {
+                spacing: 16px;
                 alignment: start;
 
+                HelpPopup {
+                    help-text: "Begin the soundload procedure. Ensure, that the decoder is properly connected to the update device before clicking here";
+                    visible: help-mode-button.help-mode;
+                }
+
                 Button {
-                    text: "Start update";
-                // Aktiv, wenn eine Datei existiert UND kein Update läuft
-                enabled: root.has-file && !ProgressViewContext.is-process-running;
+                    text: "Start soundload";
+                    // Aktiv, wenn eine Datei existiert UND kein Update läuft
+                    enabled: root.has-file && !ProgressViewContext.is-process-running;
                     clicked => {
                         root.start-process();
                     }
                 }
             }
+
+            HorizontalLayout {
+                spacing: 16px;
+                alignment: start;
+
+                HelpPopup {
+                    help-text: "Choose the entry used to begin the update sequence.";
+                    visible: help-mode-button.help-mode;
+                }
+
+                ModeSelector {
+                    selected-mode <=> root.mode;
+                }
+            }
         }
 
-        VerticalLayout {
-            padding-top: 20px;
-            padding-right: 10px; // Avoid placing this on the edge of the window
-            alignment: LayoutAlignment.start;
-
-            ProgressPopup { }
+        if root.has-file: VerticalBox {
+            padding: 20px;
+            ProjectInfoPanel {
+                name: root.project-name;
+                author: root.project-author;
+                email: root.project-email;
+            }
         }
+    }
+
+    // Dock progress at the bottom
+    VerticalLayout {
+        alignment: end;
+        ProgressPopup { }
     }
 }

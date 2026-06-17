@@ -1,0 +1,39 @@
+import { VerticalBox } from "std-widgets.slint";
+export component ProjectInfoPanel inherits Rectangle {
+    in property <string> name;
+    in property <string> author;
+    in property <string> email;
+
+    height: 150px;
+    width: 350px;
+
+    background: lightgrey;
+
+    VerticalLayout {
+        alignment: start;
+        padding: 4px;
+        Text {
+            text: "Project information";
+            font-size: 20px;
+        }
+
+        VerticalBox {
+            padding: 16px;
+
+            Text {
+                text: "Name: " + root.name;
+                font-italic: true;
+            }
+
+            Text {
+                text: "Author: " + root.author;
+                font-italic: true;
+            }
+
+            Text {
+                text: "E-Mail: " + root.email;
+                font-italic: true;
+            }
+        }
+    }
+}

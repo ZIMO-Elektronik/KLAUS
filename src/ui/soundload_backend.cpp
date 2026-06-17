@@ -11,15 +11,15 @@ SoundLoadBackend::SoundLoadBackend(std::shared_ptr<ProcessManager> pManager)
 void SoundLoadBackend::connect(slint::ComponentHandle<AppWindow> window) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>{window};
 
-  window->on_sound_mode_changed(
-    [this](SoundLoadMode mode) { this->_mode = mode; });
   window->on_choose_file([this]() { this->choose_file(); });
   window->on_start_process([this]() { this->start_process(); });
 
-  auto const has_file{this->_path.has_filename()};
+  auto const has_file{this->_zpp != nullptr};
   if (has_file) {
     window->set_has_file(true);
-    window->set_file_path({_path.string().data()});
+    window->set_zpp_name(_path.filename().c_str());
+    window->set_zpp_author(_zpp->author());
+    window->set_zpp_email(_zpp->email());
   } else {
     window->set_has_file(false);
   }
@@ -56,16 +56,29 @@ void SoundLoadBackend::choose_file() {
 
   _path = zppPath;
 
+  _zpp = std::make_shared<libklug::ZPP>(_path);
+  if (!_zpp->valid()) {
+    // Cant read file
+    std::cerr << "Unable to read file";
+    _zpp.reset();
+    return;
+  }
+
   if (auto ui{_weakUi.lock()}) {
     (*ui)->set_has_file(true);
-    (*ui)->set_file_path(_path.string().data());
+    (*ui)->set_zpp_name(_path.filename().c_str());
+    (*ui)->set_zpp_author(_zpp->author());
+    (*ui)->set_zpp_email(_zpp->email());
   }
 
   return;
 }
 
 void SoundLoadBackend::start_process() {
-  switch (_mode) {
+  SoundLoadMode mode{};
+  if (auto ui{_weakUi.lock()}) { mode = (*ui)->get_sound_load_mode(); }
+
+  switch (mode) {
     case SoundLoadMode::ZUSI:
       if (_pManager->emplace<process::susiv2::SoundLoad>(_path))
         _pManager->execute();
