@@ -77,15 +77,9 @@ void UpdateBackend::choose_file() {
 }
 
 void UpdateBackend::start_process() {
+  /// Careful, we can only pass an empty list while the underlying process sends
+  /// an entry on ID 0 in that case.
   auto decoder_ids{prepare_selected_firmware_list<true>()};
-  if (decoder_ids.empty()) {
-    // No decoders selected, use all
-    decoder_ids = prepare_selected_firmware_list<false>();
-  }
-  if (decoder_ids.empty()) {
-    std::cerr << "Somehow, we have no firmwares i guess...";
-    return;
-  }
 
   EntryType entry_type{EntryType::MDU};
 

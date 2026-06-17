@@ -66,7 +66,10 @@ void Update::modeResult(res::Result const r) {
 void Update::enterAction() {
   switch (_entryType) {
     case type::MDUEntryType::MDU: _lib.mdu_ein().enterMDU(); break;
-    case type::MDUEntryType::DCC_ZSU: _lib.mdu_ein().enterDCCZSU(); break;
+    case type::MDUEntryType::DCC_ZSU:
+      if (_decoderIDs.empty()) _lib.mdu_ein().enterDCCZSU();
+      _lib.mdu_ein().enterDCCZSU(*_iter, 0uz, _iter == _lastIter);
+      break;
     default: assert(false);
   }
 
@@ -75,13 +78,26 @@ void Update::enterAction() {
 
 void Update::enterResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
-    std::cout << "Entered via MDU" << std::endl;
-    configAction();
-    return;
+    if (_entryType == type::MDUEntryType::MDU) {
+      // MDU entry, done after first command
+      std::cout << "Entered via MDU" << std::endl;
+      return configAction();
+    }
+
+    // DCC entry, use all ids first
+    if (++_iter == _decoderIDs.end()) {
+      // Done with last id, next mode
+      std::cout << "Entered via DCC with " << _decoderIDs.size() << " IDs"
+                << std::endl;
+      return configAction();
+    }
+
+    // More IDs to send
+    return enterAction();
   }
 
   std::cout << "Unable to enter" << std::endl;
-  resetAction();
+  return resetAction();
 }
 
 void Update::configAction() {

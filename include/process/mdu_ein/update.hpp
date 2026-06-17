@@ -75,8 +75,12 @@ private:
   libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()};
   libklug::ZSU::FirmwareIterator const _fwItEnd{_zsu->end()};
 
-  std::vector<uint32_t> _decoderIDs;
   type::MDUEntryType _entryType;
+
+  std::vector<uint32_t> _decoderIDs; ///< List of selected IDs
+  decltype(_decoderIDs)::iterator _iter{_decoderIDs.begin()}; ///< Current ID
+  decltype(_decoderIDs)::const_iterator _lastIter{_decoderIDs.end() -
+                                                  1}; ///< Last ID
 
   int _err_cnt{0};
 
