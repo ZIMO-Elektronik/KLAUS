@@ -5,6 +5,10 @@ import { EntrySelector } from "entry_selector.slint";
 import { EntryType } from "entry.slint";
 import { FirmwareSelector } from "firmware_selector.slint";
 import { FirmwareAdapter } from "firmware.slint";
+import {
+    OptionLevelSelector,
+    OptionLevel,
+} from "../utility/option_level_selector/option_level_selector.slint";
 
 export component UpdatePage inherits Rectangle {
     in property <bool> has-file: false;
@@ -13,6 +17,8 @@ export component UpdatePage inherits Rectangle {
     in property <[FirmwareAdapter]> firmwares;
 
     in-out property <EntryType> entry-type;
+
+    property <OptionLevel> option-level;
 
     callback choose-file();
     callback start-process();
@@ -25,10 +31,18 @@ export component UpdatePage inherits Rectangle {
             spacing: 15px;
             alignment: start;
 
-            Text {
-                text: "Update";
-                font-size: 20px;
-                color: #000000;
+            HorizontalLayout {
+                alignment: space-between;
+
+                Text {
+                    text: "Update";
+                    font-size: 20px;
+                    color: #000000;
+                }
+
+                OptionLevelSelector {
+                    selected-level <=> option-level;
+                }
             }
 
             // Bereich für die Dateiauswahl
@@ -67,11 +81,11 @@ export component UpdatePage inherits Rectangle {
                 }
             }
 
-            EntrySelector {
+            if root.option-level == OptionLevel.Advanced || root.option-level == OptionLevel.Expert: EntrySelector {
                 type <=> root.entry-type;
             }
 
-            FirmwareSelector {
+            if root.option-level == OptionLevel.Expert: FirmwareSelector {
                 firmwares <=> root.firmwares;
             }
         }

@@ -1,0 +1,20 @@
+import { ComboBox } from "std-widgets.slint";
+import { OptionLevel } from "option_level.slint";
+export { OptionLevel } // Re-export
+
+export component OptionLevelSelector inherits Rectangle {
+    in-out property <OptionLevel> selected-level;
+
+    preferred-height: box.preferred-height;
+    preferred-width: box.preferred-width;
+
+    box := ComboBox {
+        model: ["Basic", "Advanced", "Expert"];
+        init => {
+            self.current-index = root.selected-level == OptionLevel.Basic ? 0 : root.selected-level == OptionLevel.Advanced ? 1 : 2;
+        }
+        selected => {
+            root.selected-level = self.current-index == 0 ? OptionLevel.Basic : self.current-index == 1 ? OptionLevel.Advanced : OptionLevel.Expert;
+        }
+    }
+}
