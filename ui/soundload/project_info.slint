@@ -13,7 +13,7 @@ export component ProjectInfoPanel inherits Rectangle {
         alignment: start;
         padding: 4px;
         Text {
-            text: "Project information";
+            text: @tr("Project information");
             font-size: 20px;
         }
 
@@ -21,17 +21,17 @@ export component ProjectInfoPanel inherits Rectangle {
             padding: 16px;
 
             Text {
-                text: "Name: " + root.name;
+                text: @tr("Name: {}", root.name);
                 font-italic: true;
             }
 
             Text {
-                text: "Author: " + root.author;
+                text: @tr("Author: {}", root.author);
                 font-italic: true;
             }
 
             Text {
-                text: "E-Mail: " + root.email;
+                text: @tr("E-Mail: {}", root.email);
                 font-italic: true;
             }
         }

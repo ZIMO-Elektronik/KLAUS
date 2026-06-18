@@ -66,13 +66,13 @@ export component ProgressPanel {
                 }
 
                 Text {
-                    text: "Estimated time remaining: " + root.time-estimate;
+                    text: @tr("Estimated time remaining: {}", root.time-estimate);
                 }
 
                 HorizontalBox {
                     alignment: end;
                     Button {
-                        text: "Abort";
+                        text: @tr("Abort");
                         clicked => {
                             root.abort-clicked();
                         }

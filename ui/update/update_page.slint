@@ -40,7 +40,7 @@ export component UpdatePage inherits Rectangle {
                     spacing: 16px;
 
                     Text {
-                        text: "Update";
+                        text: @tr("Update");
                         font-size: 20px;
                         color: #000000;
                     }
@@ -69,12 +69,12 @@ export component UpdatePage inherits Rectangle {
                         HorizontalLayout {
                             spacing: 16px;
                             HelpPopup {
-                                help-text: "Opens a file dialog and requires you to choose an update file (.zsu)";
+                                help-text: @tr("Opens a file dialog and requires you to choose an update file (.zsu)");
                                 visible: help-mode-button.help-mode;
                             }
 
                             Button {
-                                text: "Choose file";
+                                text: @tr("Choose file");
                             // Deaktivieren, wenn der Prozess bereits läuft
                             enabled: !ProgressViewContext.is-process-running;
                                 clicked => {
@@ -89,12 +89,12 @@ export component UpdatePage inherits Rectangle {
                         alignment: start;
                         spacing: 16px;
                         HelpPopup {
-                            help-text: "Begin the update procedure. Ensure, that the decoder is properly connected to the update device before clicking here";
+                            help-text: @tr("Begin the update procedure. Ensure, that the decoder is properly connected to the update device before clicking here");
                             visible: help-mode-button.help-mode;
                         }
 
                         Button {
-                            text: "Start update";
+                            text: @tr("Start update");
                                 // Aktiv, wenn eine Datei existiert UND kein Update läuft
                                 enabled: root.has-file && !ProgressViewContext.is-process-running;
                             clicked => {
@@ -107,7 +107,7 @@ export component UpdatePage inherits Rectangle {
                     HorizontalLayout {
                         spacing: 16px;
                         HelpPopup {
-                            help-text: "Choose the entry used to begin the update sequence.";
+                            help-text: @tr("Choose the entry used to begin the update sequence.");
                             visible: help-mode-button.help-mode;
                         }
 

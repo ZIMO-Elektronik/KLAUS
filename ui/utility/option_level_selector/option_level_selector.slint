@@ -9,7 +9,7 @@ export component OptionLevelSelector inherits Rectangle {
     preferred-width: box.preferred-width;
 
     box := ComboBox {
-        model: ["Basic", "Advanced", "Expert"];
+        model: [@tr("Basic"), @tr("Advanced"), @tr("Expert")];
         init => {
             self.current-index = root.selected-level == OptionLevel.Basic ? 0 : root.selected-level == OptionLevel.Advanced ? 1 : 2;
         }

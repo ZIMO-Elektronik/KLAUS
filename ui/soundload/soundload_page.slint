@@ -47,7 +47,7 @@ export component SoundLoadPage inherits Rectangle {
                 alignment: start;
 
                 Text {
-                    text: "SoundLoad";
+                    text: @tr("SoundLoad");
                     font-size: 20px;
                     color: #000000;
                 }
@@ -60,12 +60,12 @@ export component SoundLoadPage inherits Rectangle {
                 alignment: start;
 
                 HelpPopup {
-                    help-text: "Opens a file dialog and requires you to choose an update file (.zpp)";
+                    help-text: @tr("Opens a file dialog and requires you to choose an update file (.zpp)");
                     visible: help-mode-button.help-mode;
                 }
 
                 Button {
-                    text: "Choose file";
+                    text: @tr("Choose file");
                     // Deaktivieren, wenn der Prozess bereits läuft
                     enabled: !ProgressViewContext.is-process-running;
                     clicked => {
@@ -80,12 +80,12 @@ export component SoundLoadPage inherits Rectangle {
                 alignment: start;
 
                 HelpPopup {
-                    help-text: "Begin the soundload procedure. Ensure, that the decoder is properly connected to the update device before clicking here";
+                    help-text: @tr("Begin the soundload procedure. Ensure, that the decoder is properly connected to the update device before clicking here");
                     visible: help-mode-button.help-mode;
                 }
 
                 Button {
-                    text: "Start soundload";
+                    text: @tr("Start soundload");
                     // Aktiv, wenn eine Datei existiert UND kein Update läuft
                     enabled: root.has-file && !ProgressViewContext.is-process-running;
                     clicked => {
@@ -99,7 +99,7 @@ export component SoundLoadPage inherits Rectangle {
                 alignment: start;
 
                 HelpPopup {
-                    help-text: "Choose the entry used to begin the update sequence.";
+                    help-text: @tr("Choose the entry used to begin the update sequence.");
                     visible: help-mode-button.help-mode;
                 }
 

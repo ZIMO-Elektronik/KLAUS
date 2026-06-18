@@ -10,13 +10,13 @@ export component ModeSelector {
         spacing: 10px;
 
         Text {
-            text: "Mode";
+            text: @tr("Mode");
             font-size: 16px;
             vertical-alignment: center;
         }
 
         ComboBox {
-            model: ["SUSI", "Track"];
+            model: [@tr("SUSI"), @tr("Track")];
 
             selected => {
                 root.selected-mode = self.current-index == 0 ? SoundLoadMode.ZUSI : SoundLoadMode.MDU;

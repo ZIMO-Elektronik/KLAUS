@@ -1,5 +1,6 @@
 #pragma once
 
+#include <libintl.h>
 #include <string_view>
 #include "include/type/step.hpp"
 
@@ -14,31 +15,30 @@ namespace ui::helper {
  */
 static std::string_view message_id_to_string(type::MessageID id) {
   using type::MessageID;
-  using std::operator""sv;
 
   switch (id) {
-    case MessageID::Start: return "Start"sv;
-    case MessageID::StartComplete: return "Started"sv;
-    case MessageID::StartError: return "Unable to start"sv;
-    case MessageID::Init: return "Initializing"sv;
-    case MessageID::InitComplete: return "Finished Initializing"sv;
-    case MessageID::SearchDecoder: return "Search for decoder"sv;
-    case MessageID::FoundDecoder: return "Found decoder"sv;
-    case MessageID::EraseFlash: return "Erase Flash"sv;
-    case MessageID::EraseFlashComplete: return "Erased Flash"sv;
-    case MessageID::WriteFlash: return "Writing Flash"sv;
-    case MessageID::WriteFlashComplete: return "Written Flash"sv;
-    case MessageID::ReadCv: return "Reading CVs"sv;
-    case MessageID::ReadCvComplete: return "Finished reading CVs"sv;
-    case MessageID::WriteCv: return "Writing CVs"sv;
-    case MessageID::WriteCvComplete: return "Finished writing CVs"sv;
-    case MessageID::Verify: return "Verifying"sv;
-    case MessageID::VerifyComplete: return "Successfully verified"sv;
-    case MessageID::VerifyError: return "Error during verification"sv;
-    case MessageID::Cleanup: return "Perform cleanup"sv;
-    case MessageID::CleanupComplete: return "Cleanup complete"sv;
-    case MessageID::Done: return "Done"sv;
-    default: return "Default"sv;
+    case MessageID::Start: return gettext("Start");
+    case MessageID::StartComplete: return gettext("Started");
+    case MessageID::StartError: return gettext("Unable to start");
+    case MessageID::Init: return gettext("Initializing");
+    case MessageID::InitComplete: return gettext("Finished Initializing");
+    case MessageID::SearchDecoder: return gettext("Search for decoder");
+    case MessageID::FoundDecoder: return gettext("Found decoder");
+    case MessageID::EraseFlash: return gettext("Erase Flash");
+    case MessageID::EraseFlashComplete: return gettext("Erased Flash");
+    case MessageID::WriteFlash: return gettext("Writing Flash");
+    case MessageID::WriteFlashComplete: return gettext("Written Flash");
+    case MessageID::ReadCv: return gettext("Reading CVs");
+    case MessageID::ReadCvComplete: return gettext("Finished reading CVs");
+    case MessageID::WriteCv: return gettext("Writing CVs");
+    case MessageID::WriteCvComplete: return gettext("Finished writing CVs");
+    case MessageID::Verify: return gettext("Verifying");
+    case MessageID::VerifyComplete: return gettext("Successfully verified");
+    case MessageID::VerifyError: return gettext("Error during verification");
+    case MessageID::Cleanup: return gettext("Perform cleanup");
+    case MessageID::CleanupComplete: return gettext("Cleanup complete");
+    case MessageID::Done: return gettext("Done");
+    default: return gettext("Default");
   }
 }
 

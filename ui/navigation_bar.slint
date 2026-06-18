@@ -27,7 +27,7 @@ export component NavigationBar {
             }
 
             Button {
-                text: "Update";
+                text: @tr("Update");
                 clicked => {
                     root.active-page = AppPage.Update;
                     root.change_page(root.active-page);
@@ -35,7 +35,7 @@ export component NavigationBar {
             }
 
             Button {
-                text: "SoundLoad";
+                text: @tr("SoundLoad");
                 clicked => {
                     root.active-page = AppPage.Soundload;
                     root.change_page(root.active-page);
@@ -51,7 +51,7 @@ export component NavigationBar {
             alignment: LayoutAlignment.end;
 
             Button {
-                text: "About";
+                text: @tr("About");
                 clicked => {
                     root.active-page = AppPage.About;
                     root.change_page(root.active-page);

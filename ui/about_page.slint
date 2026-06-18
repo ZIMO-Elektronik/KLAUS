@@ -71,17 +71,17 @@ export component AboutPage inherits Rectangle {
             padding: 8px;
 
             Button {
-                text: "Website";
+                text: @tr("Website");
                 clicked => root.open_website();
             }
 
             Button {
-                text: "Support";
+                text: @tr("Support");
                 clicked => root.open_support();
             }
 
             Button {
-                text: "Report bug";
+                text: @tr("Report bug");
                 clicked => root.report_bug();
             }
         }

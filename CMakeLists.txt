@@ -89,9 +89,11 @@ if(NOT TARGET KLUG::KLUG)
     usb_backend)
 endif()
 
+find_package(Intl REQUIRED)
+
 target_include_directories(Updater PRIVATE .)
 
-target_link_libraries(Updater PRIVATE Slint::Slint KLUG ::tinyfiledialogs)
+target_link_libraries(Updater PRIVATE Slint::Slint KLUG ::tinyfiledialogs Intl::Intl)
 slint_target_sources(Updater ui/app-window.slint)
 
 # On Windows, copy the Slint DLL next to the application binary so that it's
