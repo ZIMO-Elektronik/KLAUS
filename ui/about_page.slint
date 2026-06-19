@@ -29,18 +29,16 @@ export component AboutPage inherits Rectangle {
         HorizontalBox {
             alignment: center;
             Rectangle {
-                width: 80px;
-                height: 80px;
-                background: lightblue;
+                width: 160px;
+                height: 160px;
+                background: transparent;
                 border-radius: 16px;
 
-                Text {
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                    height: 100%;
-                    width: 100%;
-                    text: "Imagine the logo here";
-                    wrap: word-wrap;
+                Image {
+                    source: AppContext.logo;
+                    image-fit: ImageFit.contain;
+                    width: parent.width;
+                    height: parent.height;
                 }
             }
         }
