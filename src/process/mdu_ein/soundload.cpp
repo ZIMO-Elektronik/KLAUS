@@ -65,7 +65,7 @@ void SoundLoad::enterResult(res::Result const r) {
 
 void SoundLoad::configAction() {
   _updateCb({.id = type::MessageID::Init});
-  _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow);
+  _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Fast);
   _state = &SoundLoad::configResult;
 }
 
