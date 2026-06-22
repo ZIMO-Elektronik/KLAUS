@@ -15,7 +15,7 @@ project(
   LANGUAGES CXX)
 
 add_executable(
-  Updater WIN32
+  ${CMAKE_PROJECT_NAME} WIN32
   src/main.cpp
   src/process/mdu_ein/update.cpp
   src/process/mdu_ein/soundload.cpp
@@ -26,6 +26,9 @@ add_executable(
   src/ui/update_backend.cpp
   src/ui/soundload_backend.cpp
   src/ui/app_backend.cpp)
+
+target_compile_definitions(${CMAKE_PROJECT_NAME}
+                           PRIVATE PROJECT_VERSION=${VERSION_FROM_GIT})
 
 FetchContent_Declare(
   Slint
@@ -91,19 +94,21 @@ endif()
 
 find_package(Intl REQUIRED)
 
-target_include_directories(Updater PRIVATE .)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE .)
 
-target_link_libraries(Updater PRIVATE Slint::Slint KLUG ::tinyfiledialogs Intl::Intl)
-slint_target_sources(Updater ui/app-window.slint)
+target_link_libraries(${CMAKE_PROJECT_NAME}
+                      PRIVATE Slint::Slint KLUG ::tinyfiledialogs Intl::Intl)
+slint_target_sources(${CMAKE_PROJECT_NAME} ui/app-window.slint)
 
 # On Windows, copy the Slint DLL next to the application binary so that it's
 # found.
 if(WIN32)
   add_custom_command(
-    TARGET Updater
+    TARGET ${CMAKE_PROJECT_NAME}
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:Updater>
-    $<TARGET_FILE_DIR:Updater>
+    COMMAND
+      ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${CMAKE_PROJECT_NAME}>
+      $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>
     COMMAND_EXPAND_LISTS)
 endif()
 

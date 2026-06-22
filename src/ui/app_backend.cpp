@@ -1,5 +1,8 @@
 #include "include/ui/app_backend.hpp"
 
+#define STRINGIFY(x) TO_STRING(x)
+#define TO_STRING(x) #x
+
 namespace ui {
 
 AppBackend::AppBackend()
@@ -11,6 +14,10 @@ void AppBackend::connect(slint::ComponentHandle<AppWindow> ui) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>(ui);
 
   ui->on_change_page([this](AppPage page) { this->change_page(page); });
+
+  ui->global<AppContext>().set_version(
+    std::string_view{STRINGIFY(PROJECT_VERSION)});
+  ui->global<AppContext>().set_version_suffix("experimental");
 
   change_page(ui->get_active_page());
 }
