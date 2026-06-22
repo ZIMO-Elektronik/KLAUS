@@ -1,41 +1,80 @@
-import {
-    Button,
-    VerticalBox,
-    GridBox,
-    CheckBox,
-    HorizontalBox,
-    SpinBox,
-} from "std-widgets.slint";
+import { NavigationBar } from "navigation_bar.slint";
+import { UpdatePage } from "update/update_page.slint";
+import { SoundLoadPage, SoundLoadMode } from "soundload/soundload_page.slint";
+import { AppPage } from "types.slint";
+import { FirmwareAdapter } from "update/firmware.slint";
+import { EntryType } from "update/entry.slint";
+
+// Re-export context
+import { ProgressViewContext } from "progress/progress_context.slint";
+import { AboutPage } from "about_page.slint";
+import { AppContext } from "app_context.slint";
+export { ProgressViewContext, AppContext }
 
 export component AppWindow inherits Window {
-    in-out property <int> counter;
-    callback request-increase-value();
-    HorizontalBox {
-        VerticalBox {
-            Text {
-                text: "Counter: \{root.counter}";
-            }
+    title: AppContext.tool-name;
+    width: 800px;
+    height: 500px;
 
-            Button {
-                accessible-role: AccessibleRole.none;
-                colorize-icon: false;
-                text: "Increase value";
-                visible: true;
-                clicked => {
-                    root.request-increase-value();
-                }
+    in property <bool> has-file: false;
+
+    in property <[FirmwareAdapter]> firmwares;
+    in property <[FirmwareAdapter]> filtered-firmwares;
+    in-out property <EntryType> entry-type;
+
+    in-out property active-page <=> nav.active-page;
+
+    in-out property <SoundLoadMode> sound-load-mode;
+    in property <string> zpp_name;
+    in property <string> zpp_author;
+    in property <string> zpp_email;
+
+    // Globale Callbacks für C++ Registrierung
+    callback change_page(AppPage);
+
+    callback choose_file();
+    callback start_process();
+
+    HorizontalLayout {
+
+        // Linke Navigationsleiste
+        nav := NavigationBar {
+            change-page(page) => {
+                root.change_page(page);
             }
         }
 
-        VerticalLayout {
-            alignment: LayoutAlignment.start;
-            Text {
-                text: "A very important text";
+        // Rechter Inhaltsbereich mit dynamischen Seiten
+        Rectangle {
+            background: #ffffff;
+
+            if root.active-page == AppPage.Update: UpdatePage {
+                has-file <=> root.has-file;
+                firmwares <=> root.filtered_firmwares;
+                entry-type <=> root.entry-type;
+                choose-file => {
+                    root.choose_file();
+                }
+                start-process => {
+                    root.start_process();
+                }
             }
 
-            Text {
-                text: "Some more very important text";
+            if root.active-page == AppPage.Soundload: SoundLoadPage {
+                has-file <=> root.has-file;
+                mode <=> root.sound-load-mode;
+                project-name: root.zpp_name;
+                project-author: root.zpp_author;
+                project-email: root.zpp_email;
+                choose-file => {
+                    root.choose_file();
+                }
+                start-process => {
+                    root.start_process();
+                }
             }
+
+            if root.active-page == AppPage.About: AboutPage { }
         }
     }
 }

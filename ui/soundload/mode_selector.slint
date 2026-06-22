@@ -1,0 +1,26 @@
+import { SoundLoadMode } from "mode.slint";
+import { ComboBox } from "std-widgets.slint";
+export { SoundLoadMode }
+
+export component ModeSelector {
+    in-out property <SoundLoadMode> selected-mode;
+
+    HorizontalLayout {
+        alignment: start;
+        spacing: 10px;
+
+        Text {
+            text: @tr("Mode");
+            font-size: 16px;
+            vertical-alignment: center;
+        }
+
+        ComboBox {
+            model: [@tr("SUSI"), @tr("Track")];
+
+            selected => {
+                root.selected-mode = self.current-index == 0 ? SoundLoadMode.ZUSI : SoundLoadMode.MDU;
+            }
+        }
+    }
+}

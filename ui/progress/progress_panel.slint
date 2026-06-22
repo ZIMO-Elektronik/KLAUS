@@ -1,0 +1,84 @@
+import {
+    Button,
+    VerticalBox,
+    HorizontalBox,
+} from "std-widgets.slint";
+import { ProgressViewContext } from "progress_context.slint";
+import { ProgressBar } from "progress_bar.slint";
+
+export component ProgressPanel {
+    in property step <=> ProgressViewContext.step;
+    in property progress <=> ProgressViewContext.progress;
+    in property time-estimate <=> ProgressViewContext.time-estimate;
+
+    callback close-clicked();
+    callback abort-clicked();
+
+    Rectangle {
+        background: #f0f0f0;
+        border-radius: 4px;
+        border-width: 1px;
+        border-color: #cccccc;
+
+        min-width: 300px;
+
+        HorizontalLayout {
+            alignment: space-between;
+
+            VerticalBox {
+                spacing: 10px;
+
+                HorizontalLayout {
+                    alignment: LayoutAlignment.space-between;
+
+                    Text {
+                        text: root.step;
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #333333;
+                    }
+
+                    TouchArea {
+                        Text {
+                            text: "x";
+                            font-size: 20px;
+                        }
+
+                        clicked => root.close-clicked();
+                    }
+                }
+
+                Rectangle {
+                    width: 100%;
+                    preferred-height: progress-text.preferred-height + 5px;
+
+                    ProgressBar {
+                        progress <=> root.progress;
+                        width: 100%;
+                        preferred-height: progress-text.preferred-height + 5px;
+                    }
+
+                    progress-text := Text {
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        text: Math.round(root.progress * 100) + "%";
+                    }
+                }
+
+                Text {
+                    text: @tr("Estimated time remaining: {}", root.time-estimate);
+                }
+
+                HorizontalBox {
+                    alignment: end;
+                    Button {
+                        text: @tr("Abort");
+                        clicked => {
+                            root.abort-clicked();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

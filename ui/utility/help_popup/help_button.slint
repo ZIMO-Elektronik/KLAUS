@@ -1,0 +1,35 @@
+export component HelpButton inherits Rectangle {
+    // Über diese Eigenschaft kannst du den Durchmesser anpassen
+    in property <length> size: 16px;
+
+    // Callback für das Klick-Event
+    callback clicked();
+
+    width: root.size;
+    height: root.size;
+
+    // Macht das Rectangle perfekt kreisrund
+    border-radius: root.size / 2;
+
+    // Hintergrundfarbe mit fließendem Übergang bei Interaktion
+    background: ta.pressed ? darkblue : (ta.has-hover ? dodgerblue : Colors.blue);
+
+    animate background { duration: 150ms; }
+
+    Text {
+        text: "?";
+        font-size: root.size * 0.75; // Skaliert die Schriftgröße passend zur Button-Größe
+        font-weight: 700;            // Fettgedruckt
+        color: white;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+
+    ta := TouchArea {
+        clicked => {
+            root.clicked();
+        }
+        // Ändert den Mauszeiger zu einer Hand beim Drüberfahren
+        mouse-cursor: pointer;
+    }
+}

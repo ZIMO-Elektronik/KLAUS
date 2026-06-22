@@ -1,0 +1,27 @@
+export component ProgressBar inherits Rectangle {
+
+    in property <float> progress;
+    in property <bool> smoothing: false;
+
+    height: 25px;
+    width: 100%;
+
+    border-color: lightblue;
+    border-width: 1px;
+    background: lightgrey;
+    clip: true;
+
+    Rectangle {
+        x: 0;
+        y: 0;
+
+        width: parent.width * root.progress;
+        height: 100%;
+        background: lightblue;
+
+        animate width {
+            duration: root.smoothing ? 150ms : 0ms;
+            easing: ease-in-out;
+        }
+    }
+}

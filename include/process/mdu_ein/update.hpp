@@ -1,0 +1,92 @@
+/**
+ * MDU_EIN Update process
+ *
+ * \file    include/process/mdu_ein/update.hpp
+ * \author  Jonas Gahlert
+ * \date    20.05.2026
+ */
+
+#pragma once
+
+#include <functional>
+#include <libklug/libklug.hpp>
+#include <vector>
+#include "include/process/base.hpp"
+#include "include/type/cv/cv.hpp"
+#include "include/type/step.hpp"
+
+namespace process::mdu_ein {
+
+/**
+ * Update process
+
+ */
+struct Update : public Base {
+  Update(std::filesystem::path path,
+         type::MDUEntryType entry_type,
+         std::vector<uint32_t> decoder_ids = {});
+  Update(std::shared_ptr<libklug::ZSU> zsu,
+         type::MDUEntryType entry_type,
+         std::vector<uint32_t> decoder_ids = {});
+  virtual ~Update() final;
+
+  virtual bool execute();
+  virtual void abort();
+
+private:
+  void handle_result(res::Result r);
+
+  void modeAction();
+  void modeResult(res::Result const r);
+
+  void enterAction();
+  void enterResult(res::Result const r);
+
+  void configAction();
+  void configResult(res::Result const r);
+
+  void searchAction();
+  void searchResult(res::Result const r);
+
+  void initAction();
+  void initResult(res::Result const r);
+
+  void eraseAction();
+  void eraseResult(res::Result const r);
+
+  void waitAction();
+  void waitResult(res::Result const r);
+
+  void updateAction();
+  void updateResult(res::Result const r);
+
+  void verifyAction();
+  void verifyResult(res::Result const r);
+
+  void endAction();
+  void endResult(res::Result const r);
+
+  void resetAction();
+  void resetResult(res::Result const r);
+
+  void (Update::*_state)(res::Result const){&Update::modeResult};
+
+  std::shared_ptr<libklug::ZSU> _zsu;
+  libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()};
+  libklug::ZSU::FirmwareIterator const _fwItEnd{_zsu->end()};
+
+  type::MDUEntryType _entryType;
+
+  std::vector<uint32_t> _decoderIDs; ///< List of selected IDs
+  decltype(_decoderIDs)::iterator _iter{_decoderIDs.begin()}; ///< Current ID
+  decltype(_decoderIDs)::const_iterator _lastIter{_decoderIDs.end() -
+                                                  1}; ///< Last ID
+
+  int _err_cnt{0};
+
+  bool _abort{};
+
+  unsigned int _index{};
+};
+
+} // namespace process::mdu_ein

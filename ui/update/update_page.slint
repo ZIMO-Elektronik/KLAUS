@@ -1,0 +1,133 @@
+import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { ProgressPopup } from "../progress/progress_popup.slint";
+import { ProgressViewContext } from "../progress/progress_context.slint";
+import { EntrySelector } from "entry_selector.slint";
+import { EntryType } from "entry.slint";
+import { FirmwareSelector } from "firmware_selector.slint";
+import { FirmwareAdapter } from "firmware.slint";
+import {
+    OptionLevelSelector,
+    OptionLevel,
+} from "../utility/option_level_selector/option_level_selector.slint";
+import { HelpModeButton } from "../utility/help_popup/help_mode_button.slint";
+import { HelpPopup } from "../utility/help_popup/help_popup.slint";
+import { HelpButton } from "../utility/help_popup/help_button.slint";
+
+export component UpdatePage inherits Rectangle {
+    in property <bool> has-file: false;
+
+    in property <[FirmwareAdapter]> firmwares;
+
+    in-out property <EntryType> entry-type;
+
+    property <OptionLevel> option-level;
+
+    callback choose-file();
+    callback start-process();
+
+    VerticalLayout {
+        vertical-stretch: 1;
+
+        VerticalBox {
+            padding: 10px;
+            spacing: 15px;
+            vertical-stretch: 1;
+
+            HorizontalLayout {
+                alignment: space-between;
+
+                HorizontalLayout {
+                    spacing: 16px;
+
+                    Text {
+                        text: @tr("Update");
+                        font-size: 20px;
+                        color: #000000;
+                    }
+
+                    help-mode-button := HelpModeButton { }
+                }
+
+                OptionLevelSelector {
+                    selected-level <=> option-level;
+                }
+            }
+
+            HorizontalLayout {
+                vertical-stretch: 1;
+
+                VerticalLayout {
+                    padding-left: 20px;
+                    spacing: 15px;
+                    alignment: start;
+
+                    // Bereich für die Dateiauswahl
+                    HorizontalLayout {
+                        spacing: 10px;
+                        alignment: start;
+
+                        HorizontalLayout {
+                            spacing: 16px;
+                            HelpPopup {
+                                help-text: @tr("Opens a file dialog and requires you to choose an update file (.zsu)");
+                                visible: help-mode-button.help-mode;
+                            }
+
+                            Button {
+                                text: @tr("Choose file");
+                            // Deaktivieren, wenn der Prozess bereits läuft
+                            enabled: !ProgressViewContext.is-process-running;
+                                clicked => {
+                                    root.choose-file();
+                                }
+                            }
+                        }
+                    }
+
+                    // Start-Button
+                    HorizontalLayout {
+                        alignment: start;
+                        spacing: 16px;
+                        HelpPopup {
+                            help-text: @tr("Begin the update procedure. Ensure, that the decoder is properly connected to the update device before clicking here");
+                            visible: help-mode-button.help-mode;
+                        }
+
+                        Button {
+                            text: @tr("Start update");
+                                // Aktiv, wenn eine Datei existiert UND kein Update läuft
+                                enabled: root.has-file && !ProgressViewContext.is-process-running;
+                            clicked => {
+                                root.start-process();
+                            }
+                        }
+                    }
+
+                    if root.option-level == OptionLevel.Advanced || root.option-level == OptionLevel.Expert:
+                    HorizontalLayout {
+                        spacing: 16px;
+                        HelpPopup {
+                            help-text: @tr("Choose the entry used to begin the update sequence.");
+                            visible: help-mode-button.help-mode;
+                        }
+
+                        EntrySelector {
+                            type <=> root.entry-type;
+                        }
+                    }
+                }
+
+                if root.option-level == OptionLevel.Expert: FirmwareSelector {
+                    firmwares <=> root.firmwares;
+                    help-mode <=> help-mode-button.help-mode;
+                }
+            }
+        }
+    }
+
+    // Dock progress at the bottom
+    VerticalLayout {
+        alignment: end;
+        ProgressPopup { }
+    }
+}

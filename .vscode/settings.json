@@ -1,6 +1,20 @@
 {
-  "workbench.startupEditor": "none",
-  "workbench.sideBar.location": "left",
-  "files.autoSave": "off",
-  "explorer.openEditors.visible": 0
+  "doxdocgen.cpp.tparamTemplate": "\\tparam {param} ",
+  "doxdocgen.file.fileTemplate": "\\file {name}",
+  "doxdocgen.file.versionTag": "\\version 0.1",
+  "doxdocgen.generic.authorTag": "\\author {author}",
+  "doxdocgen.generic.briefTemplate": "{text}",
+  "doxdocgen.generic.dateTemplate": "\\date {date}",
+  "doxdocgen.generic.paramTemplate": "\\param {param} ",
+  "doxdocgen.generic.returnTemplate": "\\return {type} ",
+  "doxdocgen.file.fileOrder": [
+    "brief",
+    "empty",
+    "file",
+    "author",
+    "date",
+  ],
+  "doxdocgen.generic.dateFormat": "DD.MM.YYYY",
+  "doxdocgen.cpp.dtorText": "DTor",
+  "doxdocgen.cpp.ctorText": "CTor"
 }

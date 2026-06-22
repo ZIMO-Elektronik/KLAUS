@@ -1,0 +1,77 @@
+/**
+ * MDU_EIN Update process
+ *
+ * \file    include/process/mdu_ein/update.hpp
+ * \author  Jonas Gahlert
+ * \date    20.05.2026
+ */
+
+#pragma once
+
+#include <functional>
+#include <libklug/libklug.hpp>
+#include <vector>
+#include "include/process/base.hpp"
+#include "include/type/cv/cv.hpp"
+#include "include/type/step.hpp"
+
+namespace process::mdu_ein {
+
+/**
+ * Update process
+
+ */
+struct SoundLoad : public Base {
+  SoundLoad(std::filesystem::path path);
+  virtual ~SoundLoad() final;
+
+  virtual bool execute();
+  virtual void abort();
+
+private:
+  void handle_result(res::Result r);
+
+  void modeAction();
+  void modeResult(res::Result const r);
+
+  void enterAction();
+  void enterResult(res::Result const r);
+
+  void configAction();
+  void configResult(res::Result const r);
+
+  void searchAction();
+  void searchResult(res::Result const r);
+
+  void initAction();
+  void initResult(res::Result const r);
+
+  void eraseAction();
+  void eraseResult(res::Result const r);
+
+  void waitAction();
+  void waitResult(res::Result const r);
+
+  void updateAction();
+  void updateResult(res::Result const r);
+
+  void endAction();
+  void endResult(res::Result const r);
+
+  void exitAction();
+  void exitResult(res::Result const r);
+
+  void resetAction();
+  void resetResult(res::Result const r);
+
+  void (SoundLoad::*_state)(res::Result const){&SoundLoad::modeResult};
+
+  libklug::ZPP _zpp;
+
+  int _err_cnt{0};
+  unsigned int _index{};
+
+  bool _abort{};
+};
+
+} // namespace process::mdu_ein

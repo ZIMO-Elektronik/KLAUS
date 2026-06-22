@@ -1,0 +1,31 @@
+import { Button, ProgressIndicator, VerticalBox } from "std-widgets.slint";
+import { ProgressViewContext } from "progress_context.slint";
+import { ProgressPanel } from "progress_panel.slint";
+import { ProgressBar } from "progress_bar.slint";
+
+export component ProgressPopup inherits VerticalBox {
+    padding: 10px;
+    spacing: 10px;
+    vertical-stretch: 0;
+
+    if (ProgressViewContext.is-open): ProgressPanel {
+        close-clicked => {
+            ProgressViewContext.is-open = false;
+        }
+        abort-clicked => ProgressViewContext.abort();
+    }
+
+    if (!ProgressViewContext.is-open && ProgressViewContext.has-process): TouchArea {
+        height: 10px;
+        bar := ProgressBar {
+            preferred-height: 25px;
+            height: 10px;
+            width: 100%;
+            progress <=> ProgressViewContext.progress;
+        }
+
+        clicked => {
+            ProgressViewContext.is-open = !ProgressViewContext.is-open;
+        }
+    }
+}
