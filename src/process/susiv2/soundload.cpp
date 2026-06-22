@@ -44,6 +44,7 @@ void SoundLoad::modeResult(res::Result const& r) {
   }
 
   std::cout << "Unable to enter SUSIV2" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   return resetAction();
 }
 
@@ -62,6 +63,7 @@ void SoundLoad::featuresResult(res::Result const& r) {
   }
 
   std::cout << "Unable to request features" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   return resetAction();
 }
 
@@ -80,6 +82,7 @@ void SoundLoad::eraseResult(res::Result const& r) {
   }
 
   std::cout << "Unable to erase flash" << std::endl;
+  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
   return resetAction();
 }
 
@@ -109,6 +112,7 @@ void SoundLoad::loadResult(res::Result const& r) {
   }
 
   std::cout << "Unable to write flash" << std::endl;
+  _updateCb({.id = type::MessageID::AbortFlashWrite, .payload = true});
   return resetAction();
 }
 
@@ -119,6 +123,7 @@ void SoundLoad::endAction() {
 }
 
 void SoundLoad::endResult(res::Result const& r) {
+  _updateCb({.id = type::MessageID::Done, .payload = true});
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
       std::cout << "Exited" << std::endl;
@@ -132,7 +137,10 @@ void SoundLoad::endResult(res::Result const& r) {
 
 void SoundLoad::resetAction() {
   _lib.com().reset();
-  _abort = false; // Else we'd loop forever on abort...
+  if (_abort) {
+    _updateCb({.id = type::MessageID::Abort, .payload = true});
+    _abort = false; // Else we'd loop forever on reset...
+  }
   _state = &SoundLoad::resetResult;
 }
 
@@ -140,8 +148,6 @@ void SoundLoad::resetResult(res::Result const& r) {
   if (std::holds_alternative<res::Status>(r))
     std::cout << "Reset success" << std::endl;
   else std::cout << "Reset NOT successful" << std::endl;
-
-  _updateCb({.id = type::MessageID::Done});
 
   _done = true;
   return;

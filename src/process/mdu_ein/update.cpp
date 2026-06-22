@@ -60,6 +60,7 @@ void Update::modeResult(res::Result const r) {
   }
 
   std::cout << "Unable to change mode" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   resetAction();
 }
 
@@ -97,6 +98,7 @@ void Update::enterResult(res::Result const r) {
   }
 
   std::cout << "Unable to enter" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   return resetAction();
 }
 
@@ -115,6 +117,7 @@ void Update::configResult(res::Result const r) {
     }
   }
   std::cout << "Unable to set data rate" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   resetAction();
 }
 
@@ -139,6 +142,7 @@ void Update::searchResult(res::Result const r) {
       ++_fwIt;
       if (_fwIt == _fwItEnd) {
         std::cout << "No decoder found" << std::endl;
+        _updateCb({.id = type::MessageID::AbortDecoderSearch, .payload = true});
         resetAction();
         return;
       }
@@ -149,6 +153,7 @@ void Update::searchResult(res::Result const r) {
   }
 
   std::cout << "Unable to ping" << std::endl;
+  _updateCb({.id = type::MessageID::AbortDecoderSearch, .payload = true});
   resetAction();
 }
 
@@ -166,6 +171,7 @@ void Update::initResult(res::Result const r) {
     }
   }
   std::cout << "Unable to init Salsa20" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   resetAction();
   return;
 }
@@ -185,6 +191,7 @@ void Update::eraseResult(res::Result const r) {
     }
   }
   std::cout << "Unable to Erase" << std::endl;
+  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
   resetAction();
   return;
 }
@@ -212,6 +219,7 @@ void Update::waitResult(res::Result const r) {
   }
 
   std::cout << "Error while waiting for erasing" << std::endl;
+  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
   resetAction();
   return;
 }
@@ -242,6 +250,7 @@ void Update::updateResult(res::Result const r) {
     }
   }
   std::cout << "Error while updating" << std::endl;
+  _updateCb({.id = type::MessageID::AbortFlashWrite, .payload = true});
   resetAction();
 }
 
@@ -260,6 +269,7 @@ void Update::verifyResult(res::Result const r) {
     }
   }
   std::cout << "Unable to start verify" << std::endl;
+  _updateCb({.id = type::MessageID::AbortVerify, .payload = true});
   resetAction();
 }
 
@@ -270,6 +280,7 @@ void Update::endAction() {
 }
 
 void Update::endResult(res::Result const r) {
+  _updateCb({.id = type::MessageID::Done, .payload = true});
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
       std::cout << "CRC Success" << std::endl;
@@ -285,7 +296,10 @@ void Update::endResult(res::Result const r) {
 
 void Update::resetAction() {
   _lib.com().reset();
-  _abort = false; // Else we'd loop forever on reset...
+  if (_abort) {
+    _updateCb({.id = type::MessageID::Abort, .payload = true});
+    _abort = false; // Else we'd loop forever on reset...
+  }
   _state = &Update::resetResult;
 }
 
@@ -293,8 +307,6 @@ void Update::resetResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r))
     std::cout << "Reset success" << std::endl;
   else std::cout << "Reset NOT successful" << std::endl;
-
-  if (_updateCb) _updateCb({.id = type::MessageID::Done});
 
   _done = true;
   return;

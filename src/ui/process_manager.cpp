@@ -29,7 +29,7 @@ void ProcessManager::connect(slint::ComponentHandle<AppWindow> ui) {
 bool ProcessManager::execute() {
   _process->onUpdate([this](type::ProcessUpdate update) {
     this->updateText(update.id, false);
-    if (update.id == type::MessageID::Done) done();
+    if (std::holds_alternative<bool>(update.payload)) done();
 
     if (update.progress) this->updateProgress(*update.progress);
   });

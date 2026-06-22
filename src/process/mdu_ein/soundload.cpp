@@ -44,6 +44,7 @@ void SoundLoad::modeResult(res::Result const r) {
   }
 
   std::cout << "Unable to change mode" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   resetAction();
 }
 
@@ -60,6 +61,7 @@ void SoundLoad::enterResult(res::Result const r) {
   }
 
   std::cout << "Unable to enter" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   resetAction();
 }
 
@@ -78,6 +80,7 @@ void SoundLoad::configResult(res::Result const r) {
     }
   }
   std::cout << "Unable to set data rate" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   resetAction();
 }
 
@@ -109,6 +112,7 @@ void SoundLoad::searchResult(res::Result const r) {
   }
 
   std::cout << "Unable to ping" << std::endl;
+  _updateCb({.id = type::MessageID::AbortDecoderSearch, .payload = true});
   resetAction();
 }
 
@@ -127,6 +131,7 @@ void SoundLoad::initResult(res::Result const r) {
     }
   }
   std::cout << "Unable to check if ZPP is valid" << std::endl;
+  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
   resetAction();
   return;
 }
@@ -145,6 +150,7 @@ void SoundLoad::eraseResult(res::Result const r) {
     }
   }
   std::cout << "Unable to erase flash" << std::endl;
+  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
   resetAction();
   return;
 }
@@ -169,6 +175,7 @@ void SoundLoad::waitResult(res::Result const r) {
     return waitAction();
   }
   std::cout << "Unable to wait for erase complete" << std::endl;
+  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
   return resetAction();
 }
 
@@ -192,6 +199,7 @@ void SoundLoad::updateResult(res::Result const r) {
     if (_err_cnt++ < 3) { return updateAction(); }
   }
   std::cout << "Unable to write flash" << std::endl;
+  _updateCb({.id = type::MessageID::AbortFlashWrite, .payload = true});
   return resetAction();
 }
 
@@ -206,6 +214,7 @@ void SoundLoad::endResult(res::Result const r) {
     if (std::get<res::Status>(r)) { return exitAction(); }
   }
   std::cout << "Unable to perform updateEnd" << std::endl;
+  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
   return resetAction();
 }
 
@@ -215,6 +224,7 @@ void SoundLoad::exitAction() {
 }
 
 void SoundLoad::exitResult(res::Result const r) {
+  _updateCb({.id = type::MessageID::Done});
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) { return resetAction(); }
   }
@@ -224,15 +234,16 @@ void SoundLoad::exitResult(res::Result const r) {
 
 void SoundLoad::resetAction() {
   _lib.com().reset();
-  _abort = false; // Else we'd loop forever on abort...
+  if (_abort) {
+    _updateCb({.id = type::MessageID::Abort, .payload = true});
+    _abort = false; // Else we'd loop forever on reset...
+  }
   _state = &SoundLoad::resetResult;
 }
 void SoundLoad::resetResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r))
     std::cout << "Reset success" << std::endl;
   else std::cout << "Reset NOT successful" << std::endl;
-
-  _updateCb({.id = type::MessageID::Done});
 
   _done = true;
   return;

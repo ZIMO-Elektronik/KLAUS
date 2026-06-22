@@ -83,10 +83,17 @@ enum class MessageID {
   CleanupComplete,
   Done,
 
+  Abort,
+  AbortInit,
+  AbortDecoderSearch,
+  AbortFlashErase,
+  AbortFlashWrite,
+  AbortVerify,
+
   None,
 };
 
-using Payload = std::variant<std::monostate>;
+using Payload = std::variant<std::monostate, bool>;
 
 struct ProcessUpdate {
   MessageID id{MessageID::None};

@@ -38,6 +38,12 @@ static std::string_view message_id_to_string(type::MessageID id) {
     case MessageID::Cleanup: return gettext("Perform cleanup");
     case MessageID::CleanupComplete: return gettext("Cleanup complete");
     case MessageID::Done: return gettext("Done");
+    case MessageID::Abort: return gettext("Aborted");
+    case MessageID::AbortInit: return gettext("Unable to setup process");
+    case MessageID::AbortDecoderSearch: return gettext("No decoder found");
+    case MessageID::AbortFlashErase: return gettext("Unable to erase flash");
+    case MessageID::AbortFlashWrite: return gettext("Unable to write flash");
+    case MessageID::AbortVerify: return gettext("Error during verification");
     default: return gettext("Default");
   }
 }
