@@ -3,8 +3,13 @@ import {
     HorizontalBox,
     Button,
     TabWidget,
+    ScrollView,
+    VerticalBox,
 } from "std-widgets.slint";
 import { AppContext } from "app_context.slint";
+import {
+    DependencyBadge,
+} from "utility/dependency_badge/dependency_badge.slint";
 export component AboutPage inherits Rectangle {
     callback open_website;
     callback open_support;
@@ -25,6 +30,9 @@ export component AboutPage inherits Rectangle {
     VerticalLayout {
         alignment: LayoutAlignment.center;
         spacing: 4px;
+
+        padding-left: 20px;
+        padding-right: 20px;
 
         HorizontalBox {
             alignment: center;
@@ -90,10 +98,29 @@ export component AboutPage inherits Rectangle {
         }
 
         HorizontalBox {
-            alignment: center;
+            //alignment: center;
             height: 100px;
             width: 100%;
             AboutSlint { }
+
+            ScrollView {
+
+                VerticalLayout {
+                    alignment: start;
+
+                    DependencyBadge {
+                        name: "libusb";
+                        link: "https://libusb.info";
+                        license: "LGPL2.1";
+                    }
+
+                    DependencyBadge {
+                        name: "libserialport";
+                        link: "https://sigrok.org/wiki/Libserialport";
+                        license: "LGPL3.0";
+                    }
+                }
+            }
         }
     }
 }

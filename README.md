@@ -1,6 +1,6 @@
-# Slint C++ Template
+# Updater (Name WIP)
 
-A template for a C++ application that's using [Slint](https://slint.dev) for the user interface and CMake for the build system.
+A small UI application to use in conjunction with the ZIMO MXULF and KLUG
 
 ## About
 
@@ -12,8 +12,8 @@ C++ code, how to trigger react to callbacks, get and set properties and use basi
 
 In order to use this template and build a C++ application, you need to install a few tools:
 
-  * **[cmake](https://cmake.org/download/)** (3.21 or newer)
-  * A C++ compiler that supports C++ 20 
+* **[cmake](https://cmake.org/download/)** (3.21 or newer)
+* A C++ compiler that supports C++ 20
 
 If your target environment is Linux or Windows on an x86-64 architecture, then you may also opt into downloading one of our binary Slint packages. These are pre-compiled and require no further tools. You can find setup instructions and download links at
 
@@ -25,25 +25,34 @@ Alternatively, this template will automatically download the Slint sources and c
 
 1. Download and extract the [ZIP archive of this repository](https://github.com/slint-ui/slint-cpp-template/archive/refs/heads/main.zip).
 2. Rename the extracted directory and change into it:
+
     ```
     mv slint-cpp-template-main my-project
     cd my-project
     ```
+
 3. Configure with CMake
+
    ```
    mkdir build
    cmake -B build
    ```
+
 4. Build with CMake
+
    ```
    cmake --build build
    ```
+
 5. Run the application binary
     * Linux/macOS:
+
         ```
         ./build/my_application
         ```
+
     * Windows:
+
         ```
         build\my_application.exe
         ```

@@ -1,0 +1,35 @@
+export component DependencyBadge {
+    in property <string> name: "libdependency";
+    in property <string> link: "https://anicedependency.xyz";
+    in property <string> license: "NGL3.0 (Nice-Guy-License 3.0";
+
+    HorizontalLayout {
+        alignment: start;
+        padding: 2px;
+        Rectangle {
+            vertical-stretch: 1;
+            width: 100px;
+            Text {
+                width: parent.width;
+                height: parent.height;
+                horizontal-alignment: start;
+                vertical-alignment: top;
+                text: root.name;
+            }
+
+            TouchArea {
+                clicked => {
+                    Platform.open-url(link);
+                }
+            }
+        }
+
+        Rectangle { // Spacer
+            width: 10px;
+        }
+
+        Text {
+            text: root.license;
+        }
+    }
+}
