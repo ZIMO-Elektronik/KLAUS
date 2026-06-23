@@ -98,6 +98,7 @@ void SoundLoad::loadResult(res::Result const& r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
       // Block written
+      _err_cnt = 0;
       if (++_index >= _zpp.blocks()) { return endAction(); }
       return loadAction();
     } else {

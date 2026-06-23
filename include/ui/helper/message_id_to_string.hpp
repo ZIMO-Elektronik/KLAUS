@@ -1,8 +1,10 @@
 #pragma once
 
-#include <libintl.h>
+// #include <libintl.h>
 #include <string_view>
 #include "include/type/step.hpp"
+
+#define gettext(x) x
 
 namespace ui::helper {
 
