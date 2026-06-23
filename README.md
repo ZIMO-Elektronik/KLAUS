@@ -21,6 +21,16 @@ If your target environment is Linux or Windows on an x86-64 architecture, then y
 
 Alternatively, this template will automatically download the Slint sources and compile them. This option requires you to install Rust by following the [Rust Getting Started Guide](https://www.rust-lang.org/learn/get-started). Once this is done, you should have the ```rustc``` compiler and the ```cargo``` build system installed in your path.
 
+## Tooling
+
+For liux, other than the build tools, no special tooling is required to package the App
+
+For Windows, the nsis generator needs to be installed to create the installable.
+
+```sh
+sudo apt install nsis
+```
+
 ## Usage
 
 1. Download and extract the [ZIP archive of this repository](https://github.com/slint-ui/slint-cpp-template/archive/refs/heads/main.zip).

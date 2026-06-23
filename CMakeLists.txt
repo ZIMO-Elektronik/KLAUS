@@ -118,3 +118,55 @@ if(PROJECT_IS_TOP_LEVEL)
   file(GLOB_RECURSE SRC include/*.*pp src/*.*pp tests/*.*pp)
   add_clang_format_target(KLUGFormat OPTIONS -i FILES ${SRC})
 endif()
+
+set(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib")
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
+install(TARGETS ${CMAKE_PROJECT_NAME} RUNTIME DESTINATION bin)
+install(
+  TARGETS KLUG
+  LIBRARY DESTINATION lib # .so-Files
+  RUNTIME DESTINATION bin # .dll-Files (to avoid linking issues)
+  ARCHIVE DESTINATION lib # [.a/.lib]-Files
+)
+install(
+  RUNTIME_DEPENDENCY_SET
+  deps
+  DESTINATION
+  lib
+  PRE_EXCLUDE_REGEXES
+  "^libpthread"
+  "^libc\\."
+  "^libm\\."
+  "^libgcc"
+  "^libstdc\\+\\+")
+
+if(UNIX AND NOT APPLE)
+  # Install .deb specifics
+  install(FILES "data/updater.desktop" DESTINATION share/applications)
+  install(FILES "data/zimo_logo.png" DESTINATION share/pixmaps)
+elseif(WIN32)
+  install(FILES "data/zimo_logo.png" DESTINATION bin)
+
+  # Move misplaced DLLs to bin dir for Windows
+  install(
+    CODE [[
+        file(GLOB_RECURSE _misplaced_dlls "${CMAKE_INSTALL_PREFIX}/lib/*.dll")
+        if(_misplaced_dlls)
+            message(STATUS "Fixing Windows DLL paths for third-party libraries...")
+            file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin")
+
+            foreach(_dll ${_misplaced_dlls})
+                get_filename_component(_dll_name "${_dll}" NAME)
+                file(RENAME "${_dll}" "${CMAKE_INSTALL_PREFIX}/bin/${_dll_name}")
+            endforeach()
+        endif()
+    ]])
+endif()
+
+set(CPACK_PACKAGE_NAME ${CMAKE_PROJECT_NAME})
+set(CPACK_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
+set(CPACK_PACKAGE_VENDOR "ZIMO-Elektronik")
+set(CPACK_PACKAGE_DESCRIPTION "A cross-platform decoder update utility")
+
+include(CPack)
