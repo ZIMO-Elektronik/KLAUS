@@ -17,7 +17,7 @@ void SoundLoadBackend::connect(slint::ComponentHandle<AppWindow> window) {
   auto const has_file{this->_zpp != nullptr};
   if (has_file) {
     window->set_has_file(true);
-    window->set_zpp_name(_path.filename().c_str());
+    window->set_zpp_name(_path.filename().generic_string().data());
     window->set_zpp_author(_zpp->author());
     window->set_zpp_email(_zpp->email());
   } else {
@@ -66,7 +66,7 @@ void SoundLoadBackend::choose_file() {
 
   if (auto ui{_weakUi.lock()}) {
     (*ui)->set_has_file(true);
-    (*ui)->set_zpp_name(_path.filename().c_str());
+    (*ui)->set_zpp_name(_path.filename().generic_string().data());
     (*ui)->set_zpp_author(_zpp->author());
     (*ui)->set_zpp_email(_zpp->email());
   }

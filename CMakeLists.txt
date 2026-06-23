@@ -92,12 +92,10 @@ if(NOT TARGET KLUG::KLUG)
     usb_backend)
 endif()
 
-find_package(Intl REQUIRED)
-
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE .)
 
-target_link_libraries(${CMAKE_PROJECT_NAME}
-                      PRIVATE Slint::Slint KLUG ::tinyfiledialogs Intl::Intl)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint KLUG
+                                                    ::tinyfiledialogs)
 slint_target_sources(${CMAKE_PROJECT_NAME} ui/app-window.slint)
 
 # On Windows, copy the Slint DLL next to the application binary so that it's
