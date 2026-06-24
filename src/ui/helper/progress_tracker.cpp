@@ -4,6 +4,7 @@ namespace ui::helper {
 
 void ProgressTracker::reset() {
   _lastProgress = 0.0f;
+  _str = "--:--:--";
   _lastUpdate = std::chrono::steady_clock::now();
 }
 

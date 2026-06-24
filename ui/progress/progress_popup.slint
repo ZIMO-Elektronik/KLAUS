@@ -15,7 +15,7 @@ export component ProgressPopup inherits VerticalBox {
         abort-clicked => ProgressViewContext.abort();
     }
 
-    if (!ProgressViewContext.is-open && ProgressViewContext.has-process): TouchArea {
+    if (!ProgressViewContext.is-open && ProgressViewContext.is-process-running): TouchArea {
         height: 10px;
         bar := ProgressBar {
             preferred-height: 25px;
