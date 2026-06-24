@@ -1,67 +1,72 @@
 # Updater (Name WIP)
 
-A small UI application to use in conjunction with the ZIMO MXULF and KLUG
+A small cross-platform UI application to use in conjunction with the ZIMO MXULF and KLUG.
 
 ## About
 
-This template helps you get started developing a C++ application with Slint as toolkit
-for the user interface. It demonstrates the integration between the `.slint` UI markup and
-C++ code, how to trigger react to callbacks, get and set properties and use basic widgets.
+This tool was developed to allow users of Linux desktop to update their decoders without the need of a VM. In theory, this tool should also compile for
+MacOS, but no such toolchain was implemented to date (partially because of limited test hardware...).
 
 ## Prerequisites
 
-In order to use this template and build a C++ application, you need to install a few tools:
+In order to build and pack this tool, a vew tools are needed
 
-* **[cmake](https://cmake.org/download/)** (3.21 or newer)
-* A C++ compiler that supports C++ 20
+### Build
 
-If your target environment is Linux or Windows on an x86-64 architecture, then you may also opt into downloading one of our binary Slint packages. These are pre-compiled and require no further tools. You can find setup instructions and download links at
+* **[cmake](https://cmake.org/download/)** (3.25 or newer)
+* A C++ compiler that supports C++ 23
 
-<https://slint.dev/docs/cpp/cmake.html#install-binary-packages>
+> [!NOTE]
+> I think some slint dependency must also be installed, something like libopengl-dev or simmilar?
 
-Alternatively, this template will automatically download the Slint sources and compile them. This option requires you to install Rust by following the [Rust Getting Started Guide](https://www.rust-lang.org/learn/get-started). Once this is done, you should have the ```rustc``` compiler and the ```cargo``` build system installed in your path.
+### Pack
+
+The tool can be packaged into an installable pack to allow for easier deployment. The prerequisites depend on the target platform. Since the tool is as of now intended to be build on linux, this list is only for linux users.
+
+* NSIS
+
+All of the above can be installed with
+
+```sh
+sudo apt install nsis
+```
 
 ## Usage
 
-1. Download and extract the [ZIP archive of this repository](https://github.com/slint-ui/slint-cpp-template/archive/refs/heads/main.zip).
-2. Rename the extracted directory and change into it:
+To only build the tool it is enough to execute the target presets
 
-    ```
-    mv slint-cpp-template-main my-project
-    cd my-project
-    ```
+```sh
+### For linux
+cmake --preset release_amd64
+cmake --build --preset release_amd64
 
-3. Configure with CMake
+### Or for windows
+cmake --preset release_amd64_windows
+cmake --build --preset release_amd64_windows
+```
 
-   ```
-   mkdir build
-   cmake -B build
-   ```
+If a package is required, this can either be done by executing the additional pack preset
 
-4. Build with CMake
+```sh
+### For linux
+cpack --preset release_amd64
 
-   ```
-   cmake --build build
-   ```
+### Or for windows
+cpack --preset release_amd64_windows
+```
 
-5. Run the application binary
-    * Linux/macOS:
+Or as an AIO workflow
 
-        ```
-        ./build/my_application
-        ```
+```sh
+### Linux (.deb and .tar.gz)
+cmake --workflow --preset build-and-pack-linux
 
-    * Windows:
+### Windows (.exe and .zip)
+cmake --workflow --preset build-and-pack-windows
 
-        ```
-        build\my_application.exe
-        ```
+```
 
-We recommend using an IDE for development, along with our [LSP-based IDE integration for `.slint` files](https://github.com/slint-ui/slint/blob/master/tools/lsp/README.md). You can also load this project directly in [Visual Studio Code](https://code.visualstudio.com) and install our [Slint extension](https://marketplace.visualstudio.com/items?itemName=Slint.slint).
+## Translation
 
-## Next Steps
-
-We hope that this template helps you get started and you enjoy exploring making user interfaces with Slint. To learn more
-about the Slint APIs and the `.slint` markup language check out our [online documentation](https://slint.dev/docs/cpp/).
-
-Don't forget to edit this README to replace it by yours
+In theory, this could be done using GNU-GetText, since this is natively supported by slint. But since it is a (humongous) hassle to
+cross-compile with this tool, we will probably need a different approach.

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=0.0.0
+Name=Updater
+Comment=Eine tolle plattformübergreifende App
+Exec=Updater
+Icon=zimo_logo
+Terminal=false
+Categories=Utility;Development;

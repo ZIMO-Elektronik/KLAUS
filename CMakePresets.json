@@ -12,10 +12,10 @@
             "hidden": true,
             "displayName": "Base Preset",
             "description": "Base Preset providing base config",
-            "binaryDir": "${sourceDir}/build",
             "generator": "Ninja",
             "cacheVariables": {
                 "CPM_KLUG_SOURCE": "${sourceDir}/../libklug/",
+                "CPM_SOURCE_CACHE": "${sourceDir}/build/.cpm_packages",
                 "CMAKE_BUILD_PARALLEL_LEVEL": "16"
             }
         },
@@ -43,18 +43,21 @@
             "name": "debug_amd64",
             "displayName": "Debug AMD64",
             "description": "Debug build for AMD64 architecture",
+            "binaryDir": "${sourceDir}/build/linux",
             "inherits": "debug_base"
         },
         {
             "name": "release_amd64",
             "displayName": "Release AMD64",
             "description": "Release build for AMD64 architecture",
+            "binaryDir": "${sourceDir}/build/linux",
             "inherits": "release_base"
         },
         {
             "name": "debug_amd64_windows",
             "displayName": "Debug AMD64 Windows",
             "description": "Cross-Compiled Debug build for Windows on AMD64 architecture",
+            "binaryDir": "${sourceDir}/build/windows",
             "toolchainFile": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
             "inherits": "debug_base"
         },
@@ -62,8 +65,94 @@
             "name": "release_amd64_windows",
             "displayName": "Release AMD64 Windows",
             "description": "Cross-Compiled Release build for Windows on AMD64 architecture",
+            "binaryDir": "${sourceDir}/build/windows",
             "toolchainFile": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
             "inherits": "release_base"
+        }
+    ],
+    "packagePresets": [
+        {
+            "name": "release_amd64",
+            "displayName": "Release AMD64",
+            "configurePreset": "release_amd64",
+            "generators": [
+                "DEB",
+                "TGZ"
+            ],
+            "variables": {
+                "CPACK_DEBIAN_PACKAGE_MAINTAINER": "support@zimo.at",
+                "CPACK_DEBIAN_PACKAGE_SECTION": "dev"
+            }
+        },
+        {
+            "name": "release_amd64_windows",
+            "displayName": "Release AMD64 Windows",
+            "configurePreset": "release_amd64_windows",
+            "generators": [
+                "NSIS",
+                "ZIP"
+            ],
+            "variables": {
+                "CPACK_NSIS_MODIFY_PATH": "OFF",
+                "CPACK_NSIS_DISPLAY_NAME": "Updater",
+                "CPACK_NSIS_PACKAGE_NAME": "Updater",
+                "CPACK_NSIS_MUI_ICON": "${sourceDir}/data/zimo_logo.ico",
+                "CPACK_NSIS_MUI_UNIICON": "${sourceDir}/data/zimo_logo.ico",
+                "CPACK_NSIS_CREATE_ICONS_EXTRA": "CreateShortCut '$SMPROGRAMS\\\\Updater\\\\Updater.lnk' '$INSTDIR\\\\bin\\\\Updater.exe'",
+                "CPACK_NSIS_DELETE_ICONS_EXTRA": "Delete '$SMPROGRAMS\\\\Updater\\\\Updater.lnk'",
+                "CPACK_NSIS_EXTRA_INSTALL_COMMANDS": "CreateShortCut '$DESKTOP\\\\Updater.lnk' '$INSTDIR\\\\bin\\\\Updater.exe'",
+                "CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS": "Delete '$DESKTOP\\\\Updater.lnk'"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "release_amd64",
+            "displayName": "Release AMD64",
+            "configurePreset": "release_amd64"
+        },
+        {
+            "name": "release_amd64_windows",
+            "displayName": "Release AMD64 Windows",
+            "configurePreset": "release_amd64_windows"
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "build-and-pack-linux",
+            "description": "Builds and packs the Linux version of this tool",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release_amd64"
+                },
+                {
+                    "type": "build",
+                    "name": "release_amd64"
+                },
+                {
+                    "type": "package",
+                    "name": "release_amd64"
+                }
+            ]
+        },
+        {
+            "name": "build-and-pack-windows",
+            "description": "Builds and packs the Windows version of this tool",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release_amd64_windows"
+                },
+                {
+                    "type": "build",
+                    "name": "release_amd64_windows"
+                },
+                {
+                    "type": "package",
+                    "name": "release_amd64_windows"
+                }
+            ]
         }
     ]
 }
