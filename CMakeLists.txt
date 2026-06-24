@@ -25,7 +25,9 @@ add_executable(
   src/ui/process_manager.cpp
   src/ui/update_backend.cpp
   src/ui/soundload_backend.cpp
-  src/ui/app_backend.cpp)
+  src/ui/app_backend.cpp
+  # Add the icon as resource for Windows
+  $<$<BOOL:${WIN32}>:${CMAKE_CURRENT_SOURCE_DIR}/data/kleinweich.rc>)
 
 target_compile_definitions(${CMAKE_PROJECT_NAME}
                            PRIVATE PROJECT_VERSION=${VERSION_FROM_GIT})
@@ -97,6 +99,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE .)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint KLUG
                                                     ::tinyfiledialogs)
 slint_target_sources(${CMAKE_PROJECT_NAME} ui/app-window.slint)
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY SLINT_EMBED_RESOURCES
+                                                   embed-files)
 
 # On Windows, copy the Slint DLL next to the application binary so that it's
 # found.
@@ -121,6 +125,8 @@ endif()
 
 set(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib")
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
+# ---- CPack instructions ----
 
 install(TARGETS ${CMAKE_PROJECT_NAME} RUNTIME DESTINATION bin)
 install(

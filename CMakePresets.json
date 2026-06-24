@@ -93,9 +93,11 @@
                 "ZIP"
             ],
             "variables": {
-                "CPACK_NSIS_MODIFY_PATH": "ON",
+                "CPACK_NSIS_MODIFY_PATH": "OFF",
                 "CPACK_NSIS_DISPLAY_NAME": "Updater",
                 "CPACK_NSIS_PACKAGE_NAME": "Updater",
+                "CPACK_NSIS_MUI_ICON": "${sourceDir}/data/zimo_logo.ico",
+                "CPACK_NSIS_MUI_UNIICON": "${sourceDir}/data/zimo_logo.ico",
                 "CPACK_NSIS_CREATE_ICONS_EXTRA": "CreateShortCut '$SMPROGRAMS\\\\Updater\\\\Updater.lnk' '$INSTDIR\\\\bin\\\\Updater.exe'",
                 "CPACK_NSIS_DELETE_ICONS_EXTRA": "Delete '$SMPROGRAMS\\\\Updater\\\\Updater.lnk'",
                 "CPACK_NSIS_EXTRA_INSTALL_COMMANDS": "CreateShortCut '$DESKTOP\\\\Updater.lnk' '$INSTDIR\\\\bin\\\\Updater.exe'",
