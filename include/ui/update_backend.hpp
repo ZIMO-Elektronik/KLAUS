@@ -12,6 +12,21 @@
 
 namespace ui {
 
+/**
+ * Update page backend
+ *
+ * \details
+ * Handles the events of the Update page.
+ *
+ * To connect to the UI, use the \ref UpdateBackend::connect method.
+ *
+ * This class will register the following callbacks on the UI:
+ * | Method | Callback |
+ * | -------------- | - |
+ * | choose_file    |   |
+ * | start_process  |   |
+ *
+ */
 struct UpdateBackend : IBackend {
   UpdateBackend() = default;
   UpdateBackend(std::shared_ptr<ProcessManager> pManager);
@@ -56,16 +71,15 @@ private:
                         // nötig
   }
 
-  slint::ComponentWeakHandle<AppWindow> _weakUi{};
+  slint::ComponentWeakHandle<AppWindow> _weakUi{}; ///< WeakHandle to the UI
 
-  std::shared_ptr<ProcessManager> _pManager{std::make_shared<ProcessManager>()};
+  std::shared_ptr<ProcessManager> _pManager{
+    std::make_shared<ProcessManager>()}; ///< ProcessManager
 
-  type::UpdateStep _step{type::UpdateStep::Done};
+  std::filesystem::path _path{};        ///< Path to ZSU
+  std::shared_ptr<libklug::ZSU> _zsu{}; ///< ZSU (from LibKLUG)
 
-  std::filesystem::path _path{};
-  std::shared_ptr<libklug::ZSU> _zsu{};
-
-  helper::ProgressTracker _tracker{};
+  helper::ProgressTracker _tracker{}; ///< ProgressTracker (for estimate)
 };
 
 } // namespace ui

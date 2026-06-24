@@ -12,14 +12,29 @@
 #include <libklug/libklug.hpp>
 #include <vector>
 #include "include/process/base.hpp"
-#include "include/type/cv/cv.hpp"
 #include "include/type/step.hpp"
 
 namespace process::mdu_ein {
 
 /**
- * Update process
-
+ * SoundLoad process
+ *
+ * \details
+ * This class handles the MDU Update as a background process. Each stage of
+ * the process is represented by a pair of *Action and *Result methods. Each
+ * Action sets its corresponding Result handler, where the Resulthandler is
+ * called from the LibKLUG callback after each transfer.
+ *
+ * The process can be started using \ref Update::execute and aborted using
+ * \ref Update::abort, which will quit the event loop AFTER the next result
+ * is available. To change this behaviour, the LibKLUG interface needs to be
+ * extended with an abort function.
+ *
+ * \note
+ * The process itself is designed as an eventloop. The Action starts a transfer,
+ * Result handles the result once it is available and either calls the next
+ * Action or exits.
+ *
  */
 struct Update : public Base {
   Update(std::filesystem::path path,
@@ -69,24 +84,24 @@ private:
   void resetAction();
   void resetResult(res::Result const r);
 
-  void (Update::*_state)(res::Result const){&Update::modeResult};
+  void (Update::*_state)(res::Result const){
+    &Update::modeResult}; ///< State (next *Result handler)
 
-  std::shared_ptr<libklug::ZSU> _zsu;
-  libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()};
-  libklug::ZSU::FirmwareIterator const _fwItEnd{_zsu->end()};
+  std::shared_ptr<libklug::ZSU> _zsu;                  ///< ZSU instance
+  libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()}; ///< Firmware iterator
+  libklug::ZSU::FirmwareIterator const _fwItEnd{_zsu->end()}; ///< Last firmware
 
-  type::MDUEntryType _entryType;
+  type::MDUEntryType _entryType; ///< Entry type (MDU or DCC)
 
   std::vector<uint32_t> _decoderIDs; ///< List of selected IDs
   decltype(_decoderIDs)::iterator _iter{_decoderIDs.begin()}; ///< Current ID
   decltype(_decoderIDs)::const_iterator _lastIter{_decoderIDs.end() -
                                                   1}; ///< Last ID
 
-  int _err_cnt{0};
+  int _err_cnt{0};       ///< Consecutive error counter
+  unsigned int _index{}; ///< Block index withing the Firmware
 
-  bool _abort{};
-
-  unsigned int _index{};
+  bool _abort{}; ///< Abort flag
 };
 
 } // namespace process::mdu_ein

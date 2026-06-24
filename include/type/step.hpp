@@ -14,52 +14,30 @@
 namespace type {
 
 /**
- * Update (ZSU) steps
+ * MDU entry type
+ *
+ * \details
+ * What does the doc say? Enum matches its MDU entry counterpart
  *
  */
-enum class UpdateStep {
-  Start,
-  Search,
-  Init,
-  Erase,
-  Update,
-  Verify,
-  Cleanup,
-  Done,
-};
-
-/**
- * Soundload (ZPP) steps
- *
- */
-enum class SoundLoadStep {
-  Start,
-  Search,
-  Init,
-  Erase,
-  Load,
-  Cleanup,
-  Done,
-};
-
-/**
- * Cv Read / Write Steps
- *
- */
-enum class CvStep {
-  Start,
-  CvRead,
-  CvWrite,
-  Cleanup,
-  Done,
-};
-
 enum class MDUEntryType {
-  MDU,
-  DCC_ZSU,
-  DCC_ZPP,
+  MDU,     ///< MDU (Powercycle) entry
+  DCC_ZSU, ///< DCC ZSU (OpsMode) entry
+  DCC_ZPP, ///< DCC ZPP (OpsMode) entry
 };
 
+/**
+ * UI Update message ID
+ *
+ * \details
+ * This is a way to push UI updates without having to place strings in the
+ * backend.. Not elegant but it works.
+ *
+ * \note
+ * Since the problems with gettext are seemingly unsolvable, this may become
+ * obsolete in favor of a project fluent based translation system.
+ *
+ */
 enum class MessageID {
   Start,
   StartComplete,
@@ -93,12 +71,27 @@ enum class MessageID {
   None,
 };
 
+/**
+ * A payload
+ *
+ * \details
+ * As of now, this is only used to signal the end of the process.
+ *
+ */
 using Payload = std::variant<std::monostate, bool>;
 
+/**
+ * Process update struct
+ *
+ * \details
+ * This is used to send state updates from a background process to the gui
+ * without having to worry about strings.
+ *
+ */
 struct ProcessUpdate {
-  MessageID id{MessageID::None};
-  std::optional<float> progress{};
-  Payload payload{};
+  MessageID id{MessageID::None};   ///< ID of message
+  std::optional<float> progress{}; ///< Progress (if any)
+  Payload payload{};               ///< Payload (if any)
 };
 
 } // namespace type

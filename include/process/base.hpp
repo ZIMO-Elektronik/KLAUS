@@ -16,10 +16,28 @@ namespace process {
 /**
  * Base process
  *
+ * \details
+ * Basic functions like connecting and disconnecting the USB device and updating
+ * the UI are placed here.
+ *
+ * Use \ref Base::connect and \ref Base::disconnect to setup or teardown the USB
+ * connection.
+ *
+ * From the UI, \ref Base::done provides a poll interface to check if the
+ * process has finished. This does NOT mean that it finished with success, it is
+ * just finished.
+ *
+ * To update the UI (or anything else) with the state of the process, a callable
+ * can be registered via \ref onUpdate. Updates may come at any time.
+ *
+ * \warning
+ * Any callback inserted into \ref Base::onUpdate MUST be UI-thread safe, since
+ * any update form here WILL be coming from another thread.
+ *
  */
 struct Base : IProcess {
-  Base();                             // Create handle
-  virtual ~Base() override = default; // Destroy handle
+  Base();
+  virtual ~Base() override = default;
 
   bool connect();
   void disconnect();
@@ -29,11 +47,11 @@ struct Base : IProcess {
   virtual void onUpdate(std::function<void(type::ProcessUpdate)>) override;
 
 protected:
-  libklug::LibKLUG _lib;
+  libklug::LibKLUG _lib; ///< Libklug handle
 
-  bool _done{false};
+  bool _done{false}; ///< Process done
 
-  std::function<void(type::ProcessUpdate)> _updateCb{};
+  std::function<void(type::ProcessUpdate)> _updateCb{}; ///< GUI update callback
 };
 
 } // namespace process

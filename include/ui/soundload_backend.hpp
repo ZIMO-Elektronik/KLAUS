@@ -1,3 +1,11 @@
+/**
+ * SoundLoad Backend
+ *
+ * \file    include/ui/soundload_backend.hpp
+ * \author  Jonas Gahlert
+ * \date    24.06.2026
+ */
+
 #pragma once
 
 #include <app-window.h>
@@ -10,6 +18,21 @@
 
 namespace ui {
 
+/**
+ * SoundLoad page backend
+ *
+ * \details
+ * Handles the events of the SoundLoad page.
+ *
+ * To connect to the UI, use the \ref SoundLoadBackend::connect method.
+ *
+ * This class will register the following callbacks on the UI:
+ * | Method | Callback |
+ * | -------------- | - |
+ * | choose_file    |   |
+ * | start_process  |   |
+ *
+ */
 struct SoundLoadBackend : IBackend {
   SoundLoadBackend() = default;
   SoundLoadBackend(std::shared_ptr<ProcessManager> pManager);
@@ -21,18 +44,17 @@ private:
   void choose_file();
   void start_process();
 
-  SoundLoadMode _mode{SoundLoadMode::ZUSI};
+  SoundLoadMode _mode{SoundLoadMode::ZUSI}; ///< SoundLoad mode (obsolete)
 
-  slint::ComponentWeakHandle<AppWindow> _weakUi{};
+  slint::ComponentWeakHandle<AppWindow> _weakUi{}; ///< WeakHandle of the UI
 
-  std::shared_ptr<ProcessManager> _pManager{std::make_shared<ProcessManager>()};
+  std::shared_ptr<ProcessManager> _pManager{
+    std::make_shared<ProcessManager>()}; ///< ProcessManager
 
-  type::SoundLoadStep _step{type::SoundLoadStep::Done};
+  std::filesystem::path _path{};        ///< ZPP path
+  std::shared_ptr<libklug::ZPP> _zpp{}; ///< ZPP (from LibKLUG)
 
-  std::filesystem::path _path{};
-  std::shared_ptr<libklug::ZPP> _zpp{};
-
-  helper::ProgressTracker _tracker{};
+  helper::ProgressTracker _tracker{}; ///< Progress tracker (for estimate)
 };
 
 } // namespace ui
