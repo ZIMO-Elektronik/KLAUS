@@ -1,11 +1,29 @@
+/**
+ * UpdateBackend
+ *
+ * \file    update_backend.cpp
+ * \author  Jonas Gahlert
+ * \date    25.06.2026
+ */
+
 #include "include/ui/update_backend.hpp"
 #include <tinyfiledialogs/tinyfiledialogs.h>
 
 namespace ui {
 
+/**
+ * CTor
+ *
+ * \param pManager ProcessManager pointer
+ */
 UpdateBackend::UpdateBackend(std::shared_ptr<ProcessManager> pManager)
   : _pManager{pManager} {}
 
+/**
+ * Connect (UI)
+ *
+ * \param window UI handle
+ */
 void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>{window};
 
@@ -26,6 +44,13 @@ void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
   }
 }
 
+/**
+ * Choos file (UI)
+ *
+ * \details
+ * Starts a blocking native file dialog and handles the result
+ *
+ */
 void UpdateBackend::choose_file() {
   // 1. Filter für den Dialog definieren
   // tinyfiledialogs erwartet ein Array aus Zeichenketten für die Endungen
@@ -72,6 +97,13 @@ void UpdateBackend::choose_file() {
   return;
 }
 
+/**
+ * Start process (UI)
+ *
+ * \details
+ * Creats and starts a the selected process
+ *
+ */
 void UpdateBackend::start_process() {
   /// Careful, we can only pass an empty list while the underlying process sends
   /// an entry on ID 0 in that case.
@@ -90,6 +122,14 @@ void UpdateBackend::start_process() {
   else std::cerr << "Manager is busy" << std::endl;
 }
 
+/**
+ * Create firmware list
+ *
+ * \details
+ * This iterates through all available firmwares in the ZSU file and creates a
+ * lexicographically sorted list.
+ *
+ */
 void UpdateBackend::create_firmware_list() {
   auto model{std::make_shared<slint::VectorModel<FirmwareAdapter>>()};
 
