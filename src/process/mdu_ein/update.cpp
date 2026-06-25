@@ -1,10 +1,24 @@
-#include "include/process/mdu_ein/update.hpp"
+/**
+ *  Update process
+ *
+ * \file    src/process/mdu_ein/update.cpp
+ * \author  Jonas Gahlert
+ * \date    25.06.2026
+ */
 
+#include "include/process/mdu_ein/update.hpp"
 #include <iostream>
 #include <thread>
 
 namespace process::mdu_ein {
 
+/**
+ * CTor
+ *
+ * \param path        Path to ZSU file
+ * \param entry_type  Entry type
+ * \param decoder_ids List of decoder IDs (for entry)
+ */
 Update::Update(std::filesystem::path path,
                type::MDUEntryType entry_type,
                std::vector<uint32_t> decoder_ids)
@@ -14,6 +28,13 @@ Update::Update(std::filesystem::path path,
     [this](res::Result const result) { this->handle_result(result); });
 }
 
+/**
+ * CTor
+ *
+ * \param path        ZSU file (LibKLUG)
+ * \param entry_type  Entry type
+ * \param decoder_ids List of decoder IDs (for entry)
+ */
 Update::Update(std::shared_ptr<libklug::ZSU> zsu,
                type::MDUEntryType entry_type,
                std::vector<uint32_t> decoder_ids)
@@ -25,11 +46,24 @@ Update::Update(std::shared_ptr<libklug::ZSU> zsu,
     [this](res::Result const result) { this->handle_result(result); });
 }
 
+/**
+ * DTor
+ *
+ */
 Update::~Update() {
   _lib.deregisterCb();
   disconnect();
 }
 
+/**
+ * Execute process
+ *
+ * \details
+ * This process may not execute, if no device can be found.
+ *
+ * \return true   Process started
+ * \return false  Unable to execute
+ */
 bool Update::execute() {
   if (_zsu == nullptr || !_zsu->valid() || !connect()) {
     _done = true;
@@ -39,19 +73,44 @@ bool Update::execute() {
   return true;
 }
 
+/**
+ * Abort process
+ */
 void Update::abort() { _abort = true; }
 
+/**
+ * Handle result (from callback)
+ *
+ * \note
+ * If the process is to be aborted, \ref Update::resetAction is called
+ * without handling the result.
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::handle_result(res::Result r) {
   if (_abort) resetAction();
   std::invoke(_state, this, r);
 }
 
+/**
+ * Change mode action
+ *
+ */
 void Update::modeAction() {
   if (_updateCb) _updateCb({.id = type::MessageID::Start});
   _lib.com().mdu_ein();
   _state = &Update::modeResult;
 }
 
+/**
+ * Handle change mode result
+ *
+ * \details
+ * On success, the followup action is \ref Update::enterAction, else \ref
+ * Update::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::modeResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     std::cout << "Mode MDU_EIN" << std::endl;
@@ -64,6 +123,13 @@ void Update::modeResult(res::Result const r) {
   resetAction();
 }
 
+/**
+ * Enter
+ *
+ * \note
+ * Entry used depends on value given in CTor
+ *
+ */
 void Update::enterAction() {
   switch (_entryType) {
     case type::MDUEntryType::MDU: _lib.mdu_ein().enterMDU(); break;
@@ -77,6 +143,15 @@ void Update::enterAction() {
   _state = &Update::enterResult;
 }
 
+/**
+ * Handle enter result
+ *
+ * \details
+ * On success, the followup action is \ref Update::configAction, else \ref
+ * Update::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::enterResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (_entryType == type::MDUEntryType::MDU) {
@@ -102,12 +177,27 @@ void Update::enterResult(res::Result const r) {
   return resetAction();
 }
 
+/**
+ * Config (transfer rate)
+ *
+ * \todo Maybe don't abort if we can't go fast
+ *
+ */
 void Update::configAction() {
   if (_updateCb) _updateCb({.id = type::MessageID::Init});
   _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow);
   _state = &Update::configResult;
 }
 
+/**
+ * Handle config result
+ *
+ * \details
+ * On success, the followup action is \ref Update::searchAction, else \ref
+ * Update::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::configResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
@@ -121,12 +211,32 @@ void Update::configResult(res::Result const r) {
   resetAction();
 }
 
+/**
+ * Search decoder
+ *
+ * \note
+ * Since we don't exacly have an ID list, we just ping 0 and check if something
+ * responds
+ *
+ */
 void Update::searchAction() {
   if (_updateCb) _updateCb({.id = type::MessageID::SearchDecoder});
   _lib.mdu_ein().ping(0, _fwIt.id());
   _state = &Update::searchResult;
 }
 
+/**
+ * Handle search result
+ *
+ * \details
+ * This searches for all decoders with available firmware, with the ID being a
+ * byproduct of the FirmwareIterator. On success, the followup action is \ref
+ * Update::initAction, on any error, the next ID is searched.
+ *
+ * If no more IDs are available, the next action is \ref Update::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::searchResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     std::cout << "Ping";
@@ -157,11 +267,24 @@ void Update::searchResult(res::Result const r) {
   resetAction();
 }
 
+/**
+ * Init (Salsa20)
+ *
+ */
 void Update::initAction() {
   _lib.mdu_ein().zsuSalsa20Iv(_fwIt);
   _state = &Update::initResult;
 }
 
+/**
+ * Handle init result
+ *
+ * \details
+ * On success, the followup action is \ref Update::eraseAction, else \ref
+ * Update::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::initResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
@@ -176,12 +299,25 @@ void Update::initResult(res::Result const r) {
   return;
 }
 
+/**
+ * Erase flash
+ *
+ */
 void Update::eraseAction() {
   if (_updateCb) _updateCb({.id = type::MessageID::EraseFlash});
   _lib.mdu_ein().zsuErase(_fwIt);
   _state = &Update::eraseResult;
 }
 
+/**
+ * Handle enter result
+ *
+ * \details
+ * On success, the followup action is \ref Update::waitAction, else \ref
+ * Update::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::eraseResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
@@ -196,6 +332,13 @@ void Update::eraseResult(res::Result const r) {
   return;
 }
 
+/**
+ * Wait for erase finish
+ *
+ * \note This will essentially get looped from \ref Update::waitResult until
+ * erase is done
+ *
+ */
 void Update::waitAction() {
   if (_updateCb)
     _updateCb({.id = type::MessageID::EraseFlash,
@@ -204,6 +347,16 @@ void Update::waitAction() {
   _state = &Update::waitResult;
 }
 
+/**
+ * Handle enter result
+ *
+ * \details
+ * This needs to 'loop' for about 10 seconds. While these 10 seconds have not
+ * passed, the next action will always be \ref Update::waitAction. Once the time
+ * has passed the next action is \ref Update::updateAction
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::waitResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (_index++ >= 20) {
@@ -224,6 +377,10 @@ void Update::waitResult(res::Result const r) {
   return;
 }
 
+/**
+ * Update (write flash block)
+ *
+ */
 void Update::updateAction() {
   if (_updateCb)
     _updateCb({.id = type::MessageID::WriteFlash,
@@ -233,6 +390,19 @@ void Update::updateAction() {
   _state = &Update::updateResult;
 }
 
+/**
+ * Handle update result
+ *
+ * \details
+ * On Success, either the next block is written with \ref
+ * Update::updateAction, or, in case the last block was successfully sent,
+ * \ref Update::verifyAction.
+ *
+ * On Error, the current block is retried up to 3 times, then \ref
+ * Update::resetAction is executed.
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::updateResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
@@ -254,12 +424,25 @@ void Update::updateResult(res::Result const r) {
   resetAction();
 }
 
+/**
+ * Verify update (start CRC32 verification)
+ *
+ */
 void Update::verifyAction() {
   if (_updateCb) _updateCb({.id = type::MessageID::Verify});
   _lib.mdu_ein().zsuCrc32Start(_fwIt);
   _state = &Update::verifyResult;
 }
 
+/**
+ * Handle verify result
+ *
+ * \details
+ * On success, the followup action is \ref Update::endAction, else \ref
+ * Update::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::verifyResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r)) {
     if (std::get<res::Status>(r)) {
@@ -273,12 +456,24 @@ void Update::verifyResult(res::Result const r) {
   resetAction();
 }
 
+/**
+ * End (cleanup)
+ *
+ */
 void Update::endAction() {
   if (_updateCb) _updateCb({.id = type::MessageID::Cleanup});
   _lib.mdu_ein().zsuCrc32ResultExit();
   _state = &Update::endResult;
 }
 
+/**
+ * Handle end result
+ *
+ * \details
+ * In any case, the followup action is \ref Update::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::endResult(res::Result const r) {
   _updateCb({.id = type::MessageID::Done, .payload = true});
   if (std::holds_alternative<res::Status>(r)) {
@@ -294,6 +489,10 @@ void Update::endResult(res::Result const r) {
   resetAction();
 }
 
+/**
+ * Reset
+ *
+ */
 void Update::resetAction() {
   _lib.com().reset();
   if (_abort) {
@@ -303,6 +502,14 @@ void Update::resetAction() {
   _state = &Update::resetResult;
 }
 
+/**
+ * Handle reset result
+ *
+ * \details
+ * Either success or no succes, this is the last action.
+ *
+ * \param r Result (LibKLUG)
+ */
 void Update::resetResult(res::Result const r) {
   if (std::holds_alternative<res::Status>(r))
     std::cout << "Reset success" << std::endl;
