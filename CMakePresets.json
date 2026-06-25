@@ -14,7 +14,6 @@
             "description": "Base Preset providing base config",
             "generator": "Ninja",
             "cacheVariables": {
-                "CPM_KLUG_SOURCE": "${sourceDir}/../libklug/",
                 "CPM_SOURCE_CACHE": "${sourceDir}/build/.cpm_packages",
                 "CMAKE_BUILD_PARALLEL_LEVEL": "16"
             }

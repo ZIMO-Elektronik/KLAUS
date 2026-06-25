@@ -1,13 +1,34 @@
+/**
+ * Progress tracker
+ *
+ * \file    src/ui/helper/progress_tracker.cpp
+ * \author  Jonas Gahlert
+ * \date    25.06.2026
+ */
+
 #include "include/ui/helper/progress_tracker.hpp"
 
 namespace ui::helper {
 
+/**
+ * Reset
+ *
+ */
 void ProgressTracker::reset() {
   _lastProgress = 0.0f;
   _str = "--:--:--";
   _lastUpdate = std::chrono::steady_clock::now();
 }
 
+/**
+ * Update estimate
+ *
+ * \param progress  New progress
+ * \param force     Force update
+ *
+ * \return true
+ * \return false
+ */
 bool ProgressTracker::update(double progress, bool force) {
   auto const now{std::chrono::steady_clock::now()};
   if (now < (_lastUpdate + std::chrono::milliseconds(1000))) return false;
