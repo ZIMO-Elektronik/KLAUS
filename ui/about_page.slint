@@ -5,6 +5,7 @@ import {
     TabWidget,
     ScrollView,
     VerticalBox,
+    Palette,
 } from "std-widgets.slint";
 import { AppContext } from "app_context.slint";
 import {
@@ -55,7 +56,7 @@ export component AboutPage inherits Rectangle {
             text: AppContext.tool-name;
             font-size: 22px;
             horizontal-alignment: center;
-            color: blue;
+            color: Palette.color-scheme == ColorScheme.dark ? Colors.teal : Colors.blue;
         }
 
         Text {

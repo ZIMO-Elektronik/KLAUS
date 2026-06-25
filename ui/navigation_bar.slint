@@ -1,4 +1,4 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+import { Button, VerticalBox, Palette } from "std-widgets.slint";
 import { AppPage } from "types.slint";
 
 export component NavigationBar {
@@ -8,7 +8,7 @@ export component NavigationBar {
 
     Rectangle {
         width: 180px;
-        background: darkslategray;
+        background: Palette.color-scheme == ColorScheme.dark ? Colors.black : darkslategray;
 
         VerticalBox {
             padding: 10px;

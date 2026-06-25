@@ -1,3 +1,4 @@
+import { Palette } from "std-widgets.slint";
 export component ProgressBar inherits Rectangle {
 
     in property <float> progress;
@@ -6,9 +7,9 @@ export component ProgressBar inherits Rectangle {
     height: 25px;
     width: 100%;
 
-    border-color: lightblue;
+    border-color: Palette.color-scheme == ColorScheme.dark ? Colors.darkslategray : Colors.silver;
     border-width: 1px;
-    background: lightgrey;
+    background: Palette.control-background;
     clip: true;
 
     Rectangle {
@@ -17,7 +18,7 @@ export component ProgressBar inherits Rectangle {
 
         width: parent.width * root.progress;
         height: 100%;
-        background: lightblue;
+        background: Palette.color-scheme == ColorScheme.dark ? Colors.darkslategray : Colors.silver;
 
         animate width {
             duration: root.smoothing ? 150ms : 0ms;

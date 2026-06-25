@@ -2,6 +2,7 @@ import {
     Button,
     VerticalBox,
     HorizontalBox,
+    Palette,
 } from "std-widgets.slint";
 import { ProgressViewContext } from "progress_context.slint";
 import { ProgressBar } from "progress_bar.slint";
@@ -15,10 +16,10 @@ export component ProgressPanel {
     callback abort-clicked();
 
     Rectangle {
-        background: #f0f0f0;
+        background: Palette.color-scheme == ColorScheme.dark ? Colors.dimgray : Colors.lightgray;
         border-radius: 4px;
         border-width: 1px;
-        border-color: #cccccc;
+        border-color: Colors.teal;
 
         min-width: 300px;
 
@@ -35,7 +36,6 @@ export component ProgressPanel {
                         text: root.step;
                         font-size: 14px;
                         font-weight: 700;
-                        color: #333333;
                     }
 
                     TouchArea {

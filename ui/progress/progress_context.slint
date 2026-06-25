@@ -2,10 +2,9 @@ export global ProgressViewContext {
     in property <bool> has-process: true; // For testing, reset when running
     in property <bool> is-process-running;
 
-    in-out property <bool> is-open;
-
-    in property <string> step;
-    in property <float> progress;
+    in-out property <bool> is-open: true;
+    in property <string> step: "Imagine a step here";
+    in property <float> progress: 0.5;
 
     in property <string> time-estimate;
 

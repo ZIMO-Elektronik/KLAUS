@@ -9,6 +9,7 @@ import { EntryType } from "update/entry.slint";
 import { ProgressViewContext } from "progress/progress_context.slint";
 import { AboutPage } from "about_page.slint";
 import { AppContext } from "app_context.slint";
+import { Palette } from "std-widgets.slint";
 export { ProgressViewContext, AppContext }
 
 export component AppWindow inherits Window {
@@ -46,7 +47,7 @@ export component AppWindow inherits Window {
 
         // Rechter Inhaltsbereich mit dynamischen Seiten
         Rectangle {
-            background: #ffffff;
+            background: Palette.background;
 
             if root.active-page == AppPage.Update: UpdatePage {
                 has-file <=> root.has-file;

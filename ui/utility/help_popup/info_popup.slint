@@ -1,4 +1,4 @@
-import { VerticalBox } from "std-widgets.slint";
+import { VerticalBox, Palette } from "std-widgets.slint";
 
 export component InfoPopup inherits PopupWindow {
     in property <string> info-text;
@@ -9,7 +9,7 @@ export component InfoPopup inherits PopupWindow {
     Rectangle {
         width: layout.preferred-width;
         height: layout.preferred-height;
-        background: Colors.whitesmoke;
+        background: Palette.color-scheme == ColorScheme.dark ? darkslategray : whitesmoke;
         border-radius: 6px;
         border-width: 1px;
         border-color: Colors.darkgray;
@@ -19,7 +19,7 @@ export component InfoPopup inherits PopupWindow {
 
             Text {
                 text: root.info-text;
-                color: Colors.black;
+                color: Palette.foreground;
                 font-size: 13px;
                 max-width: 200px;
                 wrap: word-wrap;
