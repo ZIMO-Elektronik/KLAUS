@@ -1,12 +1,40 @@
+/**
+ * Progress tracker
+ *
+ * \file    src/ui/helper/progress_tracker.cpp
+ * \author  Jonas Gahlert
+ * \date    25.06.2026
+ */
+
 #include "include/ui/helper/progress_tracker.hpp"
 
 namespace ui::helper {
 
+/**
+ * Reset
+ *
+ */
 void ProgressTracker::reset() {
   _lastProgress = 0.0f;
+  _str = "--:--:--";
   _lastUpdate = std::chrono::steady_clock::now();
 }
 
+/**
+ * Update estimate
+ *
+ * \details
+ * Will create an estimate based on the progress since the last update.
+ *
+ * For now, this has a fixed 1 second interval, unless the 'force' option is
+ * set, in which case an update will be made
+ *
+ * \param progress  New progress
+ * \param force     Force update
+ *
+ * \return true   Estimate was updated
+ * \return false  Estimate not updated
+ */
 bool ProgressTracker::update(double progress, bool force) {
   auto const now{std::chrono::steady_clock::now()};
   if (now < (_lastUpdate + std::chrono::milliseconds(1000))) return false;
@@ -52,6 +80,7 @@ bool ProgressTracker::update(double progress, bool force) {
   return true;
 }
 
+/// Returns the current estimate
 std::string_view ProgressTracker::estimate() { return {_str}; }
 
 } // namespace ui::helper

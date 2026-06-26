@@ -1,4 +1,4 @@
-import { Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { Button, VerticalBox, HorizontalBox, Palette } from "std-widgets.slint";
 import { ProgressPopup } from "../progress/progress_popup.slint";
 import { ProgressViewContext } from "../progress/progress_context.slint";
 import { EntrySelector } from "entry_selector.slint";
@@ -42,7 +42,7 @@ export component UpdatePage inherits Rectangle {
                     Text {
                         text: @tr("Update");
                         font-size: 20px;
-                        color: #000000;
+                        color: Palette.foreground;
                     }
 
                     help-mode-button := HelpModeButton { }

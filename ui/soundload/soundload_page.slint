@@ -3,6 +3,7 @@ import {
     VerticalBox,
     HorizontalBox,
     ComboBox,
+    Palette,
 } from "std-widgets.slint";
 import { ProgressPopup } from "../progress/progress_popup.slint";
 import { ProgressViewContext } from "../progress/progress_context.slint";
@@ -49,7 +50,7 @@ export component SoundLoadPage inherits Rectangle {
                 Text {
                     text: @tr("SoundLoad");
                     font-size: 20px;
-                    color: #000000;
+                    color: Palette.foreground;
                 }
 
                 help-mode-button := HelpModeButton { }

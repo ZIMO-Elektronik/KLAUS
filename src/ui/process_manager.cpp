@@ -34,13 +34,24 @@ bool ProcessManager::execute() {
     if (update.progress) this->updateProgress(*update.progress);
   });
 
-  if (!_process->execute()) return false;
+  auto success = _process->execute();
+  if (!success) _process.reset();
 
   _tracker.reset();
 
   if (auto ui{_weakUi.lock()}) {
-    (*ui)->global<ProgressViewContext>().set_has_process(true);
-    (*ui)->global<ProgressViewContext>().set_is_process_running(true);
+    (*ui)->global<ProgressViewContext>().set_has_process(_process == nullptr);
+    (*ui)->global<ProgressViewContext>().set_is_process_running(success);
+    (*ui)->global<ProgressViewContext>().set_is_open(true);
+    (*ui)->global<ProgressViewContext>().set_progress(0.0);
+    (*ui)->global<ProgressViewContext>().set_time_estimate(_tracker.estimate());
+
+    if (!success)
+      // Push Error when we cant execute
+      // TODO: This shoud come from the process, for now we just assume the most
+      // likely cause: The device was not found.
+      (*ui)->global<ProgressViewContext>().set_step(
+        "Unable to find Update Device");
   }
 
   return true;
@@ -51,15 +62,14 @@ bool ProcessManager::execute() {
  *
  * \warning The existence of a process is not checked
  */
-void ProcessManager::abort() {
-  _process->abort();
-  done();
-}
+void ProcessManager::abort() { _process->abort(); }
 
 void ProcessManager::done() {
   slint::invoke_from_event_loop([this]() {
     if (auto ui{_weakUi.lock()}) {
+      // Mark process as ended and popup progress
       (*ui)->global<ProgressViewContext>().set_is_process_running(false);
+      (*ui)->global<ProgressViewContext>().set_is_open(true);
     }
   });
 }

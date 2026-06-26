@@ -1,3 +1,11 @@
+/**
+ * MessageID to string converter
+ *
+ * \file    include/ui/helper/message_id_to_string.hpp
+ * \author  Jonas Gahlert
+ * \date    24.06.2026
+ */
+
 #pragma once
 
 // #include <libintl.h>
@@ -10,6 +18,14 @@ namespace ui::helper {
 
 /**
  * Converts the given MessageID to its corresponding Message
+ *
+ * \note
+ * Because of the problems with gettext, this may become obsolete in favor of a
+ * fluent-based translation system
+ *
+ * \note
+ * The `gettext` macros in here are currently only for show. They are resolved
+ * by the macro above since we cant have libintl while cross-compiling
  *
  * \param id MessageID
  *

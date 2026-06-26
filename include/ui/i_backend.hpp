@@ -16,6 +16,12 @@ namespace ui {
 /**
  * Backend interface
  *
+ * \details
+ * An interface to store each backend in a singular container
+ *
+ * \todo
+ * Unused, do we need this?
+ *
  */
 struct IBackend {
   virtual void connect(slint::ComponentHandle<AppWindow>) = 0;

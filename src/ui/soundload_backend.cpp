@@ -1,3 +1,11 @@
+/**
+ * SoundLoad backend
+ *
+ * \file    src/ui/soundload_backend.cpp
+ * \author  Jonas Gahlert
+ * \date    25.06.2026
+ */
+
 #include "include/ui/soundload_backend.hpp"
 #include <tinyfiledialogs/tinyfiledialogs.h>
 #include "include/process/mdu_ein/soundload.hpp"
@@ -5,9 +13,19 @@
 
 namespace ui {
 
+/**
+ * CTor
+ *
+ * \param pManager ProcessManager pointer
+ */
 SoundLoadBackend::SoundLoadBackend(std::shared_ptr<ProcessManager> pManager)
   : _pManager{pManager} {}
 
+/**
+ * Connect (to UI)
+ *
+ * \param window UI handle
+ */
 void SoundLoadBackend::connect(slint::ComponentHandle<AppWindow> window) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>{window};
 
@@ -25,6 +43,13 @@ void SoundLoadBackend::connect(slint::ComponentHandle<AppWindow> window) {
   }
 }
 
+/**
+ * Choos file (UI)
+ *
+ * \details
+ * Starts a blocking native file dialog and handles the result
+ *
+ */
 void SoundLoadBackend::choose_file() {
   // 1. Filter für den Dialog definieren
   // tinyfiledialogs erwartet ein Array aus Zeichenketten für die Endungen
@@ -74,6 +99,13 @@ void SoundLoadBackend::choose_file() {
   return;
 }
 
+/**
+ * Start process (UI)
+ *
+ * \details
+ * Creats and starts a the selected process
+ *
+ */
 void SoundLoadBackend::start_process() {
   SoundLoadMode mode{};
   if (auto ui{_weakUi.lock()}) { mode = (*ui)->get_sound_load_mode(); }

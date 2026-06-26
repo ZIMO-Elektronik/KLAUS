@@ -1,3 +1,11 @@
+/**
+ * Progress tracker
+ *
+ * \file    include/ui/helper/progress_tracker.hpp
+ * \author  Jonas Gahlert
+ * \date    24.06.2026
+ */
+
 #pragma once
 
 #include <chrono>
@@ -19,6 +27,10 @@ namespace ui::helper {
  * \ref ProgressTracker::estimate will return the last time estimate as a string
  * "hh:mm:ss"
  *
+ * \todo
+ * Insert an array of 5 or so points to be able to make a window estimate over a
+ * vew seconds. May be more precise than what were doing right now.
+ *
  */
 struct ProgressTracker {
   void reset();
@@ -27,11 +39,11 @@ struct ProgressTracker {
   std::string_view estimate();
 
 private:
-  std::string _str{};
+  std::string _str{}; ///< Created string
 
-  double _lastProgress{0.0f};
+  double _lastProgress{0.0f}; ///< Last progress value
   std::chrono::steady_clock::time_point _lastUpdate{
-    std::chrono::steady_clock::now()};
+    std::chrono::steady_clock::now()}; ///< Last update point
 };
 
 } // namespace ui::helper
