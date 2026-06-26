@@ -86,7 +86,7 @@ private:
   std::mutex _mut_process{};                     ///< Process mutex
   std::unique_ptr<process::IProcess> _process{}; ///< Running process
 
-  type::MessageID _lastId{}; ///< Last messageId
+  type::MessageID _lastId{type::MessageID::Done}; ///< Last messageId
 
   helper::ProgressTracker _tracker{}; ///< Progress time tracker
 };

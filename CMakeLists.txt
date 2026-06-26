@@ -30,7 +30,7 @@ add_executable(
   $<$<BOOL:${WIN32}>:${CMAKE_CURRENT_SOURCE_DIR}/data/kleinweich.rc>)
 
 target_compile_definitions(${CMAKE_PROJECT_NAME}
-  PRIVATE PROJECT_VERSION=${VERSION_FROM_GIT})
+                           PRIVATE PROJECT_VERSION=${VERSION_FROM_GIT})
 
 FetchContent_Declare(
   Slint
@@ -91,16 +91,16 @@ if(NOT TARGET KLUG::KLUG)
     SYSTEM
     YES
     GIT_TAG
-    mdu_entry)
+    master)
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE .)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint KLUG
-  ::tinyfiledialogs)
+                                                    ::tinyfiledialogs)
 slint_target_sources(${CMAKE_PROJECT_NAME} ui/app-window.slint)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY SLINT_EMBED_RESOURCES
-  embed-files)
+                                                   embed-files)
 
 # On Windows, copy the Slint DLL next to the application binary so that it's
 # found.
@@ -109,8 +109,8 @@ if(WIN32)
     TARGET ${CMAKE_PROJECT_NAME}
     POST_BUILD
     COMMAND
-    ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${CMAKE_PROJECT_NAME}>
-    $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>
+      ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${CMAKE_PROJECT_NAME}>
+      $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>
     COMMAND_EXPAND_LISTS)
 endif()
 

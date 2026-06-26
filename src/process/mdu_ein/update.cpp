@@ -161,7 +161,7 @@ void Update::enterResult(res::Result const r) {
     }
 
     // DCC entry, use all ids first
-    if (++_iter == _decoderIDs.end()) {
+    if (_decoderIDs.empty() || ++_iter == _decoderIDs.end()) {
       // Done with last id, next mode
       std::cout << "Entered via DCC with " << _decoderIDs.size() << " IDs"
                 << std::endl;

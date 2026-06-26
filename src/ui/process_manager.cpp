@@ -110,6 +110,7 @@ void ProcessManager::updateText(type::MessageID id, bool force) {
   if (!force)
     if (id == _lastId) return;
 
+  _lastId = id;
   auto const str{helper::message_id_to_string(id)};
   slint::invoke_from_event_loop([this, str]() {
     if (auto ui{this->_weakUi.lock()}) {
