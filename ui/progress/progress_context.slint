@@ -1,9 +1,11 @@
+import { MessageIDAdapter } from "dynamic/step_text.slint";
+
 export global ProgressViewContext {
     in property <bool> has-process; // For testing, reset when running
     in property <bool> is-process-running;
 
     in-out property <bool> is-open;
-    in property <string> step: "Imagine a step here";
+    in property <MessageIDAdapter> id;
     in property <float> progress: 0.5;
 
     in property <string> time-estimate;

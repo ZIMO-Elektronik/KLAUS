@@ -6,9 +6,10 @@ import {
 } from "std-widgets.slint";
 import { ProgressViewContext } from "progress_context.slint";
 import { ProgressBar } from "progress_bar.slint";
+import { StepText } from "dynamic/step_text.slint";
 
 export component ProgressPanel {
-    in property step <=> ProgressViewContext.step;
+    in property id <=> ProgressViewContext.id;
     in property progress <=> ProgressViewContext.progress;
     in property time-estimate <=> ProgressViewContext.time-estimate;
 
@@ -30,10 +31,8 @@ export component ProgressPanel {
                 HorizontalLayout {
                     alignment: LayoutAlignment.space-between;
 
-                    Text {
-                        text: root.step;
-                        font-size: 14px;
-                        font-weight: 700;
+                    StepText {
+                        id <=> root.id;
                     }
 
                     TouchArea {

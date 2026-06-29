@@ -1,0 +1,65 @@
+export enum MessageIDAdapter {
+    Start,
+    StartComplete,
+    Init,
+    InitComplete,
+    SearchDecoder,
+    FoundDecoder,
+    EraseFlash,
+    EraseFlashComplete,
+    WriteFlash,
+    WriteFlashComplete,
+    ReadCv,
+    ReadCvComplete,
+    WriteCv,
+    WriteCvComplete,
+    Verify,
+    VerifyComplete,
+    VerifyError,
+    Cleanup,
+    CleanupComplete,
+    Done,
+    Abort,
+    AbortDevice,
+    AbortInit,
+    AbortDecoderSearch,
+    AbortFlashErase,
+    AbortFlashWrite,
+    AbortVerify,
+    Default,
+}
+
+export component StepText inherits Text {
+    in property <MessageIDAdapter> id;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    text: id == MessageIDAdapter.Start ? @tr("Start") :
+        id == MessageIDAdapter.StartComplete ? @tr("Started") :
+        id == MessageIDAdapter.Init ? @tr("Initializing") :
+        id == MessageIDAdapter.InitComplete ? @tr("Finished Initializing") :
+        id == MessageIDAdapter.SearchDecoder ? @tr("Search for decoder") :
+        id == MessageIDAdapter.FoundDecoder ? @tr("Found decoder") :
+        id == MessageIDAdapter.EraseFlash ? @tr("Erase Flash") :
+        id == MessageIDAdapter.EraseFlashComplete ? @tr("Erased Flash") :
+        id == MessageIDAdapter.WriteFlash ? @tr("Writing Flash") :
+        id == MessageIDAdapter.WriteFlashComplete ? @tr("Written Flash") :
+        id == MessageIDAdapter.ReadCv ? @tr("Reading CVs") :
+        id == MessageIDAdapter.ReadCvComplete ? @tr("Finished reading CVs") :
+        id == MessageIDAdapter.WriteCv ? @tr("Writing CVs") :
+        id == MessageIDAdapter.WriteCvComplete ? @tr("Finished writing CVs") :
+        id == MessageIDAdapter.Verify ? @tr("Verifying") :
+        id == MessageIDAdapter.VerifyComplete ? @tr("Successfully verified") :
+        id == MessageIDAdapter.VerifyError ? @tr("Error during verification") :
+        id == MessageIDAdapter.Cleanup ? @tr("Perform cleanup") :
+        id == MessageIDAdapter.CleanupComplete ? @tr("Cleanup complete") :
+        id == MessageIDAdapter.Done ? @tr("Done") :
+        id == MessageIDAdapter.Abort ? @tr("Aborted") :
+        id == MessageIDAdapter.AbortDevice ? @tr("No device found") :
+        id == MessageIDAdapter.AbortInit ? @tr("Unable to setup process") :
+        id == MessageIDAdapter.AbortDecoderSearch ? @tr("No decoder found") :
+        id == MessageIDAdapter.AbortFlashErase ? @tr("Unable to erase flash") :
+        id == MessageIDAdapter.AbortFlashWrite ? @tr("Unable to write flash") :
+        id == MessageIDAdapter.AbortVerify ? @tr("Error during verification") : @tr("Imagine a helpful string here");
+}

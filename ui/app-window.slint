@@ -4,14 +4,14 @@ import { SoundLoadPage, SoundLoadMode } from "soundload/soundload_page.slint";
 import { AppPage } from "types.slint";
 import { FirmwareAdapter } from "update/firmware.slint";
 import { EntryType } from "update/entry.slint";
+import { AboutPage } from "about_page.slint";
+import { Palette } from "std-widgets.slint";
 
 // Re-export context
 import { ProgressViewContext } from "progress/progress_context.slint";
-import { AboutPage } from "about_page.slint";
 import { AppContext } from "app_context.slint";
-import { Palette } from "std-widgets.slint";
-export { ProgressViewContext, AppContext }
-
+import { MessageIDAdapter } from "progress/dynamic/step_text.slint";
+export { ProgressViewContext, AppContext, MessageIDAdapter }
 export component AppWindow inherits Window {
     title: AppContext.tool-name;
     width: 800px;

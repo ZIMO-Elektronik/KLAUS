@@ -1,5 +1,5 @@
 #include "include/ui/process_manager.hpp"
-#include "include/ui/helper/message_id_to_string.hpp"
+#include "include/ui/helper/message_id_map.hpp"
 
 namespace ui {
 
@@ -50,8 +50,8 @@ bool ProcessManager::execute() {
       // Push Error when we cant execute
       // TODO: This shoud come from the process, for now we just assume the most
       // likely cause: The device was not found.
-      (*ui)->global<ProgressViewContext>().set_step(
-        "Unable to find Update Device");
+      (*ui)->global<ProgressViewContext>().set_id(
+        MessageIDAdapter::AbortDevice);
   }
 
   return true;
@@ -111,10 +111,9 @@ void ProcessManager::updateText(type::MessageID id, bool force) {
     if (id == _lastId) return;
 
   _lastId = id;
-  auto const str{helper::message_id_to_string(id)};
-  slint::invoke_from_event_loop([this, str]() {
+  slint::invoke_from_event_loop([this, id]() {
     if (auto ui{this->_weakUi.lock()}) {
-      (*ui)->global<ProgressViewContext>().set_step(str.data());
+      (*ui)->global<ProgressViewContext>().set_id(helper::message_id_map(id));
     }
   });
 }

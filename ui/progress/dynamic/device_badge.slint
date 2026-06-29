@@ -1,0 +1,7 @@
+export component DeviceBadge inherits Text {
+    in property <string> device-string;
+
+    visible: !device-string.is-empty;
+
+    text: @tr("Using device: {}", device-string);
+}
