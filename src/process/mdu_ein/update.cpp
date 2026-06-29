@@ -24,7 +24,7 @@ Update::Update(std::filesystem::path path,
                std::vector<uint32_t> decoder_ids)
   : Base{}, _zsu{std::make_shared<libklug::ZSU>(path)},
     _decoderIDs{decoder_ids}, _entryType{entry_type} {
-  _lib.registerCb<[] {}>(
+  _lib.setCallback(
     [this](res::Result const result) { this->handle_result(result); });
 }
 
@@ -42,7 +42,7 @@ Update::Update(std::shared_ptr<libklug::ZSU> zsu,
   assert(_zsu != nullptr);
   assert(_zsu->valid());
 
-  _lib.registerCb<[] {}>(
+  _lib.setCallback(
     [this](res::Result const result) { this->handle_result(result); });
 }
 
@@ -51,7 +51,7 @@ Update::Update(std::shared_ptr<libklug::ZSU> zsu,
  *
  */
 Update::~Update() {
-  _lib.deregisterCb();
+  _lib.unsetCallback();
   disconnect();
 }
 

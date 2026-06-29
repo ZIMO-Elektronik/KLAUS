@@ -21,7 +21,7 @@ namespace process::mdu_ein {
  * \todo Make ZPP a shared_ptr and add a CTor taking that
  */
 SoundLoad::SoundLoad(std::filesystem::path path) : _zpp{path} {
-  _lib.registerCb<[] {}>(
+  _lib.setCallback(
     [this](res::Result const result) { this->handle_result(result); });
 }
 
@@ -30,7 +30,7 @@ SoundLoad::SoundLoad(std::filesystem::path path) : _zpp{path} {
  *
  */
 SoundLoad::~SoundLoad() {
-  _lib.deregisterCb();
+  _lib.unsetCallback();
   disconnect();
 }
 
