@@ -1,5 +1,5 @@
 #include "include/ui/process_manager.hpp"
-#include "include/ui/helper/message_id_to_string.hpp"
+#include "include/ui/helper/message_id_map.hpp"
 
 namespace ui {
 
@@ -30,6 +30,13 @@ bool ProcessManager::execute() {
   _process->onUpdate([this](type::ProcessUpdate update) {
     this->updateText(update.id, false);
     if (std::holds_alternative<bool>(update.payload)) done();
+    else if (std::holds_alternative<type::DeviceString>(update.payload)) {
+      slint::invoke_from_event_loop([this, update]() {
+        if (auto ui{_weakUi.lock()})
+          (*ui)->global<ProgressViewContext>().set_device_string(
+            std::get<type::DeviceString>(update.payload).data());
+      });
+    }
 
     if (update.progress) this->updateProgress(*update.progress);
   });
@@ -45,13 +52,14 @@ bool ProcessManager::execute() {
     (*ui)->global<ProgressViewContext>().set_is_open(true);
     (*ui)->global<ProgressViewContext>().set_progress(0.0);
     (*ui)->global<ProgressViewContext>().set_time_estimate(_tracker.estimate());
+    (*ui)->global<ProgressViewContext>().set_device_string("");
 
     if (!success)
       // Push Error when we cant execute
       // TODO: This shoud come from the process, for now we just assume the most
       // likely cause: The device was not found.
-      (*ui)->global<ProgressViewContext>().set_step(
-        "Unable to find Update Device");
+      (*ui)->global<ProgressViewContext>().set_id(
+        MessageIDAdapter::AbortDevice);
   }
 
   return true;
@@ -64,6 +72,20 @@ bool ProcessManager::execute() {
  */
 void ProcessManager::abort() { _process->abort(); }
 
+/**
+ * Check if the underlying process is busy
+ *
+ * \return true   Busy
+ * \return false  Not busy
+ */
+bool ProcessManager::busy() {
+  return _process == nullptr ? false : !_process->done();
+}
+
+/**
+ * Signal UI that the running process is finished
+ *
+ */
 void ProcessManager::done() {
   slint::invoke_from_event_loop([this]() {
     if (auto ui{_weakUi.lock()}) {
@@ -111,10 +133,9 @@ void ProcessManager::updateText(type::MessageID id, bool force) {
     if (id == _lastId) return;
 
   _lastId = id;
-  auto const str{helper::message_id_to_string(id)};
-  slint::invoke_from_event_loop([this, str]() {
+  slint::invoke_from_event_loop([this, id]() {
     if (auto ui{this->_weakUi.lock()}) {
-      (*ui)->global<ProgressViewContext>().set_step(str.data());
+      (*ui)->global<ProgressViewContext>().set_id(helper::message_id_map(id));
     }
   });
 }

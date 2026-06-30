@@ -48,6 +48,9 @@ struct SoundLoad : public Base {
 private:
   void handle_result(res::Result r);
 
+  void pingAction();
+  void pingResult(res::Result const r);
+
   void modeAction();
   void modeResult(res::Result const r);
 
