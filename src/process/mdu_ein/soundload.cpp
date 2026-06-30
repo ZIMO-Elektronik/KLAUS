@@ -48,7 +48,7 @@ bool SoundLoad::execute() {
     _done = true;
     return false;
   }
-  modeAction();
+  pingAction();
   return true;
 }
 
@@ -69,6 +69,36 @@ void SoundLoad::abort() { _abort = true; }
 void SoundLoad::handle_result(res::Result r) {
   if (_abort) resetAction();
   std::invoke(_state, this, r);
+}
+
+/**
+ * Ping device
+ *
+ */
+void SoundLoad::pingAction() {
+  _lib.com().ping();
+  _state = &SoundLoad::pingResult;
+}
+
+/**
+ * Handle ping result
+ *
+ * \details
+ * On success, the followup action is \ref SoundLoad::modeAction, else \ref
+ * SoundLoad::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
+void SoundLoad::pingResult(res::Result const r) {
+  if (std::holds_alternative<res::String>(r)) {
+    std::cout << "Found " << static_cast<std::string>(std::get<res::String>(r))
+              << std::endl;
+    if (_updateCb)
+      _updateCb(
+        {.id = type::MessageID::None,
+         .payload = static_cast<std::string>(std::get<res::String>(r))});
+    return modeAction();
+  }
 }
 
 /**

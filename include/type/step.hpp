@@ -71,6 +71,8 @@ enum class MessageID {
   None,
 };
 
+using DeviceString = std::string;
+
 /**
  * A payload
  *
@@ -78,7 +80,7 @@ enum class MessageID {
  * As of now, this is only used to signal the end of the process.
  *
  */
-using Payload = std::variant<std::monostate, bool>;
+using Payload = std::variant<std::monostate, bool, DeviceString>;
 
 /**
  * Process update struct

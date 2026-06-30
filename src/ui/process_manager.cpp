@@ -30,6 +30,13 @@ bool ProcessManager::execute() {
   _process->onUpdate([this](type::ProcessUpdate update) {
     this->updateText(update.id, false);
     if (std::holds_alternative<bool>(update.payload)) done();
+    else if (std::holds_alternative<type::DeviceString>(update.payload)) {
+      slint::invoke_from_event_loop([this, update]() {
+        if (auto ui{_weakUi.lock()})
+          (*ui)->global<ProgressViewContext>().set_device_string(
+            std::get<type::DeviceString>(update.payload).data());
+      });
+    }
 
     if (update.progress) this->updateProgress(*update.progress);
   });
@@ -45,6 +52,7 @@ bool ProcessManager::execute() {
     (*ui)->global<ProgressViewContext>().set_is_open(true);
     (*ui)->global<ProgressViewContext>().set_progress(0.0);
     (*ui)->global<ProgressViewContext>().set_time_estimate(_tracker.estimate());
+    (*ui)->global<ProgressViewContext>().set_device_string("");
 
     if (!success)
       // Push Error when we cant execute

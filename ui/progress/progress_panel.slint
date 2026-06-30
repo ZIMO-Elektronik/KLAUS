@@ -7,9 +7,11 @@ import {
 import { ProgressViewContext } from "progress_context.slint";
 import { ProgressBar } from "progress_bar.slint";
 import { StepText } from "dynamic/step_text.slint";
+import { DeviceBadge } from "dynamic/device_badge.slint";
 
 export component ProgressPanel {
     in property id <=> ProgressViewContext.id;
+    in property device-string <=> ProgressViewContext.device_string;
     in property progress <=> ProgressViewContext.progress;
     in property time-estimate <=> ProgressViewContext.time-estimate;
 
@@ -62,12 +64,20 @@ export component ProgressPanel {
                     }
                 }
 
-                Text {
-                    text: @tr("Estimated time remaining: {}", root.time-estimate);
+                HorizontalBox {
+                    DeviceBadge {
+                        device-string <=> root.device-string;
+                    }
                 }
 
                 HorizontalBox {
-                    alignment: end;
+                    alignment: space-between;
+
+                    Text {
+                        vertical-alignment: center;
+                        text: @tr("Estimated time remaining: {}", root.time-estimate);
+                    }
+
                     Button {
                         text: @tr("Abort");
                         clicked => {

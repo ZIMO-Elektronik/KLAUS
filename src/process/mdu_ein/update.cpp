@@ -69,7 +69,7 @@ bool Update::execute() {
     _done = true;
     return false;
   }
-  modeAction();
+  pingAction();
   return true;
 }
 
@@ -90,6 +90,36 @@ void Update::abort() { _abort = true; }
 void Update::handle_result(res::Result r) {
   if (_abort) resetAction();
   std::invoke(_state, this, r);
+}
+
+/**
+ * Ping device
+ *
+ */
+void Update::pingAction() {
+  _lib.com().ping();
+  _state = &Update::pingResult;
+}
+
+/**
+ * Handle ping result
+ *
+ * \details
+ * On success, the followup action is \ref Update::modeAction, else \ref
+ * Update::resetAction
+ *
+ * \param r Result (LibKLUG)
+ */
+void Update::pingResult(res::Result const r) {
+  if (std::holds_alternative<res::String>(r)) {
+    std::cout << "Found " << static_cast<std::string>(std::get<res::String>(r))
+              << std::endl;
+    if (_updateCb)
+      _updateCb(
+        {.id = type::MessageID::None,
+         .payload = static_cast<std::string>(std::get<res::String>(r))});
+    return modeAction();
+  }
 }
 
 /**
