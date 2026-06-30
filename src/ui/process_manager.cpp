@@ -70,7 +70,9 @@ bool ProcessManager::execute() {
  *
  * \warning The existence of a process is not checked
  */
-void ProcessManager::abort() { _process->abort(); }
+void ProcessManager::abort() {
+  if (_process != nullptr) _process->abort();
+}
 
 /**
  * Check if the underlying process is busy

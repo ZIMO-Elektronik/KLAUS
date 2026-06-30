@@ -8,7 +8,7 @@
       "name": "Debug",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/linux/Updater",
+      "program": "${workspaceFolder}/build/linux/z-klaus",
       "args": [],
       "stopAtEntry": true,
       "cwd": "${workspaceFolder}",

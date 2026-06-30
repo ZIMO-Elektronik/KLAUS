@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
 Version=0.0.0
-Name=Updater
+Name=KLAUS
 Comment=Eine tolle plattformübergreifende App
-Exec=Updater
+Exec=z-klaus
 Icon=zimo_logo
 Terminal=false
 Categories=Utility;Development;

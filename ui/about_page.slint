@@ -39,7 +39,7 @@ export component AboutPage inherits Rectangle {
             alignment: center;
             Rectangle {
                 width: 160px;
-                height: 160px;
+                height: 100px;
                 background: transparent;
                 border-radius: 16px;
 
@@ -53,6 +53,13 @@ export component AboutPage inherits Rectangle {
         }
 
         Text {
+            text: AppContext.tool-name-acronym;
+            font-size: 28px;
+            horizontal-alignment: center;
+            color: Palette.color-scheme == ColorScheme.dark ? Colors.teal : Colors.blue;
+        }
+
+        Text {
             text: AppContext.tool-name;
             font-size: 22px;
             horizontal-alignment: center;
@@ -61,13 +68,20 @@ export component AboutPage inherits Rectangle {
 
         Text {
             text: AppContext.tool-version;
-            font-size: 13px;
+            font-size: 12px;
             horizontal-alignment: center;
         }
 
         Text {
             text: AppContext.tool-description;
             font-size: 14px;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+
+        Text {
+            text: AppContext.cr-text;
+            font-size: 10px;
             horizontal-alignment: center;
             wrap: word-wrap;
         }
