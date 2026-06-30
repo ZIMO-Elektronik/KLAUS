@@ -10,7 +10,7 @@ FetchContent_MakeAvailable(CMakeModules)
 
 version_from_git()
 project(
-  Updater
+  z-klaus
   VERSION ${VERSION_FROM_GIT}
   LANGUAGES CXX)
 
@@ -86,8 +86,8 @@ if(NOT TARGET KLUG::KLUG)
     https://gitea.zimo.at:3000/ZIMO/libklug.git
     SYSTEM
     YES
-    GIT_TAG
-    master)
+    VERSION
+    0.0.1)
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE .)
@@ -145,7 +145,7 @@ install(
 
 if(UNIX AND NOT APPLE)
   # Install .deb specifics
-  install(FILES "data/updater.desktop" DESTINATION share/applications)
+  install(FILES "data/z-klaus.desktop" DESTINATION share/applications)
   install(FILES "data/zimo_logo.png" DESTINATION share/pixmaps)
 elseif(WIN32)
   install(FILES "data/zimo_logo.png" DESTINATION bin)
