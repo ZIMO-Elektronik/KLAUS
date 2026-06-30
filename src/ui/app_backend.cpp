@@ -38,6 +38,16 @@ void AppBackend::connect(slint::ComponentHandle<AppWindow> ui) {
   ui->global<AppContext>().set_version_suffix("experimental");
 
   change_page(ui->get_active_page());
+
+  /// \todo Add a timeout
+  /// \todo Find a more elegant solution than just aborting the process
+  ui->window().on_close_requested([this]() {
+    this->_pManager->abort();
+    while (_pManager->busy()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(500uz));
+    }
+    return slint::CloseRequestResponse::HideWindow;
+  });
 }
 
 /**

@@ -46,7 +46,7 @@ bool SoundLoad::execute() {
     _done = true;
     return false;
   }
-  modeAction();
+  pingAction();
   return true;
 }
 

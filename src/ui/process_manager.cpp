@@ -72,6 +72,20 @@ bool ProcessManager::execute() {
  */
 void ProcessManager::abort() { _process->abort(); }
 
+/**
+ * Check if the underlying process is busy
+ *
+ * \return true   Busy
+ * \return false  Not busy
+ */
+bool ProcessManager::busy() {
+  return _process == nullptr ? false : !_process->done();
+}
+
+/**
+ * Signal UI that the running process is finished
+ *
+ */
 void ProcessManager::done() {
   slint::invoke_from_event_loop([this]() {
     if (auto ui{_weakUi.lock()}) {
