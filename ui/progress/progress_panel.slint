@@ -81,7 +81,10 @@ export component ProgressPanel {
                     Button {
                         text: ProgressViewContext.is-process-running ? @tr("Abort") : @tr("OK");
                         clicked => {
-                            root.abort-clicked();
+                            if (ProgressViewContext.is-process-running) { root.abort-clicked(); }
+                            else {
+                                root.close-clicked();
+                            }
                         }
                     }
                 }
