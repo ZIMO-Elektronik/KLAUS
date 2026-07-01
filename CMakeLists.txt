@@ -87,7 +87,7 @@ if(NOT TARGET KLUG::KLUG)
     SYSTEM
     YES
     VERSION
-    0.0.1)
+    0.0.2)
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE .)
