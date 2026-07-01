@@ -7,6 +7,7 @@
  */
 
 #include "include/ui/helper/progress_tracker.hpp"
+#include <iomanip>
 
 namespace ui::helper {
 
