@@ -49,50 +49,24 @@ struct Update : public Base {
   virtual void abort();
 
 private:
-  void handle_result(res::Result r);
+  void update();
 
-  void pingAction();
-  void pingResult(res::Result const r);
+  bool ping();
+  bool mode();
+  bool enter();
+  bool config();
+  bool search();
+  bool init();
+  bool erase();
+  bool write();
+  bool verify();
+  void end();
+  void reset();
 
-  void modeAction();
-  void modeResult(res::Result const r);
-
-  void enterAction();
-  void enterResult(res::Result const r);
-
-  void configAction();
-  void configResult(res::Result const r);
-
-  void searchAction();
-  void searchResult(res::Result const r);
-
-  void initAction();
-  void initResult(res::Result const r);
-
-  void eraseAction();
-  void eraseResult(res::Result const r);
-
-  void waitAction();
-  void waitResult(res::Result const r);
-
-  void updateAction();
-  void updateResult(res::Result const r);
-
-  void verifyAction();
-  void verifyResult(res::Result const r);
-
-  void endAction();
-  void endResult(res::Result const r);
-
-  void resetAction();
-  void resetResult(res::Result const r);
-
-  void (Update::*_state)(res::Result const){
-    &Update::modeResult}; ///< State (next *Result handler)
+  void pushUI(type::ProcessUpdate const& u);
 
   std::shared_ptr<libklug::ZSU> _zsu;                  ///< ZSU instance
   libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()}; ///< Firmware iterator
-  libklug::ZSU::FirmwareIterator const _fwItEnd{_zsu->end()}; ///< Last firmware
 
   type::MDUEntryType _entryType; ///< Entry type (MDU or DCC)
 
@@ -101,8 +75,7 @@ private:
   decltype(_decoderIDs)::const_iterator _lastIter{_decoderIDs.end() -
                                                   1}; ///< Last ID
 
-  int _err_cnt{0};       ///< Consecutive error counter
-  unsigned int _index{}; ///< Block index withing the Firmware
+  int _err_cnt{0}; ///< Consecutive error counter
 
   bool _abort{}; ///< Abort flag
 };

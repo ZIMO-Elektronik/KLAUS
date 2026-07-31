@@ -51,7 +51,15 @@ void Base::disconnect() {
  * \return true   Done
  * \return false  Busy
  */
-bool Base::done() { return _done; }
+bool Base::done() {
+  if (_done) return true;
+
+  if (_process.valid() &&
+      _process.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+    _done = true;
+
+  return _done;
+}
 
 /**
  * Interface to register callable for UI updates

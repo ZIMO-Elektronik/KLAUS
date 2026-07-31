@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <future>
 #include <libklug/libklug.hpp>
 #include "i_process.hpp"
 
@@ -49,7 +50,8 @@ struct Base : IProcess {
 protected:
   libklug::LibKLUG _lib; ///< Libklug handle
 
-  bool _done{false}; ///< Process done
+  bool _done{false};          ///< Process done
+  std::future<void> _process; ///< Process state
 
   std::function<void(type::ProcessUpdate)> _updateCb{}; ///< GUI update callback
 };
