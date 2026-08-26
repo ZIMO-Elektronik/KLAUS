@@ -44,14 +44,22 @@ struct Base : IProcess {
   void disconnect();
 
   virtual bool done() override;
+  virtual void abort() override;
 
   virtual void onUpdate(std::function<void(type::ProcessUpdate)>) override;
 
 protected:
+  bool ping();
+  bool reset();
+
+  void pushUI(type::ProcessUpdate const& u);
+
   libklug::LibKLUG _lib; ///< Libklug handle
 
-  bool _done{false};          ///< Process done
-  std::future<void> _process; ///< Process state
+  bool _done{false};  ///< Process done
+  bool _abort{false}; /// Abort process
+
+  std::future<void> _process; ///< Process future
 
   std::function<void(type::ProcessUpdate)> _updateCb{}; ///< GUI update callback
 };

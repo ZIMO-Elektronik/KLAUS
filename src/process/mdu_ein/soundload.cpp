@@ -17,22 +17,22 @@ namespace process::mdu_ein {
  * CTor
  *
  * \param path Path to ZPP file
- *
- * \todo Make ZPP a shared_ptr and add a CTor taking that
  */
-SoundLoad::SoundLoad(std::filesystem::path path) : _zpp{path} {
-  _lib.setCallback(
-    [this](res::Result const result) { this->handle_result(result); });
-}
+SoundLoad::SoundLoad(std::filesystem::path path)
+  : _zpp{std::make_shared<libklug::ZPP>(path)} {}
+
+/**
+ * CTor
+ *
+ * \param zpp Shared pointer to ZPP
+ */
+SoundLoad::SoundLoad(std::shared_ptr<libklug::ZPP> zpp) : _zpp{zpp} {}
 
 /**
  * DTor
  *
  */
-SoundLoad::~SoundLoad() {
-  _lib.unsetCallback();
-  disconnect();
-}
+SoundLoad::~SoundLoad() { disconnect(); }
 
 /**
  * Execute process
@@ -44,158 +44,86 @@ SoundLoad::~SoundLoad() {
  * \return false  Unable to execute
  */
 bool SoundLoad::execute() {
-  if (!connect()) {
+  if (_zpp == nullptr || !_zpp->valid() || !connect()) {
     _done = true;
     return false;
   }
-  pingAction();
+  _process = std::async([this]() { return this->load(); });
   return true;
 }
 
 /**
- * Abort process
- */
-void SoundLoad::abort() { _abort = true; }
-
-/**
- * Handle result (from callback)
- *
- * \note
- * If the process is to be aborted, \ref SoundLoad::resetAction is called
- * without handling the result.
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::handle_result(res::Result r) {
-  if (_abort) resetAction();
-  std::invoke(_state, this, r);
-}
-
-/**
- * Ping device
- *
- */
-void SoundLoad::pingAction() {
-  _lib.com().ping();
-  _state = &SoundLoad::pingResult;
-}
-
-/**
- * Handle ping result
+ * The actual SoundLoad
  *
  * \details
- * On success, the followup action is \ref SoundLoad::modeAction, else \ref
- * SoundLoad::resetAction
+ * This will execute components in imperative order until either completion, or
+ * the first non-recoverable Error. Either way, the SoundLoad will be ended
+ * cleanly and the Update device is reset.
  *
- * \param r Result (LibKLUG)
  */
-void SoundLoad::pingResult(res::Result const r) {
-  if (std::holds_alternative<res::String>(r)) {
-    std::cout << "Found " << static_cast<std::string>(std::get<res::String>(r))
-              << std::endl;
-    if (_updateCb)
-      _updateCb(
-        {.id = type::MessageID::None,
-         .payload = static_cast<std::string>(std::get<res::String>(r))});
-    return modeAction();
-  }
+void SoundLoad::load() {
+  if (!ping() || !mode() || !enter() || !config() || !search() || !init() ||
+      !erase() || !write() || !end())
+    _abort = true;
+
+  // There was a reason for this
+  _lib.mdu_ein().busy();
+  exit();
+  _lib.mdu_ein().busy();
+  reset();
 }
 
 /**
- * Change mode action
+ * Change mode to MDU_EIN
  *
+ * \return true   Continue
+ * \return false  Abort
  */
-void SoundLoad::modeAction() {
-  _lib.com().mdu_ein();
-  _state = &SoundLoad::modeResult;
+bool SoundLoad::mode() {
+  pushUI({.id = type::MessageID::Start});
+
+  if (auto const res{_lib.com().mdu_ein()})
+    if (*res) return true;
+
+  pushUI({.id = type::MessageID::AbortInit, .payload = true});
+  return false;
 }
 
 /**
- * Handle change mode result
+ * Enter Decoder(-s)
+ *
+ * \return true   Continue
+ * \return false  Abort
+ */
+bool SoundLoad::enter() {
+  if (auto const res{_lib.mdu_ein().enterDCCZPP()})
+    if (*res) return true;
+
+  pushUI({.id = type::MessageID::AbortInit, .payload = true});
+  return false;
+}
+
+/**
+ * Configure Transfer Rate
  *
  * \details
- * On success, the followup action is \ref SoundLoad::enterAction, else \ref
- * SoundLoad::resetAction
+ * This configures the Transfer rate to `Fast`.
  *
- * \param r Result (LibKLUG)
+ * \todo
+ * Maybe this should retry with a slower rate on fail
+ *
+ * \return true   Continue
+ * \return false  Abort
  */
-void SoundLoad::modeResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    std::cout << "Mode MDU_EIN" << std::endl;
-    enterAction();
-    return;
-  }
+bool SoundLoad::config() {
+  pushUI({.id = type::MessageID::Init});
 
-  std::cout << "Unable to change mode" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  resetAction();
-}
+  if (auto const res{
+        _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Fast)})
+    if (*res) return true;
 
-/**
- * Enter
- *
- * \note
- * Since were loading sound, we lock the entry to DCCZPP
- *
- */
-void SoundLoad::enterAction() {
-  _lib.mdu_ein().enterDCCZPP();
-  _state = &SoundLoad::enterResult;
-}
-
-/**
- * Handle enter result
- *
- * \details
- * On success, the followup action is \ref SoundLoad::configAction, else \ref
- * SoundLoad::resetAction
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::enterResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    std::cout << "Entered via MDU" << std::endl;
-    configAction();
-    return;
-  }
-
-  std::cout << "Unable to enter" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  resetAction();
-}
-
-/**
- * Config (transfer rate)
- *
- * \todo Maybe don't abort if we can't go fast
- *
- */
-void SoundLoad::configAction() {
-  _updateCb({.id = type::MessageID::Init});
-  _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Fast);
-  _state = &SoundLoad::configResult;
-}
-
-/**
- * Handle config result
- *
- * \details
- * On success, the followup action is \ref SoundLoad::searchAction, else \ref
- * SoundLoad::resetAction
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::configResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Data rate set to slow" << std::endl;
-      searchAction();
-      return;
-    }
-  }
-  std::cout << "Unable to set data rate" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  resetAction();
+  pushUI({.id = type::MessageID::AbortInit, .payload = true});
+  return false;
 }
 
 /**
@@ -206,280 +134,138 @@ void SoundLoad::configResult(res::Result const r) {
  * responds
  *
  */
-void SoundLoad::searchAction() {
-  _updateCb({.id = type::MessageID::SearchDecoder});
-  _lib.mdu_ein().ping(0uz, 0uz);
-  _state = &SoundLoad::searchResult;
+bool SoundLoad::search() {
+  _err_cnt = 0uz;
+  pushUI({.id = type::MessageID::SearchDecoder});
+
+  while (_err_cnt++ < 3uz)
+    if (auto const res{_lib.mdu_ein().ping(0uz, 0uz)})
+      if (*res) return true;
+
+  pushUI({.id = type::MessageID::AbortDecoderSearch, .payload = true});
+  return false;
 }
 
 /**
- * Handle search result
+ * Check if the ZPP can fit into the decoder
+ *
+ * \return true   Continue
+ * \return false  Abort
+ */
+bool SoundLoad::init() {
+  if (auto const res{_lib.mdu_ein().zppValidQuery(*_zpp)})
+    if (*res) return true;
+
+  pushUI({.id = type::MessageID::AbortInit, .payload = true});
+  return false;
+}
+
+/**
+ * Erase decoder flash (and wait until done)
+ *
+ * \return true   Continue
+ * \return false  Abort
+ */
+bool SoundLoad::erase() {
+  // Erase flash
+  if (auto const res{_lib.mdu_ein().zppErase(*_zpp)}) {
+    if (!*res) { // Can't erase
+      pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
+      return false;
+    }
+  } else {
+    pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
+    return false;
+  }
+
+  // Wait until flash is erased
+  unsigned int index{0u};
+  while (!_abort) {
+    pushUI({.id = type::MessageID::EraseFlash,
+            .progress = static_cast<double>(index++) / 200.0});
+    if (auto const res{_lib.mdu_ein().busy()}) {
+      if (*res) { // Done
+        return true;
+      }
+
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      continue;
+    }
+
+    pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
+    break;
+  }
+
+  return false;
+}
+
+/**
+ * Write Decoder flash
  *
  * \details
- * On success, the followup action is \ref SoundLoad::initAction, else \ref
- * SoundLoad::resetAction
+ * This writes the actual update into the decoder flash. A single block is
+ * retried up to 3 times, if it still fails, we abort with `false`. Otherwise,
+ * all blocks are transmitted here.
  *
- * \param r Result (LibKLUG)
+ * \todo
+ * Perhaps we could retry the previous 2 blocks before aborting.
+ *
+ * \todo
+ * Maybe we should ping the decoder sometimes to check if it still exists
+ *
+ * \return true   Continue
+ * \return false  Abort
  */
-void SoundLoad::searchResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    std::cout << "Ping";
-    if (std::get<res::Status>(r)) {
-      _err_cnt = 0;
-      std::cout << "Successful at Id 0x" << std::hex << 0uz << std::dec
-                << std::endl;
-      initAction();
-      return;
+bool SoundLoad::write() {
+  unsigned int index{0u};
 
-    } else {
-      std::cout << "Unsuccessful at Id 0x" << std::hex << 0uz << std::dec
-                << std::endl;
+  while (!_abort) {
+    pushUI({.id = type::MessageID::WriteFlash,
+            .progress{static_cast<double>(index + 1.0) /
+                      static_cast<double>(_zpp->blocks())}});
+    if (auto const res{_lib.mdu_ein().zppUpdate(*_zpp, index)}) {
+      if (*res) { // Block written
+        _err_cnt = 0;
+        if (++index >= _zpp->blocks()) // Done
+          return true;
 
-      if (_err_cnt++ < 3) {
-        // 3 retries
-        return searchAction();
+      } else if (_err_cnt++ >= 3uz) { // Max errors reached
+        pushUI({.id = type::MessageID::AbortFlashWrite, .payload = true});
+        break;
       }
     }
   }
 
-  std::cout << "Unable to ping" << std::endl;
-  _updateCb({.id = type::MessageID::AbortDecoderSearch, .payload = true});
-  resetAction();
+  // Aborted
+  return false;
 }
 
 /**
- * Init (check zppValid)
+ * Formally end sound load
  *
+ * \return true   Continue
+ * \return false  Abort
  */
-void SoundLoad::initAction() {
-  _updateCb({.id = type::MessageID::Init});
-  _lib.mdu_ein().zppValidQuery(_zpp);
-  _state = &SoundLoad::initResult;
+bool SoundLoad::end() {
+  if (auto const res{_lib.mdu_ein().zppUpdateEnd(*_zpp)})
+    if (*res) return true;
+
+  std::cout << "Failed to end ZPP Update" << std::endl;
+  pushUI({.id = type::MessageID::AbortVerify, .payload = true});
+  return false;
 }
 
 /**
- * Handle init result
+ * Exit sound load (for decoder)
  *
- * \details
- * On success, the followup action is \ref SoundLoad::eraseAction, else \ref
- * SoundLoad::resetAction
- *
- * \param r Result (LibKLUG)
+ * \return true   Continue
+ * \return false  Abort
  */
-void SoundLoad::initResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "ZPP valid" << std::endl;
-      eraseAction();
-      return;
-    }
-  }
+bool SoundLoad::exit() {
+  if (auto const res{_lib.mdu_ein().zppExitReset()})
+    if (*res) return true;
 
-  std::cout << "Unable to check if ZPP is valid" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  resetAction();
-  return;
-}
-
-/**
- * Erase flash
- *
- */
-void SoundLoad::eraseAction() {
-  _updateCb({.id = type::MessageID::EraseFlash});
-  _lib.mdu_ein().zppErase(_zpp);
-  _state = &SoundLoad::eraseResult;
-}
-
-/**
- * Handle change mode result
- *
- * \details
- * On success, the followup action is \ref SoundLoad::waitAction, else \ref
- * SoundLoad::resetAction
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::eraseResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Erasing..." << std::endl;
-      return waitAction();
-    }
-  }
-  std::cout << "Unable to erase flash" << std::endl;
-  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
-  resetAction();
-  return;
-}
-
-/**
- * Wait for erase finish
- *
- * \note This will essentially get looped from \ref SoundLoad::waitResult until
- * erase is done
- *
- */
-void SoundLoad::waitAction() {
-  _updateCb({.id = type::MessageID::EraseFlash,
-             .progress = static_cast<double>(_index) / 200.0});
-  _lib.mdu_ein().busy();
-  _state = &SoundLoad::waitResult;
-}
-
-/**
- * Handle change mode result
- *
- * \details
- * On success, the followup action is \ref SoundLoad::enterAction.
- *
- * On no_success (busy), the followup action is \ref SoundLoad::waitAction.
- *
- * On any error, the followup action is \ref SoundLoad::resetAction.
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::waitResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      _index = 0;
-      std::cout << "Erased" << std::endl;
-      return updateAction();
-    }
-    _index++;
-    std::cout << "Still erasing..." << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    return waitAction();
-  }
-  std::cout << "Unable to wait for erase complete" << std::endl;
-  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
-  return resetAction();
-}
-
-/**
- * Update (write flash block)
- *
- */
-void SoundLoad::updateAction() {
-  _updateCb({.id = type::MessageID::WriteFlash,
-             .progress{static_cast<double>(_index + 1.0) /
-                       static_cast<double>(_zpp.blocks())}});
-  _lib.mdu_ein().zppUpdate(_zpp, _index);
-  _state = &SoundLoad::updateResult;
-}
-
-/**
- * Handle update result
- *
- * \details
- * On Success, either the next block is written with \ref
- * SoundLoad::updateAction, or, in case the last block was successfully sent,
- * \ref SoundLoad::endAction.
- *
- * On Error, the current block is retried up to 3 times, then \ref
- * SoundLoad::resetAction is executed.
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::updateResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      // Block written
-      _err_cnt = 0;
-      if (++_index >= _zpp.blocks()) { return endAction(); }
-      return updateAction();
-    }
-    // Block rejected
-    if (_err_cnt++ < 3) { return updateAction(); }
-  }
-  std::cout << "Unable to write flash" << std::endl;
-  _updateCb({.id = type::MessageID::AbortFlashWrite, .payload = true});
-  return resetAction();
-}
-
-/**
- * End (cleanup)
- *
- */
-void SoundLoad::endAction() {
-  _updateCb({.id = type::MessageID::Cleanup});
-  _lib.mdu_ein().zppUpdateEnd(_zpp);
-  _state = &SoundLoad::endResult;
-}
-
-/**
- * Handle end result
- *
- * \details
- * On success, the followup action is \ref SoundLoad::exitAction, else \ref
- * SoundLoad::resetAction
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::endResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) { return exitAction(); }
-  }
-  std::cout << "Unable to perform updateEnd" << std::endl;
-  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
-  return resetAction();
-}
-
-/**
- * Exit (decoder exit from MDU)
- *
- */
-void SoundLoad::exitAction() {
-  _lib.mdu_ein().zppExitReset();
-  _state = &SoundLoad::exitResult;
-}
-
-/**
- * Handle exit result
- *
- * \details
- * On success, the followup action is \ref SoundLoad::exitAction, else \ref
- * SoundLoad::resetAction
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::exitResult(res::Result const r) {
-  _updateCb({.id = type::MessageID::Done});
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) { return resetAction(); }
-  }
-  std::cout << "Unable to perform exitReset" << std::endl;
-  return resetAction();
-}
-
-/**
- * Reset
- *
- */
-void SoundLoad::resetAction() {
-  _lib.com().reset();
-  if (_abort) {
-    _updateCb({.id = type::MessageID::Abort, .payload = true});
-    _abort = false; // Else we'd loop forever on reset...
-  }
-  _state = &SoundLoad::resetResult;
-}
-
-/**
- * Handle reset result
- *
- * \details
- * Either success or no succes, this is the last action.
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::resetResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r))
-    std::cout << "Reset success" << std::endl;
-  else std::cout << "Reset NOT successful" << std::endl;
-
-  _done = true;
-  return;
+  return false;
 }
 
 } // namespace process::mdu_ein

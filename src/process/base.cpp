@@ -20,19 +20,9 @@ Base::Base() {}
  * \return false  Not found or not connected
  */
 bool Base::connect() {
-
-  for (int i{0}; i < 4; i++) {
-    int rc{0};
-    switch (i) {
-      case 0: rc = _lib.init(); break;
-      case 1: rc = _lib.open(0x1FC9u, 0x81C1u); break;
-      case 2: rc = _lib.config(); break;
-      case 3: rc = _lib.claim(); break;
-      default: assert(false);
-    }
-    if (rc) return false;
-  }
-
+  if (_lib.init() != err::Error::ok ||
+      _lib.open(0x1FC9u, 0x81C1u) != err::Error::ok)
+    return false;
   return true;
 }
 
@@ -40,10 +30,7 @@ bool Base::connect() {
  * Disconnect device
  *
  */
-void Base::disconnect() {
-  _lib.release();
-  _lib.close();
-}
+void Base::disconnect() { _lib.close(); }
 
 /**
  * Check if the process is done
@@ -62,6 +49,12 @@ bool Base::done() {
 }
 
 /**
+ * Mark process to abort
+ *
+ */
+void Base::abort() { _abort = true; }
+
+/**
  * Interface to register callable for UI updates
  *
  * \warning
@@ -71,6 +64,50 @@ bool Base::done() {
  */
 void Base::onUpdate(std::function<void(type::ProcessUpdate)> cb) {
   _updateCb = cb;
+}
+
+/**
+ * Ping device
+ *
+ * \details
+ * If the ping yields a result, it it pushed to the UI. Otherwise we can assume,
+ * that the any further work will fail anyway and abort.
+ *
+ * \return true   Continue
+ * \return false  Abort
+ */
+bool Base::ping() {
+  if (auto const res{_lib.com().ping()}) {
+    pushUI({.id = type::MessageID::None, .payload = std::move(*res)});
+    return true;
+  }
+
+  pushUI({.id = type::MessageID::AbortInit, .payload = true});
+  return false;
+}
+
+/**
+ * Reset Device
+ *
+ * \return true   Continue
+ * \return false  Abort
+ */
+bool Base::reset() {
+  if (!_abort) pushUI({.id = type::MessageID::Done, .payload = true});
+
+  if (auto const res{_lib.com().reset()})
+    if (*res) return true;
+
+  return false;
+}
+
+/**
+ * Push an update to the UI (if possible)
+ *
+ * \param u Update
+ */
+void Base::pushUI(type::ProcessUpdate const& u) {
+  if (_updateCb) _updateCb(u);
 }
 
 } // namespace process

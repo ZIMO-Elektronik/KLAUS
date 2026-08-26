@@ -40,44 +40,23 @@ namespace process::susiv2 {
  */
 struct SoundLoad : public Base {
   SoundLoad(std::filesystem::path path);
+  SoundLoad(std::shared_ptr<libklug::ZPP> zpp);
   virtual ~SoundLoad() final;
 
   virtual bool execute();
-  virtual void abort();
 
 private:
-  void handle_result(res::Result r);
+  void load();
 
-  void pingAction();
-  void pingResult(res::Result const& r);
+  bool mode();
+  bool features();
+  bool erase();
+  bool write();
+  bool exit();
 
-  void modeAction();
-  void modeResult(res::Result const& r);
+  std::shared_ptr<libklug::ZPP> _zpp; ///< ZPP instance
 
-  void featuresAction();
-  void featuresResult(res::Result const& r);
-
-  void eraseAction();
-  void eraseResult(res::Result const& r);
-
-  void loadAction();
-  void loadResult(res::Result const& r);
-
-  void endAction();
-  void endResult(res::Result const& r);
-
-  void resetAction();
-  void resetResult(res::Result const& r);
-
-  void (SoundLoad::*_state)(
-    res::Result const&){}; ///< State (next *Result handler)
-
-  libklug::ZPP _zpp; ///< ZPP instance
-
-  int _err_cnt{0};       ///< Consecutive error counter
-  unsigned int _index{}; ///< Block index withing the ZPP
-
-  bool _abort{}; ///< Abort flag
+  int _err_cnt{0}; ///< Consecutive error counter
 };
 
 } // namespace process::susiv2

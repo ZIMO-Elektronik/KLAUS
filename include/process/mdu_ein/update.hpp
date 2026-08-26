@@ -46,12 +46,10 @@ struct Update : public Base {
   virtual ~Update() final;
 
   virtual bool execute();
-  virtual void abort();
 
 private:
   void update();
 
-  bool ping();
   bool mode();
   bool enter();
   bool config();
@@ -61,9 +59,6 @@ private:
   bool write();
   bool verify();
   void end();
-  void reset();
-
-  void pushUI(type::ProcessUpdate const& u);
 
   std::shared_ptr<libklug::ZSU> _zsu;                  ///< ZSU instance
   libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()}; ///< Firmware iterator
@@ -76,8 +71,6 @@ private:
                                                   1}; ///< Last ID
 
   int _err_cnt{0}; ///< Consecutive error counter
-
-  bool _abort{}; ///< Abort flag
 };
 
 } // namespace process::mdu_ein

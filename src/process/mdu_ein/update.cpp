@@ -64,11 +64,6 @@ bool Update::execute() {
 }
 
 /**
- * Abort process
- */
-void Update::abort() { _abort = true; }
-
-/**
  * The actual update
  *
  * \details
@@ -85,44 +80,15 @@ void Update::update() {
 }
 
 /**
- * Ping ULF_COM device
- *
- * \details
- * If the ping yields a result, it it pushed to the UI. Otherwise we can assume,
- * that the update will fail anyway and abort.
- *
- * \return true   Continue
- * \return false  Abort
- */
-bool Update::ping() {
-  if (_abort) return false;
-
-  _lib.com().ping();
-  auto res = _lib.jobAwait();
-  if (auto const string{std::get_if<res::String>(&res)}) {
-    pushUI({.id = type::MessageID::None,
-            .payload = static_cast<std::string>(*string)});
-    return true;
-  }
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
-}
-
-/**
  * Change mode to MDU_EIN
  *
  * \return true   Continue
  * \return false  Abort
  */
 bool Update::mode() {
-  if (_abort) return false;
-
   pushUI({.id = type::MessageID::Start});
-  _lib.com().mdu_ein();
-  auto res = _lib.jobAwait();
-  if (auto const status{std::get_if<res::Status>(&res)})
-    if (*status) return true;
+  if (auto const res{_lib.com().mdu_ein()})
+    if (*res) return true;
 
   pushUI({.id = type::MessageID::AbortInit, .payload = true});
   return false;
@@ -140,31 +106,30 @@ bool Update::mode() {
  * \return false  Abort
  */
 bool Update::enter() {
+  assert(_entryType == type::MDUEntryType::MDU ||
+         _entryType == type::MDUEntryType::DCC_ZSU);
+
   if (_abort) return false;
 
   _err_cnt = 0uz;
+
   while (true) {
-    switch (_entryType) {
-      case type::MDUEntryType::MDU: _lib.mdu_ein().enterMDU(); break;
-      case type::MDUEntryType::DCC_ZSU:
-        if (_decoderIDs.empty()) _lib.mdu_ein().enterDCCZSU();
-        else _lib.mdu_ein().enterDCCZSU(*_iter, 0uz, _iter == _lastIter);
-        break;
-      default: assert(false);
+    if (auto const res{
+          _entryType == type::MDUEntryType::MDU ? _lib.mdu_ein().enterMDU()
+          : _decoderIDs.empty()
+            ? _lib.mdu_ein().enterDCCZSU()
+            : _lib.mdu_ein().enterDCCZSU(*_iter, 0uz, _iter == _lastIter)}) {
+      _err_cnt = 0uz;
+      if (_entryType == type::MDUEntryType::MDU ||
+          (_entryType == type::MDUEntryType::DCC_ZSU &&
+           (_decoderIDs.empty() || ++_iter == _decoderIDs.end())))
+        // Done with entry, continue
+        return true;
     }
 
-    auto const res{_lib.jobAwait()};
-    if (auto const status{std::get_if<res::Status>(&res)}) {
-      if (*status) {
-        _err_cnt = 0uz;
-        if (_entryType == type::MDUEntryType::MDU ||
-            (_entryType == type::MDUEntryType::DCC_ZSU &&
-             (_decoderIDs.empty() || ++_iter == _decoderIDs.end())))
-          return true;
-      } else if (_err_cnt > 3uz) {
-        pushUI({.id = type::MessageID::AbortInit, .payload = true});
-        return false;
-      }
+    if (++_err_cnt > 3uz) { // Abort after too many retries
+      pushUI({.id = type::MessageID::AbortInit, .payload = true});
+      return false;
     }
   }
 }
@@ -181,12 +146,12 @@ bool Update::enter() {
  * \return false  Abort
  */
 bool Update::config() {
-  if (_abort) return false;
-
   pushUI({.id = type::MessageID::Init});
-  _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow);
-  auto const res{_lib.jobAwait()};
-  if (auto const status{std::get_if<res::Status>(&res)}) return true;
+
+  if (auto const res{
+        _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow)}) {
+    if (*res) return true;
+  }
 
   pushUI({.id = type::MessageID::AbortInit, .payload = true});
   return false;
@@ -205,14 +170,11 @@ bool Update::config() {
  */
 bool Update::search() {
   _err_cnt = 0uz;
-  _updateCb({.id = type::MessageID::SearchDecoder});
-  while (true) {
-    if (_abort) return false;
+  pushUI({.id = type::MessageID::SearchDecoder});
 
-    _lib.mdu_ein().ping(0, _fwIt.id());
-    auto const res{_lib.jobAwait()};
-    if (auto const status{std::get_if<res::Status>(&res)}) {
-      if (*status) { // Found
+  while (!_abort) {
+    if (auto const res{_lib.mdu_ein().ping(0, _fwIt.id())}) {
+      if (*res) { // Found
         pushUI({.id = type::MessageID::FoundDecoder});
         return true;
       } else { // Not found
@@ -221,11 +183,11 @@ bool Update::search() {
           return false;
         }
       }
-    } else { // Error
-      pushUI({.id = type::MessageID::AbortDecoderSearch, .payload = true});
-      return false;
     }
   }
+
+  // Aborted
+  return false;
 }
 
 /**
@@ -238,11 +200,8 @@ bool Update::search() {
  * \return false  Abort
  */
 bool Update::init() {
-  if (_abort) return false;
-
-  _lib.mdu_ein().zsuSalsa20Iv(_fwIt);
-  auto const res{_lib.jobAwait()};
-  if (auto const status{std::get_if<res::Status>(&res)}) return true;
+  if (auto const res{_lib.mdu_ein().zsuSalsa20Iv(_fwIt)})
+    if (*res) return true;
 
   pushUI({.id = type::MessageID::AbortInit, .payload = true});
   return false;
@@ -260,45 +219,35 @@ bool Update::init() {
  * \return false  Abort
  */
 bool Update::erase() {
-  if (_abort) return false;
-
   pushUI({.id = type::MessageID::EraseFlash});
-  _lib.mdu_ein().zsuErase(_fwIt);
-
-  { // Erase
-    auto const res{_lib.jobAwait()};
-    if (auto const status{std::get_if<res::Status>(&res)}) {
-      if (!*status) { // Error
-        pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-        return false;
-      }
-    } else { // Error
+  if (auto const res{_lib.mdu_ein().zsuErase(_fwIt)}) {
+    if (!*res) { // Error
       pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
       return false;
     }
+  } else { // Other Error
+    pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
+    return false;
   }
 
-  { // Wait for erase to finish
-    for (size_t i{0uz}; i < 20uz; i++) {
-      if (_abort) return false;
+  // Wait for erase to finish
+  for (size_t i{0uz}; i < 20uz; i++) {
+    if (_abort) return false;
 
-      pushUI({.id = type::MessageID::EraseFlash,
-              .progress = static_cast<double>(i) / 20.0});
-      _lib.mdu_ein().busy();
-      auto const res{_lib.jobAwait()};
-      if (auto const status{std::get_if<res::Status>(&res)}) {
-        if (!*status) { // Error
-          pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-          return false;
-        }
-      } else { // Error
+    pushUI({.id = type::MessageID::EraseFlash,
+            .progress = static_cast<double>(i) / 20.0});
+    if (auto const res{_lib.mdu_ein().busy()}) {
+      if (!*res) { // Error
         pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
         return false;
       }
-
-      // Wait for 0.5s
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    } else { // Other Error
+      pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
+      return false;
     }
+
+    // Wait for 0.5s
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
   pushUI({.id = type::MessageID::EraseFlashComplete});
@@ -325,16 +274,16 @@ bool Update::erase() {
 bool Update::write() {
   _err_cnt = 0uz;
   size_t index{0uz};
+
   while (index < _fwIt.blockCount()) {
     if (_abort) return false;
 
     pushUI({.id = type::MessageID::WriteFlash,
             .progress = static_cast<double>(index + 1.0) /
                         static_cast<double>(_fwIt.blockCount())});
-    _lib.mdu_ein().zsuUpdate(_fwIt, static_cast<uint32_t>(index));
-    auto const res{_lib.jobAwait()};
-    if (auto const status{std::get_if<res::Status>(&res)}) {
-      if (*status) {
+    if (auto const res{
+          _lib.mdu_ein().zsuUpdate(_fwIt, static_cast<uint32_t>(index))}) {
+      if (*res) {
         _err_cnt = 0;
         index++;
       } else _err_cnt++;
@@ -362,17 +311,9 @@ bool Update::write() {
  * \return false  Abort
  */
 bool Update::verify() {
-  if (_abort) return false;
-
   pushUI({.id = type::MessageID::Verify});
-  _lib.mdu_ein().zsuCrc32Start(_fwIt);
-  auto const res{_lib.jobAwait()};
-  if (auto const status{std::get_if<res::Status>(&res)}) {
-    if (*status) {
-      pushUI({.id = type::MessageID::Done, .payload = true});
-      return true;
-    }
-  }
+  if (auto const res{_lib.mdu_ein().zsuCrc32Start(_fwIt)})
+    if (*res) return true;
 
   pushUI({.id = type::MessageID::AbortVerify, .payload = true});
   return false;
@@ -387,35 +328,8 @@ bool Update::verify() {
  *
  */
 void Update::end() {
-  _lib.mdu_ein().zsuCrc32ResultExit();
-  auto const res{_lib.jobAwait()};
-  if (auto const status{std::get_if<res::Status>(&res)}) {
-    if (*status) return;
-  }
-
-  pushUI({.id = type::MessageID::AbortVerify, .payload = true});
-}
-
-/**
- * Reset ULF_COM device
- *
- * \details
- * Since this is after the actual update, we can ignore the result and wait for
- * completion
- *
- */
-void Update::reset() {
-  _lib.com().reset();
-  _lib.jobAwait();
-}
-
-/**
- * Push an update to the UI (if possible)
- *
- * \param u Update
- */
-void Update::pushUI(type::ProcessUpdate const& u) {
-  if (_updateCb) _updateCb(u);
+  if (auto const res{_lib.mdu_ein().zsuCrc32ResultExit()})
+    if (*res) return;
 }
 
 } // namespace process::mdu_ein

@@ -40,59 +40,27 @@ namespace process::mdu_ein {
  */
 struct SoundLoad : public Base {
   SoundLoad(std::filesystem::path path);
+  SoundLoad(std::shared_ptr<libklug::ZPP> zpp);
   virtual ~SoundLoad() final;
 
   virtual bool execute();
-  virtual void abort();
 
 private:
-  void handle_result(res::Result r);
+  void load();
 
-  void pingAction();
-  void pingResult(res::Result const r);
+  bool mode();
+  bool enter();
+  bool config();
+  bool search();
+  bool init();
+  bool erase();
+  bool write();
+  bool end();
+  bool exit();
 
-  void modeAction();
-  void modeResult(res::Result const r);
+  std::shared_ptr<libklug::ZPP> _zpp; ///< ZPP instance
 
-  void enterAction();
-  void enterResult(res::Result const r);
-
-  void configAction();
-  void configResult(res::Result const r);
-
-  void searchAction();
-  void searchResult(res::Result const r);
-
-  void initAction();
-  void initResult(res::Result const r);
-
-  void eraseAction();
-  void eraseResult(res::Result const r);
-
-  void waitAction();
-  void waitResult(res::Result const r);
-
-  void updateAction();
-  void updateResult(res::Result const r);
-
-  void endAction();
-  void endResult(res::Result const r);
-
-  void exitAction();
-  void exitResult(res::Result const r);
-
-  void resetAction();
-  void resetResult(res::Result const r);
-
-  void (SoundLoad::*_state)(res::Result const){
-    &SoundLoad::modeResult}; ///< State (next *Result handler)
-
-  libklug::ZPP _zpp; ///< ZPP instance
-
-  int _err_cnt{0};       ///< Consecutive error counter
-  unsigned int _index{}; ///< Block index withing the ZPP
-
-  bool _abort{}; ///< Abort flag
+  int _err_cnt{0}; ///< Consecutive error counter
 };
 
 } // namespace process::mdu_ein

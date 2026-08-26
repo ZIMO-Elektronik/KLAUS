@@ -15,22 +15,22 @@ namespace process::susiv2 {
  * CTor
  *
  * \param path Path to ZPP file
- *
- * \todo Make ZPP a shared_ptr and add a CTor taking that
  */
-SoundLoad::SoundLoad(std::filesystem::path path) : _zpp{path} {
-  _lib.setCallback(
-    [this](res::Result const result) { this->handle_result(result); });
-}
+SoundLoad::SoundLoad(std::filesystem::path path)
+  : _zpp{std::make_shared<libklug::ZPP>(path)} {}
+
+/**
+ * CTor
+ *
+ * \param zpp Shared pointer to ZPP
+ */
+SoundLoad::SoundLoad(std::shared_ptr<libklug::ZPP> zpp) : _zpp{zpp} {}
 
 /**
  * DTor
  *
  */
-SoundLoad::~SoundLoad() {
-  _lib.unsetCallback();
-  disconnect();
-}
+SoundLoad::~SoundLoad() { disconnect(); }
 
 /**
  * Execute process
@@ -42,270 +42,129 @@ SoundLoad::~SoundLoad() {
  * \return false  Unable to execute
  */
 bool SoundLoad::execute() {
-  if (!connect()) {
+  if (_zpp == nullptr || !_zpp->valid() || !connect()) {
     _done = true;
     return false;
   }
-  pingAction();
+  _process = std::async([this]() { return this->load(); });
   return true;
 }
 
 /**
- * Abort process
+ * The actual SoundLoad
+ *
+ * \details
+ * This will execute components in imperative order until either completion, or
+ * the first non-recoverable Error. Either way, the SoundLoad will be ended
+ * cleanly and the Update device is reset.
+ *
  */
-void SoundLoad::abort() { _abort = true; }
+void SoundLoad::load() {
+  if (!ping() || !mode() || !features() || !erase() || !write()) _abort = true;
+  exit();
+  reset();
+}
 
 /**
- * Handle result (from callback)
+ * Change mode to SUSIV2
+ *
+ * \return true   Continue
+ * \return false  Abort
+ */
+bool SoundLoad::mode() {
+  pushUI({.id = type::MessageID::Start});
+  if (auto const res{_lib.com().susiv2()})
+    if (*res) return true;
+
+  pushUI({.id = type::MessageID::AbortInit, .payload = true});
+  return false;
+}
+
+/**
+ * Request decoder features
  *
  * \note
- * If the process is to be aborted, \ref SoundLoad::resetAction is called
- * without handling the result.
+ * Actually, this sets the max transfer speed available
  *
- * \param r Result (LibKLUG)
+ * \return true   Continue
+ * \return false  Abort
  */
-void SoundLoad::handle_result(res::Result r) {
-  if (_abort) return resetAction();
-  std::invoke(_state, this, r);
+bool SoundLoad::features() {
+  if (auto const res{_lib.susiv2().features()})
+    if (*res) return true;
+
+  pushUI({.id = type::MessageID::AbortInit, .payload = true});
+  return false;
 }
 
 /**
- * Ping device
+ * Erase decoder flash (and wait until complete)
  *
+ * \todo
+ * This should update the UI while erasing. Maybe defer this to another thread
+ *
+ * \return true   Continue
+ * \return false  Abort
  */
-void SoundLoad::pingAction() {
-  _lib.com().ping();
-  _state = &SoundLoad::pingResult;
+bool SoundLoad::erase() {
+  pushUI({.id = type::MessageID::EraseFlash});
+
+  if (auto const res{_lib.susiv2().zppErase()})
+    if (*res) return true;
+
+  pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
+  return false;
 }
 
 /**
- * Handle ping result
+ * Write Decoder flash
  *
  * \details
- * On success, the followup action is \ref SoundLoad::modeAction, else \ref
- * SoundLoad::resetAction
+ * This writes the actual update into the decoder flash. A single block is
+ * retried up to 3 times, if it still fails, we abort with `false`. Otherwise,
+ * all blocks are transmitted here.
  *
- * \param r Result (LibKLUG)
+ * \todo
+ * Perhaps we could retry the previous 2 blocks before aborting.
+ *
+ * \return true   Continue
+ * \return false  Abort
  */
-void SoundLoad::pingResult(res::Result const& r) {
-  if (std::holds_alternative<res::String>(r)) {
-    std::cout << "Found " << static_cast<std::string>(std::get<res::String>(r))
-              << std::endl;
-    if (_updateCb)
-      _updateCb(
-        {.id = type::MessageID::None,
-         .payload = static_cast<std::string>(std::get<res::String>(r))});
-    return modeAction();
-  }
-}
+bool SoundLoad::write() {
+  unsigned int index{0u};
 
-/**
- * Change mode action
- *
- */
-void SoundLoad::modeAction() {
-  _updateCb({.id = type::MessageID::Start});
-  _state = &SoundLoad::modeResult;
-  _lib.com().susiv2();
-}
+  while (!_abort) {
+    pushUI({.id = type::MessageID::WriteFlash,
+            .progress{static_cast<double>(index + 1.0) /
+                      static_cast<double>(_zpp->blocks())}});
+    if (auto const res{_lib.susiv2().zppWrite(*_zpp, index)}) {
+      if (*res) { // Block written
+        _err_cnt = 0;
+        if (++index >= _zpp->blocks()) // Done
+          return true;
 
-/**
- * Handle change mode result
- *
- * \details
- * On success, the followup action is \ref SoundLoad::enterAction, else \ref
- * SoundLoad::resetAction
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::modeResult(res::Result const& r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Entered SUSIV2" << std::endl;
-      return featuresAction();
-    }
-  }
-
-  std::cout << "Unable to enter SUSIV2" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  return resetAction();
-}
-
-/**
- * Features action (also sets transfer speed implicitly)
- *
- */
-void SoundLoad::featuresAction() {
-  _updateCb({.id = type::MessageID::Init});
-  _state = &SoundLoad::featuresResult;
-  _lib.susiv2().features();
-}
-
-/**
- * Handle features result
- *
- * \note The attached data is not evaluated, this is more of a (do i have a
- * decoder?)
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::featuresResult(res::Result const& r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Requested features" << std::endl;
-      return eraseAction();
-    }
-  }
-
-  std::cout << "Unable to request features" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  return resetAction();
-}
-
-/**
- * Erase flash
- *
- */
-void SoundLoad::eraseAction() {
-  _updateCb({.id = type::MessageID::EraseFlash});
-  _state = &SoundLoad::eraseResult;
-  _lib.susiv2().zppErase();
-}
-
-/**
- * Handle erase result
- *
- * \details
- * On success, the followup action is \ref SoundLoad::loadAction, else \ref
- * SoundLoad::resetAction
- *
- * \note
- * The main drawback of this approach is that its blocking. which means we'd
- * need a thread to update the UI.
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::eraseResult(res::Result const& r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Erased flash" << std::endl;
-      return loadAction();
-    }
-  }
-
-  std::cout << "Unable to erase flash" << std::endl;
-  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
-  return resetAction();
-}
-
-/**
- * Load (write flash block)
- *
- */
-void SoundLoad::loadAction() {
-  _updateCb({.id = type::MessageID::WriteFlash,
-             .progress = static_cast<double>(_index + 1.0) /
-                         static_cast<double>(_zpp.blocks())});
-  _state = &SoundLoad::loadResult;
-  _lib.susiv2().zppWrite(_zpp, _index);
-}
-
-/**
- * Handle load result
- *
- * \details
- * On Success, either the next block is written with \ref
- * SoundLoad::loadAction, or, in case the last block was successfully sent,
- * \ref SoundLoad::endAction.
- *
- * On Error, the current block is retried up to 3 times, then \ref
- * SoundLoad::resetAction is executed.
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::loadResult(res::Result const& r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      // Block written
-      _err_cnt = 0;
-      if (++_index >= _zpp.blocks()) { return endAction(); }
-      return loadAction();
-    } else {
-      // Block rejected
-      if (_err_cnt++ < 3) {
-        // Retry
-        return loadAction();
+      } else if (_err_cnt++ >= 3uz) { // Max errors reached
+        pushUI({.id = type::MessageID::AbortFlashWrite, .payload = true});
+        break;
       }
-
-      // Too many errors
     }
   }
 
-  std::cout << "Unable to write flash" << std::endl;
-  _updateCb({.id = type::MessageID::AbortFlashWrite, .payload = true});
-  return resetAction();
+  // Aborted
+  return false;
 }
 
 /**
- * End (cleanup)
+ * Exit ZUSI mode (for decoder)
  *
+ * \return true   Continue
+ * \return false  Abort
  */
-void SoundLoad::endAction() {
-  _updateCb({.id = type::MessageID::Cleanup});
-  _state = &SoundLoad::endResult;
-  _lib.susiv2().exit(true, true);
-}
+bool SoundLoad::exit() {
+  if (auto const res{_lib.susiv2().exit(true, true)})
+    if (*res) return true;
 
-/**
- * Handle end result
- *
- * \details
- * On success, the followup action is \ref SoundLoad::exitAction, else \ref
- * SoundLoad::resetAction
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::endResult(res::Result const& r) {
-  _updateCb({.id = type::MessageID::Done, .payload = true});
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Exited" << std::endl;
-      return resetAction();
-    }
-  }
-
-  std::cout << "Unable to exit" << std::endl;
-  return resetAction();
-}
-
-/**
- * Reset
- *
- */
-void SoundLoad::resetAction() {
-  _lib.com().reset();
-  if (_abort) {
-    _updateCb({.id = type::MessageID::Abort, .payload = true});
-    _abort = false; // Else we'd loop forever on reset...
-  }
-  _state = &SoundLoad::resetResult;
-}
-
-/**
- * Handle reset result
- *
- * \details
- * Either success or no succes, this is the last action.
- *
- * \param r Result (LibKLUG)
- */
-void SoundLoad::resetResult(res::Result const& r) {
-  if (std::holds_alternative<res::Status>(r))
-    std::cout << "Reset success" << std::endl;
-  else std::cout << "Reset NOT successful" << std::endl;
-
-  _done = true;
-  return;
+  return false;
 }
 
 } // namespace process::susiv2
