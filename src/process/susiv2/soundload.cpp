@@ -8,6 +8,7 @@
 
 #include "include/process/susiv2/soundload.hpp"
 #include <iostream>
+#include "include/process/process_error.hpp"
 
 namespace process::susiv2 {
 
@@ -60,24 +61,37 @@ bool SoundLoad::execute() {
  *
  */
 void SoundLoad::load() {
-  if (!ping() || !mode() || !features() || !erase() || !write()) _abort = true;
-  exit();
-  reset();
+  try {
+    try { // Actual Update
+      ping();
+      mode();
+      features();
+      erase();
+      write();
+    } catch (process_error const& e) {
+      pushUI(static_cast<type::ProcessUpdate>(e));
+    }
+
+    // Finalize
+    exit();
+    reset();
+  } catch (...) {
+    pushUI({.id = type::MessageID::AbortUnresponsive, .payload = true});
+  }
 }
 
 /**
  * Change mode to SUSIV2
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::mode() {
+void SoundLoad::mode() {
   pushUI({.id = type::MessageID::Start});
-  if (auto const res{_lib.com().susiv2()})
-    if (*res) return true;
 
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+  if (!_lib.com().susiv2())
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to change mode"};
 }
 
 /**
@@ -86,15 +100,13 @@ bool SoundLoad::mode() {
  * \note
  * Actually, this sets the max transfer speed available
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::features() {
-  if (auto const res{_lib.susiv2().features()})
-    if (*res) return true;
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+void SoundLoad::features() {
+  if (!_lib.susiv2().features())
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to request features"};
 }
 
 /**
@@ -103,17 +115,16 @@ bool SoundLoad::features() {
  * \todo
  * This should update the UI while erasing. Maybe defer this to another thread
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::erase() {
+void SoundLoad::erase() {
   pushUI({.id = type::MessageID::EraseFlash});
 
-  if (auto const res{_lib.susiv2().zppErase()})
-    if (*res) return true;
-
-  pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-  return false;
+  if (!_lib.susiv2().zppErase())
+    throw process_error{
+      {.id = type::MessageID::AbortFlashErase, .payload = true},
+      "Unable to erase flash"};
 }
 
 /**
@@ -127,44 +138,51 @@ bool SoundLoad::erase() {
  * \todo
  * Perhaps we could retry the previous 2 blocks before aborting.
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::write() {
-  unsigned int index{0u};
+void SoundLoad::write() {
+  for (unsigned int index{0}, max_index{_zpp->blocks()}; index < max_index;
+       index++) {
+    checkAbort();
 
-  while (!_abort) {
     pushUI({.id = type::MessageID::WriteFlash,
             .progress{static_cast<double>(index + 1.0) /
                       static_cast<double>(_zpp->blocks())}});
-    if (auto const res{_lib.susiv2().zppWrite(*_zpp, index)}) {
-      if (*res) { // Block written
-        _err_cnt = 0;
-        if (++index >= _zpp->blocks()) // Done
-          return true;
 
-      } else if (_err_cnt++ >= 3uz) { // Max errors reached
-        pushUI({.id = type::MessageID::AbortFlashWrite, .payload = true});
-        break;
-      }
-    }
+    int tries{0};
+    do {
+      if (_lib.susiv2().zppWrite(*_zpp, index)) break;
+    } while (++tries < 3);
+
+    if (tries >= 3)
+      throw process_error{
+        {.id = type::MessageID::AbortFlashWrite, .payload = true},
+        "Unable to write flash"};
   }
-
-  // Aborted
-  return false;
 }
 
 /**
  * Exit ZUSI mode (for decoder)
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::exit() {
-  if (auto const res{_lib.susiv2().exit(true, true)})
-    if (*res) return true;
+void SoundLoad::exit() {
+  if (!_lib.susiv2().exit(true, true))
+    throw process_error{{.id = type::MessageID::AbortVerify, .payload = true},
+                        "Unable to finalize soundload"};
+}
 
-  return false;
+/**
+ * Checks if the process should be aborted
+ *
+ * \throws process_error If the process was aborted
+ */
+void SoundLoad::checkAbort() {
+  if (_abort)
+    throw process_error{{.id = type::MessageID::Abort, .payload = true},
+                        "Process Aborted"};
 }
 
 } // namespace process::susiv2

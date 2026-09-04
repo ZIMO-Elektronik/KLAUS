@@ -20,8 +20,8 @@ Base::Base() {}
  * \return false  Not found or not connected
  */
 bool Base::connect() {
-  if (_lib.init() != err::Error::ok ||
-      _lib.open(0x1FC9u, 0x81C1u) != err::Error::ok)
+  if (_lib.init() != libklug::Error::ok ||
+      _lib.open(0x1FC9u, 0x81C1u) != libklug::Error::ok)
     return false;
   return true;
 }
@@ -73,32 +73,22 @@ void Base::onUpdate(std::function<void(type::ProcessUpdate)> cb) {
  * If the ping yields a result, it it pushed to the UI. Otherwise we can assume,
  * that the any further work will fail anyway and abort.
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws klug_error     If the communication failed
  */
-bool Base::ping() {
-  if (auto const res{_lib.com().ping()}) {
-    pushUI({.id = type::MessageID::None, .payload = std::move(*res)});
-    return true;
-  }
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+void Base::ping() {
+  pushUI(
+    {.id = type::MessageID::None, .payload = std::move(_lib.com().ping())});
 }
 
 /**
  * Reset Device
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws klug_error     If the communication failed
  */
 bool Base::reset() {
   if (!_abort) pushUI({.id = type::MessageID::Done, .payload = true});
 
-  if (auto const res{_lib.com().reset()})
-    if (*res) return true;
-
-  return false;
+  return _lib.com().reset();
 }
 
 /**

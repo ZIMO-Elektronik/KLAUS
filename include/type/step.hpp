@@ -68,6 +68,8 @@ enum class MessageID {
   AbortFlashWrite,
   AbortVerify,
 
+  AbortUnresponsive,
+
   None,
 };
 

@@ -9,6 +9,7 @@
 #include "include/process/mdu_ein/soundload.hpp"
 #include <iostream>
 #include <thread>
+#include "include/process/process_error.hpp"
 #include "include/type/step.hpp"
 
 namespace process::mdu_ein {
@@ -62,45 +63,53 @@ bool SoundLoad::execute() {
  *
  */
 void SoundLoad::load() {
-  if (!ping() || !mode() || !enter() || !config() || !search() || !init() ||
-      !erase() || !write() || !end())
-    _abort = true;
+  try {
+    try { // Acual Update
+      ping();
+      mode();
+      enter();
+      config();
+      search();
+      init();
+      erase();
+      write();
+      end();
+    } catch (process_error const& e) {
+      pushUI(static_cast<type::ProcessUpdate>(e));
+    }
 
-  // There was a reason for this
-  _lib.mdu_ein().busy();
-  exit();
-  _lib.mdu_ein().busy();
-  reset();
+    // Finalize
+    exit();
+    reset();
+  } catch (...) {
+    pushUI({.id = type::MessageID::AbortUnresponsive, .payload = true});
+  }
 }
 
 /**
  * Change mode to MDU_EIN
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the mode is unavailable
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::mode() {
+void SoundLoad::mode() {
   pushUI({.id = type::MessageID::Start});
 
-  if (auto const res{_lib.com().mdu_ein()})
-    if (*res) return true;
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+  if (!_lib.com().mdu_ein())
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to change mode"};
 }
 
 /**
  * Enter Decoder(-s)
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::enter() {
-  if (auto const res{_lib.mdu_ein().enterDCCZPP()})
-    if (*res) return true;
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+void SoundLoad::enter() {
+  if (!_lib.com().mdu_ein())
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to enter decoders"};
 }
 
 /**
@@ -112,91 +121,75 @@ bool SoundLoad::enter() {
  * \todo
  * Maybe this should retry with a slower rate on fail
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::config() {
+void SoundLoad::config() {
   pushUI({.id = type::MessageID::Init});
 
-  if (auto const res{
-        _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Fast)})
-    if (*res) return true;
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+  if (_lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Fast))
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to configure transfer rate"};
 }
 
 /**
  * Search decoder
  *
  * \note
- * Since we don't exacly have an ID list, we just ping 0 and check if something
- * responds
+ * Since we don't exacly have an ID list, we just ping 0 and check if
+ * something responds
+ *
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  *
  */
-bool SoundLoad::search() {
-  _err_cnt = 0uz;
+void SoundLoad::search() {
   pushUI({.id = type::MessageID::SearchDecoder});
 
-  while (_err_cnt++ < 3uz)
-    if (auto const res{_lib.mdu_ein().ping(0uz, 0uz)})
-      if (*res) return true;
+  for (int i{}; i < 5; i++) {
+    if (_lib.mdu_ein().ping(0uz, 0uz)) { return; }
+  }
 
-  pushUI({.id = type::MessageID::AbortDecoderSearch, .payload = true});
-  return false;
+  throw process_error{
+    {.id = type::MessageID::AbortDecoderSearch, .payload = true},
+    "No decoder found"};
+  _err_cnt = 0uz;
 }
 
 /**
  * Check if the ZPP can fit into the decoder
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::init() {
-  if (auto const res{_lib.mdu_ein().zppValidQuery(*_zpp)})
-    if (*res) return true;
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+void SoundLoad::init() {
+  if (!_lib.mdu_ein().zppValidQuery(*_zpp))
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Not enough space in flash"};
 }
 
 /**
  * Erase decoder flash (and wait until done)
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::erase() {
+void SoundLoad::erase() {
   // Erase flash
-  if (auto const res{_lib.mdu_ein().zppErase(*_zpp)}) {
-    if (!*res) { // Can't erase
-      pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-      return false;
-    }
-  } else {
-    pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-    return false;
-  }
+  if (_lib.mdu_ein().zppErase(*_zpp))
+    throw process_error{
+      {.id = type::MessageID::AbortFlashErase, .payload = true},
+      "Unable to erase decoder flash"};
 
   // Wait until flash is erased
   unsigned int index{0u};
   while (!_abort) {
     pushUI({.id = type::MessageID::EraseFlash,
             .progress = static_cast<double>(index++) / 200.0});
-    if (auto const res{_lib.mdu_ein().busy()}) {
-      if (*res) { // Done
-        return true;
-      }
 
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      continue;
-    }
-
-    pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-    break;
+    if (_lib.mdu_ein().busy()) break;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
-
-  return false;
 }
 
 /**
@@ -213,59 +206,51 @@ bool SoundLoad::erase() {
  * \todo
  * Maybe we should ping the decoder sometimes to check if it still exists
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::write() {
+void SoundLoad::write() {
   unsigned int index{0u};
 
   while (!_abort) {
     pushUI({.id = type::MessageID::WriteFlash,
             .progress{static_cast<double>(index + 1.0) /
                       static_cast<double>(_zpp->blocks())}});
-    if (auto const res{_lib.mdu_ein().zppUpdate(*_zpp, index)}) {
-      if (*res) { // Block written
-        _err_cnt = 0;
-        if (++index >= _zpp->blocks()) // Done
-          return true;
 
-      } else if (_err_cnt++ >= 3uz) { // Max errors reached
-        pushUI({.id = type::MessageID::AbortFlashWrite, .payload = true});
-        break;
-      }
-    }
+    int tries{0};
+
+    do {
+      if (_lib.mdu_ein().zppUpdate(*_zpp, index)) break;
+    } while (++tries < 3);
+
+    // Check if we have reached max retries
+    if (tries >= 3)
+      throw process_error{
+        {.id = type::MessageID::AbortFlashWrite, .payload = true},
+        "Too many consecutive errors"};
+
+    // Check if done
+    if (index >= _zpp->blocks()) break;
   }
-
-  // Aborted
-  return false;
 }
 
 /**
  * Formally end sound load
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::end() {
-  if (auto const res{_lib.mdu_ein().zppUpdateEnd(*_zpp)})
-    if (*res) return true;
-
-  std::cout << "Failed to end ZPP Update" << std::endl;
-  pushUI({.id = type::MessageID::AbortVerify, .payload = true});
-  return false;
+void SoundLoad::end() {
+  if (!_lib.mdu_ein().zppUpdateEnd(*_zpp))
+    throw process_error{{.id = type::MessageID::AbortVerify, .payload = true},
+                        "Failed to end process orderly"};
 }
 
 /**
  * Exit sound load (for decoder)
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws klug_error     If the communication failed
  */
-bool SoundLoad::exit() {
-  if (auto const res{_lib.mdu_ein().zppExitReset()})
-    if (*res) return true;
-
-  return false;
-}
+void SoundLoad::exit() { _lib.mdu_ein().zppExitReset(); }
 
 } // namespace process::mdu_ein

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <functional>
-#include <libklug/libklug.hpp>
+#include <klug/cpp/libklug.hpp>
 #include <vector>
 #include "include/process/base.hpp"
 #include "include/type/step.hpp"
@@ -50,15 +50,17 @@ struct Update : public Base {
 private:
   void update();
 
-  bool mode();
-  bool enter();
-  bool config();
-  bool search();
-  bool init();
-  bool erase();
-  bool write();
-  bool verify();
+  void mode();
+  void enter();
+  void config();
+  void search();
+  void init();
+  void erase();
+  void write();
+  void verify();
   void end();
+
+  void checkAbort();
 
   std::shared_ptr<libklug::ZSU> _zsu;                  ///< ZSU instance
   libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()}; ///< Firmware iterator

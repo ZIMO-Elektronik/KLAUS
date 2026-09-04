@@ -3,7 +3,7 @@
 #include <app-window.h>
 #include <slint.h>
 #include <chrono>
-#include <libklug/libklug.hpp>
+#include <klug/cpp/libklug.hpp>
 #include "i_backend.hpp"
 #include "include/process/mdu_ein/update.hpp"
 #include "include/type/step.hpp"

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <functional>
-#include <libklug/libklug.hpp>
+#include <klug/cpp/libklug.hpp>
 #include <vector>
 #include "include/process/base.hpp"
 #include "include/type/step.hpp"
@@ -48,15 +48,15 @@ struct SoundLoad : public Base {
 private:
   void load();
 
-  bool mode();
-  bool enter();
-  bool config();
-  bool search();
-  bool init();
-  bool erase();
-  bool write();
-  bool end();
-  bool exit();
+  void mode();
+  void enter();
+  void config();
+  void search();
+  void init();
+  void erase();
+  void write();
+  void end();
+  void exit();
 
   std::shared_ptr<libklug::ZPP> _zpp; ///< ZPP instance
 

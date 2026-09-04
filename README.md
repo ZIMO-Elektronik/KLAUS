@@ -1,4 +1,4 @@
-# Updater (Name WIP)
+# KLAUS (KLUG Lite Audioload and Update Software)
 
 A small cross-platform UI application to use in conjunction with the ZIMO MXULF and KLUG.
 

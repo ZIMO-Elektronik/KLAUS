@@ -86,8 +86,9 @@ if(NOT TARGET KLUG::KLUG)
     https://gitea.zimo.at:3000/ZIMO/libklug.git
     SYSTEM
     YES
-    VERSION
-    0.1.0)
+    # VERSION 0.1.0
+    GIT_TAG
+    cleanup)
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE .)

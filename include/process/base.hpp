@@ -9,7 +9,7 @@
 #pragma once
 
 #include <future>
-#include <libklug/libklug.hpp>
+#include <klug/cpp/libklug.hpp>
 #include "i_process.hpp"
 
 namespace process {
@@ -49,7 +49,7 @@ struct Base : IProcess {
   virtual void onUpdate(std::function<void(type::ProcessUpdate)>) override;
 
 protected:
-  bool ping();
+  void ping();
   bool reset();
 
   void pushUI(type::ProcessUpdate const& u);

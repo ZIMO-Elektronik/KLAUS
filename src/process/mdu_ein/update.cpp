@@ -7,9 +7,11 @@
  */
 
 #include "include/process/mdu_ein/update.hpp"
+#include <algorithm>
 #include <future>
 #include <iostream>
 #include <thread>
+#include "include/process/process_error.hpp"
 
 namespace process::mdu_ein {
 
@@ -72,26 +74,40 @@ bool Update::execute() {
  * and the Update device is reset.
  */
 void Update::update() {
-  if (!ping() || !mode() || !enter() || !config() || !search() || !init() ||
-      !erase() || !write() || !verify())
-    _abort = true;
-  end();
-  reset();
+  try {
+    try { // Actual Update
+      ping();
+      mode();
+      enter();
+      config();
+      search();
+      init();
+      erase();
+      write();
+      verify();
+    } catch (process_error const& e) {
+      pushUI(static_cast<type::ProcessUpdate>(e));
+    }
+
+    // Finalize
+    end();
+    reset();
+  } catch (...) {
+    pushUI({.id = type::MessageID::AbortUnresponsive, .payload = true});
+  }
 }
 
 /**
  * Change mode to MDU_EIN
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool Update::mode() {
+void Update::mode() {
   pushUI({.id = type::MessageID::Start});
-  if (auto const res{_lib.com().mdu_ein()})
-    if (*res) return true;
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+  if (!_lib.com().mdu_ein())
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to change mode"};
 }
 
 /**
@@ -102,35 +118,43 @@ bool Update::mode() {
  * `DCC_ZSU` entry, all decoders in the given \ref Update::_decoderIDs are
  * entered, in case it is empty, entry is done with ID and SN = 0.
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool Update::enter() {
+void Update::enter() {
   assert(_entryType == type::MDUEntryType::MDU ||
          _entryType == type::MDUEntryType::DCC_ZSU);
 
-  if (_abort) return false;
+  if (_abort)
+    throw process_error{{.id = type::MessageID::Abort, .payload = true},
+                        "Process Aborted"};
 
-  _err_cnt = 0uz;
+  switch (_entryType) {
+    case type::MDUEntryType::MDU:
+      if (!_lib.mdu_ein().enterMDU())
+        throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                            "Unable to enter decoders"};
+      break;
+    case type::MDUEntryType::DCC_ZSU:
+      if (_decoderIDs.empty())
+        if (!_lib.mdu_ein().enterDCCZSU())
+          throw process_error{
+            {.id = type::MessageID::AbortInit, .payload = true},
+            "Unable to enter decoders"};
 
-  while (true) {
-    if (auto const res{
-          _entryType == type::MDUEntryType::MDU ? _lib.mdu_ein().enterMDU()
-          : _decoderIDs.empty()
-            ? _lib.mdu_ein().enterDCCZSU()
-            : _lib.mdu_ein().enterDCCZSU(*_iter, 0uz, _iter == _lastIter)}) {
-      _err_cnt = 0uz;
-      if (_entryType == type::MDUEntryType::MDU ||
-          (_entryType == type::MDUEntryType::DCC_ZSU &&
-           (_decoderIDs.empty() || ++_iter == _decoderIDs.end())))
-        // Done with entry, continue
-        return true;
-    }
+        else {
+          auto iter{_decoderIDs.begin()};
+          do {
+            if (!_lib.mdu_ein().enterDCCZSU(
+                  *iter, 0uz, ++iter == _decoderIDs.end()))
+              throw process_error{
+                {.id = type::MessageID::AbortInit, .payload = true},
+                "Unable to enter decoders"};
 
-    if (++_err_cnt > 3uz) { // Abort after too many retries
-      pushUI({.id = type::MessageID::AbortInit, .payload = true});
-      return false;
-    }
+          } while (iter != _decoderIDs.end());
+        }
+      break;
+    default: assert(false);
   }
 }
 
@@ -138,23 +162,19 @@ bool Update::enter() {
  * Configure Transfer Rate
  *
  * \details
- * This configures the Transfer rate to `Slow`. Since currently no Decoders need
- * a speed slower than `Slow`, we assume that the Update will fail anyway if
- * this fails.
+ * This configures the Transfer rate to `Slow`. Since currently no Decoders
+ * need a speed slower than `Slow`, we assume that the Update will fail anyway
+ * if this fails.
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool Update::config() {
+void Update::config() {
   pushUI({.id = type::MessageID::Init});
 
-  if (auto const res{
-        _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow)}) {
-    if (*res) return true;
-  }
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+  if (!_lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow))
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to set transfer rate"};
 }
 
 /**
@@ -165,29 +185,24 @@ bool Update::config() {
  * decoder is found, we exit with `true`. If no decoder is found, we can't
  * exactly perform an update and just abort with `false`
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool Update::search() {
-  _err_cnt = 0uz;
+void Update::search() {
   pushUI({.id = type::MessageID::SearchDecoder});
 
-  while (!_abort) {
-    if (auto const res{_lib.mdu_ein().ping(0, _fwIt.id())}) {
-      if (*res) { // Found
-        pushUI({.id = type::MessageID::FoundDecoder});
-        return true;
-      } else { // Not found
-        if (++_fwIt == _zsu->end()) {
-          pushUI({.id = type::MessageID::AbortDecoderSearch, .payload = true});
-          return false;
-        }
+  do {
+    unsigned int tries{0u};
+    do {
+      if (_lib.mdu_ein().ping(0, _fwIt.id())) { // Found
+        return;
       }
-    }
-  }
+    } while (++tries < 3u);
+  } while (++_fwIt != _zsu->end());
 
-  // Aborted
-  return false;
+  throw process_error{
+    {.id = type::MessageID::AbortDecoderSearch, .payload = true},
+    "No decoder found"};
 }
 
 /**
@@ -196,15 +211,13 @@ bool Update::search() {
  * \details
  * Initializes the Salsa20 encryption. If this fails, we abort with `false`
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool Update::init() {
-  if (auto const res{_lib.mdu_ein().zsuSalsa20Iv(_fwIt)})
-    if (*res) return true;
-
-  pushUI({.id = type::MessageID::AbortInit, .payload = true});
-  return false;
+void Update::init() {
+  if (!_lib.mdu_ein().zsuSalsa20Iv(_fwIt))
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to initialize the Salsa20 encryption"};
 }
 
 /**
@@ -212,46 +225,32 @@ bool Update::init() {
  *
  * \details
  * Here we erase the flash of the Decoder. Since no mechanism to poll this
- * process exists, we just wait for 10s while sending `busy` as a heartbeat. If
- * this fails, we abort with `false`
+ * process exists, we just wait for 10s while sending `busy` as a heartbeat.
+ * If this fails, we abort with `false`
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool Update::erase() {
+void Update::erase() {
   pushUI({.id = type::MessageID::EraseFlash});
-  if (auto const res{_lib.mdu_ein().zsuErase(_fwIt)}) {
-    if (!*res) { // Error
-      pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-      return false;
-    }
-  } else { // Other Error
-    pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-    return false;
-  }
 
-  // Wait for erase to finish
-  for (size_t i{0uz}; i < 20uz; i++) {
-    if (_abort) return false;
+  if (!_lib.mdu_ein().zsuErase(_fwIt))
+    throw process_error{
+      {.id = type::MessageID::AbortFlashErase, .payload = true},
+      "Unable to start flash erase"};
+
+  for (int i{0}; i < 100; i++) {
+    if (_abort)
+      throw process_error{{.id = type::MessageID::Abort, .payload = true},
+                          "Process aborted"};
 
     pushUI({.id = type::MessageID::EraseFlash,
-            .progress = static_cast<double>(i) / 20.0});
-    if (auto const res{_lib.mdu_ein().busy()}) {
-      if (!*res) { // Error
-        pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-        return false;
-      }
-    } else { // Other Error
-      pushUI({.id = type::MessageID::AbortFlashErase, .payload = true});
-      return false;
-    }
-
-    // Wait for 0.5s
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            .progress = static_cast<double>(i) / 100.0});
+    _lib.mdu_ein().busy();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   pushUI({.id = type::MessageID::EraseFlashComplete});
-  return true;
 }
 
 /**
@@ -268,36 +267,27 @@ bool Update::erase() {
  * \todo
  * Maybe we should ping the decoder sometimes to check if it still exists
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool Update::write() {
-  _err_cnt = 0uz;
-  size_t index{0uz};
-
-  while (index < _fwIt.blockCount()) {
-    if (_abort) return false;
+void Update::write() {
+  for (int index{0}; index < _fwIt.blockCount(); index++) {
+    checkAbort();
 
     pushUI({.id = type::MessageID::WriteFlash,
             .progress = static_cast<double>(index + 1.0) /
                         static_cast<double>(_fwIt.blockCount())});
-    if (auto const res{
-          _lib.mdu_ein().zsuUpdate(_fwIt, static_cast<uint32_t>(index))}) {
-      if (*res) {
-        _err_cnt = 0;
-        index++;
-      } else _err_cnt++;
-    } else {
-      _err_cnt++;
-    }
 
-    if (_err_cnt > 3uz) {
-      pushUI({.id = type::MessageID::AbortFlashWrite});
-      return false;
-    }
+    unsigned int tries{0u};
+    do { // Retry up to 3 times
+      if (_lib.mdu_ein().zsuUpdate(_fwIt, static_cast<uint32_t>(index))) break;
+    } while (++tries < 3u);
+
+    if (tries >= 3u)
+      throw process_error{
+        {.id = type::MessageID::AbortFlashWrite, .payload = true},
+        "Max retries reached"};
   }
-
-  return true;
 }
 
 /**
@@ -307,29 +297,40 @@ bool Update::write() {
  * This initiates the CRC32 verification. If this fails, we simply assume a
  * checksum error and abort with `false`
  *
- * \return true   Continue
- * \return false  Abort
+ * \throws process_error  If the command failed
+ * \throws klug_error     If the communication failed
  */
-bool Update::verify() {
+void Update::verify() {
   pushUI({.id = type::MessageID::Verify});
-  if (auto const res{_lib.mdu_ein().zsuCrc32Start(_fwIt)})
-    if (*res) return true;
 
-  pushUI({.id = type::MessageID::AbortVerify, .payload = true});
-  return false;
+  if (!_lib.mdu_ein().zsuCrc32Start(_fwIt))
+    throw process_error{{.id = type::MessageID::AbortVerify, .payload = true},
+                        "Unable to start CRC verification"};
 }
 
 /**
  * End Update
  *
  * \details
- * Currently, this is the second half of the CRC32 verification. If this fails,
- * we just assume a checksum error and abort with `false`
+ * Currently, this is the second half of the CRC32 verification. If this
+ * fails, we just assume a checksum error and abort with `false`
  *
  */
 void Update::end() {
-  if (auto const res{_lib.mdu_ein().zsuCrc32ResultExit()})
-    if (*res) return;
+  if (!_lib.mdu_ein().zsuCrc32ResultExit())
+    throw process_error{{.id = type::MessageID::AbortVerify, .payload = true},
+                        "Unable to finish CRC verification"};
+}
+
+/**
+ * Checks if the process should be aborted
+ *
+ * \throws process_error If the process was aborted
+ */
+void Update::checkAbort() {
+  if (_abort)
+    throw process_error{{.id = type::MessageID::Abort, .payload = true},
+                        "Process Aborted"};
 }
 
 } // namespace process::mdu_ein
