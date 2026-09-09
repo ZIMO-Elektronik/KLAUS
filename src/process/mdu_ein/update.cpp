@@ -86,13 +86,15 @@ void Update::update() {
       write();
       verify();
     } catch (process_error const& e) {
+      std::cerr << e.what() << std::endl;
       pushUI(static_cast<type::ProcessUpdate>(e));
     }
 
     // Finalize
     end();
     reset();
-  } catch (...) {
+  } catch (std::exception const& e) {
+    std::cerr << e.what() << std::endl;
     pushUI({.id = type::MessageID::AbortUnresponsive, .payload = true});
   }
 }
@@ -136,23 +138,22 @@ void Update::enter() {
                             "Unable to enter decoders"};
       break;
     case type::MDUEntryType::DCC_ZSU:
-      if (_decoderIDs.empty())
+      if (_decoderIDs.empty()) {
         if (!_lib.mdu_ein().enterDCCZSU())
           throw process_error{
             {.id = type::MessageID::AbortInit, .payload = true},
             "Unable to enter decoders"};
+      } else {
+        auto iter{_decoderIDs.begin()};
+        do {
+          if (!_lib.mdu_ein().enterDCCZSU(
+                *iter, 0uz, ++iter == _decoderIDs.end()))
+            throw process_error{
+              {.id = type::MessageID::AbortInit, .payload = true},
+              "Unable to enter decoders"};
 
-        else {
-          auto iter{_decoderIDs.begin()};
-          do {
-            if (!_lib.mdu_ein().enterDCCZSU(
-                  *iter, 0uz, ++iter == _decoderIDs.end()))
-              throw process_error{
-                {.id = type::MessageID::AbortInit, .payload = true},
-                "Unable to enter decoders"};
-
-          } while (iter != _decoderIDs.end());
-        }
+        } while (iter != _decoderIDs.end());
+      }
       break;
     default: assert(false);
   }
@@ -264,9 +265,6 @@ void Update::erase() {
  * \todo
  * Perhaps we could retry the previous 2 blocks before aborting.
  *
- * \todo
- * Maybe we should ping the decoder sometimes to check if it still exists
- *
  * \throws process_error  If the command failed
  * \throws klug_error     If the communication failed
  */
@@ -278,12 +276,14 @@ void Update::write() {
             .progress = static_cast<double>(index + 1.0) /
                         static_cast<double>(_fwIt.blockCount())});
 
-    unsigned int tries{0u};
+    if (index % 64 == 0) lifesign();
+
+    int tries{0};
     do { // Retry up to 3 times
       if (_lib.mdu_ein().zsuUpdate(_fwIt, static_cast<uint32_t>(index))) break;
-    } while (++tries < 3u);
+    } while (++tries < 3);
 
-    if (tries >= 3u)
+    if (tries >= 3)
       throw process_error{
         {.id = type::MessageID::AbortFlashWrite, .payload = true},
         "Max retries reached"};
@@ -320,6 +320,22 @@ void Update::end() {
   if (!_lib.mdu_ein().zsuCrc32ResultExit())
     throw process_error{{.id = type::MessageID::AbortVerify, .payload = true},
                         "Unable to finish CRC verification"};
+}
+
+/**
+ * Pings selected decoder to check if any answers
+ *
+ */
+void Update::lifesign() {
+  int tries{0};
+  do {
+    if (_lib.mdu_ein().ping(0u, _fwIt.id())) break;
+  } while (tries < 3);
+
+  if (tries >= 3)
+    throw process_error{
+      {.id = type::MessageID::AbortFlashWrite, .payload = true},
+      "Decoder not pingable"};
 }
 
 /**

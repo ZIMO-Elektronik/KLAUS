@@ -60,6 +60,8 @@ private:
   void verify();
   void end();
 
+  void lifesign();
+
   void checkAbort();
 
   std::shared_ptr<libklug::ZSU> _zsu;                  ///< ZSU instance

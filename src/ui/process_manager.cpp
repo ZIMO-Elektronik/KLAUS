@@ -94,6 +94,7 @@ void ProcessManager::done() {
       // Mark process as ended and popup progress
       (*ui)->global<ProgressViewContext>().set_is_process_running(false);
       (*ui)->global<ProgressViewContext>().set_is_open(true);
+      _process.reset();
     }
   });
 }

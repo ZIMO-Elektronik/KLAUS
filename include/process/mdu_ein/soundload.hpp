@@ -58,6 +58,10 @@ private:
   void end();
   void exit();
 
+  void lifesign();
+
+  void checkAbort();
+
   std::shared_ptr<libklug::ZPP> _zpp; ///< ZPP instance
 
   int _err_cnt{0}; ///< Consecutive error counter

@@ -75,13 +75,15 @@ void SoundLoad::load() {
       write();
       end();
     } catch (process_error const& e) {
+      std::cerr << e.what();
       pushUI(static_cast<type::ProcessUpdate>(e));
     }
 
     // Finalize
     exit();
     reset();
-  } catch (...) {
+  } catch (std::exception const& e) {
+    std::cerr << e.what();
     pushUI({.id = type::MessageID::AbortUnresponsive, .payload = true});
   }
 }
@@ -203,22 +205,22 @@ void SoundLoad::erase() {
  * \todo
  * Perhaps we could retry the previous 2 blocks before aborting.
  *
- * \todo
- * Maybe we should ping the decoder sometimes to check if it still exists
- *
  * \throws process_error  If the command failed
  * \throws klug_error     If the communication failed
  */
 void SoundLoad::write() {
   unsigned int index{0u};
 
-  while (!_abort) {
+  for (int index{0}; index < _zpp->blocks(); index++) {
+    checkAbort();
+
     pushUI({.id = type::MessageID::WriteFlash,
             .progress{static_cast<double>(index + 1.0) /
                       static_cast<double>(_zpp->blocks())}});
 
-    int tries{0};
+    if (index % 64 == 0) lifesign();
 
+    int tries{0};
     do {
       if (_lib.mdu_ein().zppUpdate(*_zpp, index)) break;
     } while (++tries < 3);
@@ -252,5 +254,32 @@ void SoundLoad::end() {
  * \throws klug_error     If the communication failed
  */
 void SoundLoad::exit() { _lib.mdu_ein().zppExitReset(); }
+
+/**
+ * Pings all decoders to check if any answers
+ *
+ */
+void SoundLoad::lifesign() {
+  int tries{0};
+  do {
+    if (_lib.mdu_ein().ping(0u, 0u)) break;
+  } while (tries < 3);
+
+  if (tries >= 3)
+    throw process_error{
+      {.id = type::MessageID::AbortFlashWrite, .payload = true},
+      "Decoder not pingable"};
+}
+
+/**
+ * Checks if the process should be aborted
+ *
+ * \throws process_error If the process was aborted
+ */
+void SoundLoad::checkAbort() {
+  if (_abort)
+    throw process_error{{.id = type::MessageID::Abort, .payload = true},
+                        "Process Aborted"};
+}
 
 } // namespace process::mdu_ein

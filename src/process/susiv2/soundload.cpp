@@ -69,13 +69,15 @@ void SoundLoad::load() {
       erase();
       write();
     } catch (process_error const& e) {
+      std::cerr << e.what() << std::endl;
       pushUI(static_cast<type::ProcessUpdate>(e));
     }
 
     // Finalize
     exit();
     reset();
-  } catch (...) {
+  } catch (std::exception const& e) {
+    std::cerr << e.what() << std::endl;
     pushUI({.id = type::MessageID::AbortUnresponsive, .payload = true});
   }
 }
