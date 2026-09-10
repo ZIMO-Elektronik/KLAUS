@@ -50,13 +50,12 @@ struct Base : IProcess {
 
 protected:
   void ping();
-  bool reset();
+  void reset();
 
   void pushUI(type::ProcessUpdate const& u);
 
   libklug::LibKLUG _lib; ///< Libklug handle
 
-  bool _done{false};  ///< Process done
   bool _abort{false}; /// Abort process
 
   std::future<void> _process; ///< Process future

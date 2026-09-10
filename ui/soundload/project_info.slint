@@ -1,4 +1,4 @@
-import { VerticalBox } from "std-widgets.slint";
+import { VerticalBox, Palette } from "std-widgets.slint";
 export component ProjectInfoPanel inherits Rectangle {
     in property <string> name;
     in property <string> author;
@@ -7,7 +7,7 @@ export component ProjectInfoPanel inherits Rectangle {
     height: 150px;
     width: 350px;
 
-    background: lightgrey;
+    background: Palette.alternate-background;
 
     VerticalLayout {
         alignment: start;

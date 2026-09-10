@@ -39,13 +39,11 @@ void Base::disconnect() { _lib.close(); }
  * \return false  Busy
  */
 bool Base::done() {
-  if (_done) return true;
-
-  if (_process.valid() &&
+  if (!_process.valid() ||
       _process.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-    _done = true;
+    return true;
 
-  return _done;
+  return false;
 }
 
 /**
@@ -85,10 +83,10 @@ void Base::ping() {
  *
  * \throws klug_error     If the communication failed
  */
-bool Base::reset() {
-  if (!_abort) pushUI({.id = type::MessageID::Done, .payload = true});
+void Base::reset() {
+  _lib.com().reset();
 
-  return _lib.com().reset();
+  if (!_abort) pushUI({.id = type::MessageID::Done, .payload = true});
 }
 
 /**

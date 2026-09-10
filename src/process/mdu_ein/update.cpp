@@ -56,10 +56,7 @@ Update::~Update() { disconnect(); }
  * \return false  Error during setup
  */
 bool Update::execute() {
-  if (_zsu == nullptr || !_zsu->valid() || !connect()) {
-    _done = true;
-    return false;
-  }
+  if (_zsu == nullptr || !_zsu->valid() || !connect()) { return false; }
 
   _process = std::async([this]() { return this->update(); });
   return true;
@@ -89,9 +86,10 @@ void Update::update() {
       std::cerr << e.what() << std::endl;
       pushUI(static_cast<type::ProcessUpdate>(e));
     }
+    // If we abort, `end` will fail
+    if (!_abort) end();
 
     // Finalize
-    end();
     reset();
   } catch (std::exception const& e) {
     std::cerr << e.what() << std::endl;

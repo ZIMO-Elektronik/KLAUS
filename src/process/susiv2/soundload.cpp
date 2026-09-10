@@ -43,10 +43,7 @@ SoundLoad::~SoundLoad() { disconnect(); }
  * \return false  Unable to execute
  */
 bool SoundLoad::execute() {
-  if (_zpp == nullptr || !_zpp->valid() || !connect()) {
-    _done = true;
-    return false;
-  }
+  if (_zpp == nullptr || !_zpp->valid() || !connect()) { return false; }
   _process = std::async([this]() { return this->load(); });
   return true;
 }
