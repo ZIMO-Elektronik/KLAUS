@@ -7,8 +7,11 @@
  */
 
 #include "include/process/mdu_ein/update.hpp"
+#include <algorithm>
+#include <future>
 #include <iostream>
 #include <thread>
+#include "include/process/process_error.hpp"
 
 namespace process::mdu_ein {
 
@@ -22,531 +25,326 @@ namespace process::mdu_ein {
 Update::Update(std::filesystem::path path,
                type::MDUEntryType entry_type,
                std::vector<uint32_t> decoder_ids)
-  : Base{}, _zsu{std::make_shared<libklug::ZSU>(path)},
-    _decoderIDs{decoder_ids}, _entryType{entry_type} {
-  _lib.setCallback(
-    [this](res::Result const result) { this->handle_result(result); });
-}
+  : Base{}, _zsu{std::make_shared<libulf::ZSU>(path)}, _decoderIDs{decoder_ids},
+    _entryType{entry_type} {}
 
 /**
  * CTor
  *
- * \param path        ZSU file (LibKLUG)
+ * \param path        ZSU file (LibULF)
  * \param entry_type  Entry type
  * \param decoder_ids List of decoder IDs (for entry)
  */
-Update::Update(std::shared_ptr<libklug::ZSU> zsu,
+Update::Update(std::shared_ptr<libulf::ZSU> zsu,
                type::MDUEntryType entry_type,
                std::vector<uint32_t> decoder_ids)
   : Base{}, _zsu{zsu}, _decoderIDs{decoder_ids}, _entryType{entry_type} {
   assert(_zsu != nullptr);
   assert(_zsu->valid());
-
-  _lib.setCallback(
-    [this](res::Result const result) { this->handle_result(result); });
 }
 
 /**
  * DTor
  *
  */
-Update::~Update() {
-  _lib.unsetCallback();
-  disconnect();
-}
+Update::~Update() { disconnect(); }
 
 /**
  * Execute process
  *
- * \details
- * This process may not execute, if no device can be found.
- *
- * \return true   Process started
- * \return false  Unable to execute
+ * \return true   Process running
+ * \return false  Error during setup
  */
 bool Update::execute() {
-  if (_zsu == nullptr || !_zsu->valid() || !connect()) {
-    _done = true;
-    return false;
-  }
-  pingAction();
+  if (_zsu == nullptr || !_zsu->valid() || !connect()) { return false; }
+
+  _process = std::async([this]() { return this->update(); });
   return true;
 }
 
 /**
- * Abort process
- */
-void Update::abort() { _abort = true; }
-
-/**
- * Handle result (from callback)
- *
- * \note
- * If the process is to be aborted, \ref Update::resetAction is called
- * without handling the result.
- *
- * \param r Result (LibKLUG)
- */
-void Update::handle_result(res::Result r) {
-  if (_abort) resetAction();
-  std::invoke(_state, this, r);
-}
-
-/**
- * Ping device
- *
- */
-void Update::pingAction() {
-  _lib.com().ping();
-  _state = &Update::pingResult;
-}
-
-/**
- * Handle ping result
+ * The actual update
  *
  * \details
- * On success, the followup action is \ref Update::modeAction, else \ref
- * Update::resetAction
- *
- * \param r Result (LibKLUG)
+ * This will execute components in imperative order until either completion, or
+ * the first non-recoverable Error. Either way, the Update will be ended cleanly
+ * and the Update device is reset.
  */
-void Update::pingResult(res::Result const r) {
-  if (std::holds_alternative<res::String>(r)) {
-    std::cout << "Found " << static_cast<std::string>(std::get<res::String>(r))
-              << std::endl;
-    if (_updateCb)
-      _updateCb(
-        {.id = type::MessageID::None,
-         .payload = static_cast<std::string>(std::get<res::String>(r))});
-    return modeAction();
+void Update::update() {
+  try {
+    try { // Actual Update
+      ping();
+      mode();
+      enter();
+      config();
+      search();
+      init();
+      erase();
+      write();
+      verify();
+    } catch (process_error const& e) {
+      std::cerr << e.what() << std::endl;
+      pushUI(static_cast<type::ProcessUpdate>(e));
+    }
+    // If we abort, `end` will fail
+    if (!_abort) end();
+
+    // Finalize
+    reset();
+  } catch (std::exception const& e) {
+    std::cerr << e.what() << std::endl;
+    pushUI({.id = type::MessageID::AbortUnresponsive, .payload = true});
   }
 }
 
 /**
- * Change mode action
+ * Change mode to MDU_EIN
  *
+ * \throws process_error  If the command failed
+ * \throws ulf_error     If the communication failed
  */
-void Update::modeAction() {
-  if (_updateCb) _updateCb({.id = type::MessageID::Start});
-  _lib.com().mdu_ein();
-  _state = &Update::modeResult;
+void Update::mode() {
+  pushUI({.id = type::MessageID::Start});
+  if (!_lib.com().mdu_ein())
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to change mode"};
 }
 
 /**
- * Handle change mode result
+ * Enter Decoder(-s)
  *
  * \details
- * On success, the followup action is \ref Update::enterAction, else \ref
- * Update::resetAction
+ * This will perform the selected entry in \ref Update::_entryType. In case of a
+ * `DCC_ZSU` entry, all decoders in the given \ref Update::_decoderIDs are
+ * entered, in case it is empty, entry is done with ID and SN = 0.
  *
- * \param r Result (LibKLUG)
+ * \throws process_error  If the command failed
+ * \throws ulf_error     If the communication failed
  */
-void Update::modeResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    std::cout << "Mode MDU_EIN" << std::endl;
-    enterAction();
-    return;
-  }
+void Update::enter() {
+  assert(_entryType == type::MDUEntryType::MDU ||
+         _entryType == type::MDUEntryType::DCC_ZSU);
 
-  std::cout << "Unable to change mode" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  resetAction();
-}
+  if (_abort)
+    throw process_error{{.id = type::MessageID::Abort, .payload = true},
+                        "Process Aborted"};
 
-/**
- * Enter
- *
- * \note
- * Entry used depends on value given in CTor
- *
- */
-void Update::enterAction() {
   switch (_entryType) {
-    case type::MDUEntryType::MDU: _lib.mdu_ein().enterMDU(); break;
+    case type::MDUEntryType::MDU:
+      if (!_lib.mdu_ein().enterMDU())
+        throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                            "Unable to enter decoders"};
+      break;
     case type::MDUEntryType::DCC_ZSU:
-      if (_decoderIDs.empty()) _lib.mdu_ein().enterDCCZSU();
-      else _lib.mdu_ein().enterDCCZSU(*_iter, 0uz, _iter == _lastIter);
+      if (_decoderIDs.empty()) {
+        if (!_lib.mdu_ein().enterDCCZSU())
+          throw process_error{
+            {.id = type::MessageID::AbortInit, .payload = true},
+            "Unable to enter decoders"};
+      } else {
+        auto iter{_decoderIDs.begin()};
+        do {
+          if (!_lib.mdu_ein().enterDCCZSU(
+                *iter, 0uz, ++iter == _decoderIDs.end()))
+            throw process_error{
+              {.id = type::MessageID::AbortInit, .payload = true},
+              "Unable to enter decoders"};
+
+        } while (iter != _decoderIDs.end());
+      }
       break;
     default: assert(false);
   }
-
-  _state = &Update::enterResult;
 }
 
 /**
- * Handle enter result
+ * Configure Transfer Rate
  *
  * \details
- * On success, the followup action is \ref Update::configAction, else \ref
- * Update::resetAction
+ * This configures the Transfer rate to `Slow`. Since currently no Decoders
+ * need a speed slower than `Slow`, we assume that the Update will fail anyway
+ * if this fails.
  *
- * \param r Result (LibKLUG)
+ * \throws process_error  If the command failed
+ * \throws ulf_error     If the communication failed
  */
-void Update::enterResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (_entryType == type::MDUEntryType::MDU) {
-      // MDU entry, done after first command
-      std::cout << "Entered via MDU" << std::endl;
-      return configAction();
-    }
+void Update::config() {
+  pushUI({.id = type::MessageID::Init});
 
-    // DCC entry, use all ids first
-    if (_decoderIDs.empty() || ++_iter == _decoderIDs.end()) {
-      // Done with last id, next mode
-      std::cout << "Entered via DCC with " << _decoderIDs.size() << " IDs"
-                << std::endl;
-      return configAction();
-    }
-
-    // More IDs to send
-    return enterAction();
-  }
-
-  std::cout << "Unable to enter" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  return resetAction();
+  if (!_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Slow))
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to set transfer rate"};
 }
 
 /**
- * Config (transfer rate)
- *
- * \todo Maybe don't abort if we can't go fast
- *
- */
-void Update::configAction() {
-  if (_updateCb) _updateCb({.id = type::MessageID::Init});
-  _lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow);
-  _state = &Update::configResult;
-}
-
-/**
- * Handle config result
+ * Search for connected Decoder(-s)
  *
  * \details
- * On success, the followup action is \ref Update::searchAction, else \ref
- * Update::resetAction
+ * This loops over all existing firmwares and pings the decoder ID. Once a
+ * decoder is found, we exit with `true`. If no decoder is found, we can't
+ * exactly perform an update and just abort with `false`
  *
- * \param r Result (LibKLUG)
+ * \throws process_error  If the command failed
+ * \throws ulf_error     If the communication failed
  */
-void Update::configResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Data rate set to slow" << std::endl;
-      searchAction();
-      return;
-    }
-  }
-  std::cout << "Unable to set data rate" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  resetAction();
-}
+void Update::search() {
+  pushUI({.id = type::MessageID::SearchDecoder});
 
-/**
- * Search decoder
- *
- * \note
- * Since we don't exacly have an ID list, we just ping 0 and check if something
- * responds
- *
- */
-void Update::searchAction() {
-  if (_updateCb) _updateCb({.id = type::MessageID::SearchDecoder});
-  _lib.mdu_ein().ping(0, _fwIt.id());
-  _state = &Update::searchResult;
-}
-
-/**
- * Handle search result
- *
- * \details
- * This searches for all decoders with available firmware, with the ID being a
- * byproduct of the FirmwareIterator. On success, the followup action is \ref
- * Update::initAction, on any error, the next ID is searched.
- *
- * If no more IDs are available, the next action is \ref Update::resetAction
- *
- * \param r Result (LibKLUG)
- */
-void Update::searchResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    std::cout << "Ping";
-    if (std::get<res::Status>(r)) {
-      std::cout << "Successful at Id 0x" << std::hex << _fwIt.id() << std::dec
-                << std::endl;
-      initAction();
-      return;
-
-    } else {
-      std::cout << "Unsuccessful at Id 0x" << std::hex << _fwIt.id() << std::dec
-                << std::endl;
-      ++_fwIt;
-      if (_fwIt == _fwItEnd) {
-        std::cout << "No decoder found" << std::endl;
-        _updateCb({.id = type::MessageID::AbortDecoderSearch, .payload = true});
-        resetAction();
+  do {
+    unsigned int tries{0u};
+    do {
+      if (_lib.mdu_ein().ping(0, _fwIt.id())) { // Found
         return;
       }
+    } while (++tries < 3u);
+  } while (++_fwIt != _zsu->end());
 
-      searchAction();
-      return;
-    }
-  }
-
-  std::cout << "Unable to ping" << std::endl;
-  _updateCb({.id = type::MessageID::AbortDecoderSearch, .payload = true});
-  resetAction();
+  throw process_error{
+    {.id = type::MessageID::AbortDecoderSearch, .payload = true},
+    "No decoder found"};
 }
 
 /**
- * Init (Salsa20)
- *
- */
-void Update::initAction() {
-  _lib.mdu_ein().zsuSalsa20Iv(_fwIt);
-  _state = &Update::initResult;
-}
-
-/**
- * Handle init result
+ * Initialize Encryption
  *
  * \details
- * On success, the followup action is \ref Update::eraseAction, else \ref
- * Update::resetAction
+ * Initializes the Salsa20 encryption. If this fails, we abort with `false`
  *
- * \param r Result (LibKLUG)
+ * \throws process_error  If the command failed
+ * \throws ulf_error     If the communication failed
  */
-void Update::initResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Salsa20 initialized" << std::endl;
-      eraseAction();
-      return;
-    }
-  }
-  std::cout << "Unable to init Salsa20" << std::endl;
-  _updateCb({.id = type::MessageID::AbortInit, .payload = true});
-  resetAction();
-  return;
+void Update::init() {
+  if (!_lib.mdu_ein().zsuSalsa20Iv(_fwIt))
+    throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
+                        "Unable to initialize the Salsa20 encryption"};
 }
 
 /**
- * Erase flash
- *
- */
-void Update::eraseAction() {
-  if (_updateCb) _updateCb({.id = type::MessageID::EraseFlash});
-  _lib.mdu_ein().zsuErase(_fwIt);
-  _state = &Update::eraseResult;
-}
-
-/**
- * Handle enter result
+ * Erase Decoder flash
  *
  * \details
- * On success, the followup action is \ref Update::waitAction, else \ref
- * Update::resetAction
+ * Here we erase the flash of the Decoder. Since no mechanism to poll this
+ * process exists, we just wait for 10s while sending `busy` as a heartbeat.
+ * If this fails, we abort with `false`
  *
- * \param r Result (LibKLUG)
+ * \throws process_error  If the command failed
+ * \throws ulf_error     If the communication failed
  */
-void Update::eraseResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Erasing" << std::endl;
-      waitAction();
-      return;
-    }
+void Update::erase() {
+  pushUI({.id = type::MessageID::EraseFlash});
+
+  if (!_lib.mdu_ein().zsuErase(_fwIt))
+    throw process_error{
+      {.id = type::MessageID::AbortFlashErase, .payload = true},
+      "Unable to start flash erase"};
+
+  for (int i{0}; i < 100; i++) {
+    if (_abort)
+      throw process_error{{.id = type::MessageID::Abort, .payload = true},
+                          "Process aborted"};
+
+    pushUI({.id = type::MessageID::EraseFlash,
+            .progress = static_cast<double>(i) / 100.0});
+    _lib.mdu_ein().busy();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
-  std::cout << "Unable to Erase" << std::endl;
-  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
-  resetAction();
-  return;
+
+  pushUI({.id = type::MessageID::EraseFlashComplete});
 }
 
 /**
- * Wait for erase finish
- *
- * \note This will essentially get looped from \ref Update::waitResult until
- * erase is done
- *
- */
-void Update::waitAction() {
-  if (_updateCb)
-    _updateCb({.id = type::MessageID::EraseFlash,
-               .progress = static_cast<double>(_index) / 20.0});
-  _lib.mdu_ein().busy();
-  _state = &Update::waitResult;
-}
-
-/**
- * Handle enter result
+ * Write Decoder flash
  *
  * \details
- * This needs to 'loop' for about 10 seconds. While these 10 seconds have not
- * passed, the next action will always be \ref Update::waitAction. Once the time
- * has passed the next action is \ref Update::updateAction
+ * This writes the actual update into the decoder flash. A single block is
+ * retried up to 3 times, if it still fails, we abort with `false`. Otherwise,
+ * all blocks are transmitted here.
  *
- * \param r Result (LibKLUG)
+ * \todo
+ * Perhaps we could retry the previous 2 blocks before aborting.
+ *
+ * \throws process_error  If the command failed
+ * \throws ulf_error     If the communication failed
  */
-void Update::waitResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (_index++ >= 20) {
-      std::cout << "Finished erasing" << std::endl;
-      _index = 0;
-      updateAction();
-      return;
-    }
-    std::cout << "Still erasing" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    waitAction();
-    return;
+void Update::write() {
+  for (int index{0}; index < _fwIt.blockCount(); index++) {
+    checkAbort();
+
+    pushUI({.id = type::MessageID::WriteFlash,
+            .progress = static_cast<double>(index + 1.0) /
+                        static_cast<double>(_fwIt.blockCount())});
+
+    if (index % 64 == 0) lifesign();
+
+    int tries{0};
+    do { // Retry up to 3 times
+      if (_lib.mdu_ein().zsuUpdate(_fwIt, static_cast<uint32_t>(index))) break;
+    } while (++tries < 3);
+
+    if (tries >= 3)
+      throw process_error{
+        {.id = type::MessageID::AbortFlashWrite, .payload = true},
+        "Max retries reached"};
   }
-
-  std::cout << "Error while waiting for erasing" << std::endl;
-  _updateCb({.id = type::MessageID::AbortFlashErase, .payload = true});
-  resetAction();
-  return;
 }
 
 /**
- * Update (write flash block)
- *
- */
-void Update::updateAction() {
-  if (_updateCb)
-    _updateCb({.id = type::MessageID::WriteFlash,
-               .progress = static_cast<double>(_index + 1.0) /
-                           static_cast<double>(_fwIt.blocks())});
-  _lib.mdu_ein().zsuUpdate(_fwIt, _index);
-  _state = &Update::updateResult;
-}
-
-/**
- * Handle update result
+ * Verify Update
  *
  * \details
- * On Success, either the next block is written with \ref
- * Update::updateAction, or, in case the last block was successfully sent,
- * \ref Update::verifyAction.
+ * This initiates the CRC32 verification. If this fails, we simply assume a
+ * checksum error and abort with `false`
  *
- * On Error, the current block is retried up to 3 times, then \ref
- * Update::resetAction is executed.
- *
- * \param r Result (LibKLUG)
+ * \throws process_error  If the command failed
+ * \throws ulf_error     If the communication failed
  */
-void Update::updateResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      // Block transferred
-      _err_cnt = 0;
-      if (++_index >= _fwIt.blocks()) { return verifyAction(); }
-      return updateAction();
+void Update::verify() {
+  pushUI({.id = type::MessageID::Verify});
 
-    } else {
-      // Block rejected
-      _err_cnt++;
-      if (_err_cnt < 3) return updateAction();
-
-      // Too many errors
-    }
-  }
-  std::cout << "Error while updating" << std::endl;
-  _updateCb({.id = type::MessageID::AbortFlashWrite, .payload = true});
-  resetAction();
+  if (!_lib.mdu_ein().zsuCrc32Start(_fwIt))
+    throw process_error{{.id = type::MessageID::AbortVerify, .payload = true},
+                        "Unable to start CRC verification"};
 }
 
 /**
- * Verify update (start CRC32 verification)
- *
- */
-void Update::verifyAction() {
-  if (_updateCb) _updateCb({.id = type::MessageID::Verify});
-  _lib.mdu_ein().zsuCrc32Start(_fwIt);
-  _state = &Update::verifyResult;
-}
-
-/**
- * Handle verify result
+ * End Update
  *
  * \details
- * On success, the followup action is \ref Update::endAction, else \ref
- * Update::resetAction
+ * Currently, this is the second half of the CRC32 verification. If this
+ * fails, we just assume a checksum error and abort with `false`
  *
- * \param r Result (LibKLUG)
  */
-void Update::verifyResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "Started CRC32 verification" << std::endl;
-      endAction();
-      return;
-    }
-  }
-  std::cout << "Unable to start verify" << std::endl;
-  _updateCb({.id = type::MessageID::AbortVerify, .payload = true});
-  resetAction();
+void Update::end() {
+  if (!_lib.mdu_ein().zsuCrc32ResultExit())
+    throw process_error{{.id = type::MessageID::AbortVerify, .payload = true},
+                        "Unable to finish CRC verification"};
 }
 
 /**
- * End (cleanup)
+ * Pings selected decoder to check if any answers
  *
  */
-void Update::endAction() {
-  if (_updateCb) _updateCb({.id = type::MessageID::Cleanup});
-  _lib.mdu_ein().zsuCrc32ResultExit();
-  _state = &Update::endResult;
+void Update::lifesign() {
+  int tries{0};
+  do {
+    if (_lib.mdu_ein().ping(0u, _fwIt.id())) break;
+  } while (tries < 3);
+
+  if (tries >= 3)
+    throw process_error{
+      {.id = type::MessageID::AbortFlashWrite, .payload = true},
+      "Decoder not pingable"};
 }
 
 /**
- * Handle end result
+ * Checks if the process should be aborted
  *
- * \details
- * In any case, the followup action is \ref Update::resetAction
- *
- * \param r Result (LibKLUG)
+ * \throws process_error If the process was aborted
  */
-void Update::endResult(res::Result const r) {
-  _updateCb({.id = type::MessageID::Done, .payload = true});
-  if (std::holds_alternative<res::Status>(r)) {
-    if (std::get<res::Status>(r)) {
-      std::cout << "CRC Success" << std::endl;
-    } else {
-      std::cout << "CRC Error" << std::endl;
-    }
-    resetAction();
-    return;
-  }
-  std::cout << "Unable to verify" << std::endl;
-  resetAction();
-}
-
-/**
- * Reset
- *
- */
-void Update::resetAction() {
-  _lib.com().reset();
-  if (_abort) {
-    _updateCb({.id = type::MessageID::Abort, .payload = true});
-    _abort = false; // Else we'd loop forever on reset...
-  }
-  _state = &Update::resetResult;
-}
-
-/**
- * Handle reset result
- *
- * \details
- * Either success or no succes, this is the last action.
- *
- * \param r Result (LibKLUG)
- */
-void Update::resetResult(res::Result const r) {
-  if (std::holds_alternative<res::Status>(r))
-    std::cout << "Reset success" << std::endl;
-  else std::cout << "Reset NOT successful" << std::endl;
-
-  _done = true;
-  return;
+void Update::checkAbort() {
+  if (_abort)
+    throw process_error{{.id = type::MessageID::Abort, .payload = true},
+                        "Process Aborted"};
 }
 
 } // namespace process::mdu_ein

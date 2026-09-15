@@ -80,9 +80,7 @@ void ProcessManager::abort() {
  * \return true   Busy
  * \return false  Not busy
  */
-bool ProcessManager::busy() {
-  return _process == nullptr ? false : !_process->done();
-}
+bool ProcessManager::busy() { return _process ? !_process->done() : false; }
 
 /**
  * Signal UI that the running process is finished
@@ -94,6 +92,11 @@ void ProcessManager::done() {
       // Mark process as ended and popup progress
       (*ui)->global<ProgressViewContext>().set_is_process_running(false);
       (*ui)->global<ProgressViewContext>().set_is_open(true);
+      if (_process) {
+        while (!_process->done())
+          std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        _process.reset();
+      }
     }
   });
 }

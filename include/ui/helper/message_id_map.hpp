@@ -66,6 +66,8 @@ static MessageIDAdapter message_id_map(type::MessageID id) {
     case MessageID::AbortFlashErase: return MessageIDAdapter::AbortFlashErase;
     case MessageID::AbortFlashWrite: return MessageIDAdapter::AbortFlashWrite;
     case MessageID::AbortVerify: return MessageIDAdapter::AbortVerify;
+    case MessageID::AbortUnresponsive:
+      return MessageIDAdapter::AbortUnresponsive;
     default: return MessageIDAdapter::Default;
   }
 }

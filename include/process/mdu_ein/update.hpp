@@ -9,7 +9,7 @@
 #pragma once
 
 #include <functional>
-#include <libklug/libklug.hpp>
+#include <ulf/cpp/libulf.hpp>
 #include <vector>
 #include "include/process/base.hpp"
 #include "include/type/step.hpp"
@@ -23,11 +23,11 @@ namespace process::mdu_ein {
  * This class handles the MDU Update as a background process. Each stage of
  * the process is represented by a pair of *Action and *Result methods. Each
  * Action sets its corresponding Result handler, where the Resulthandler is
- * called from the LibKLUG callback after each transfer.
+ * called from the LibULF callback after each transfer.
  *
  * The process can be started using \ref Update::execute and aborted using
  * \ref Update::abort, which will quit the event loop AFTER the next result
- * is available. To change this behaviour, the LibKLUG interface needs to be
+ * is available. To change this behaviour, the LibULF interface needs to be
  * extended with an abort function.
  *
  * \note
@@ -40,59 +40,32 @@ struct Update : public Base {
   Update(std::filesystem::path path,
          type::MDUEntryType entry_type,
          std::vector<uint32_t> decoder_ids = {});
-  Update(std::shared_ptr<libklug::ZSU> zsu,
+  Update(std::shared_ptr<libulf::ZSU> zsu,
          type::MDUEntryType entry_type,
          std::vector<uint32_t> decoder_ids = {});
   virtual ~Update() final;
 
   virtual bool execute();
-  virtual void abort();
 
 private:
-  void handle_result(res::Result r);
+  void update();
 
-  void pingAction();
-  void pingResult(res::Result const r);
+  void mode();
+  void enter();
+  void config();
+  void search();
+  void init();
+  void erase();
+  void write();
+  void verify();
+  void end();
 
-  void modeAction();
-  void modeResult(res::Result const r);
+  void lifesign();
 
-  void enterAction();
-  void enterResult(res::Result const r);
+  void checkAbort();
 
-  void configAction();
-  void configResult(res::Result const r);
-
-  void searchAction();
-  void searchResult(res::Result const r);
-
-  void initAction();
-  void initResult(res::Result const r);
-
-  void eraseAction();
-  void eraseResult(res::Result const r);
-
-  void waitAction();
-  void waitResult(res::Result const r);
-
-  void updateAction();
-  void updateResult(res::Result const r);
-
-  void verifyAction();
-  void verifyResult(res::Result const r);
-
-  void endAction();
-  void endResult(res::Result const r);
-
-  void resetAction();
-  void resetResult(res::Result const r);
-
-  void (Update::*_state)(res::Result const){
-    &Update::modeResult}; ///< State (next *Result handler)
-
-  std::shared_ptr<libklug::ZSU> _zsu;                  ///< ZSU instance
-  libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()}; ///< Firmware iterator
-  libklug::ZSU::FirmwareIterator const _fwItEnd{_zsu->end()}; ///< Last firmware
+  std::shared_ptr<libulf::ZSU> _zsu;                  ///< ZSU instance
+  libulf::ZSU::FirmwareIterator _fwIt{_zsu->begin()}; ///< Firmware iterator
 
   type::MDUEntryType _entryType; ///< Entry type (MDU or DCC)
 
@@ -101,10 +74,7 @@ private:
   decltype(_decoderIDs)::const_iterator _lastIter{_decoderIDs.end() -
                                                   1}; ///< Last ID
 
-  int _err_cnt{0};       ///< Consecutive error counter
-  unsigned int _index{}; ///< Block index withing the Firmware
-
-  bool _abort{}; ///< Abort flag
+  int _err_cnt{0}; ///< Consecutive error counter
 };
 
 } // namespace process::mdu_ein

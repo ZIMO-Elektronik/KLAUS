@@ -20,19 +20,9 @@ Base::Base() {}
  * \return false  Not found or not connected
  */
 bool Base::connect() {
-
-  for (int i{0}; i < 4; i++) {
-    int rc{0};
-    switch (i) {
-      case 0: rc = _lib.init(); break;
-      case 1: rc = _lib.open(0x1FC9u, 0x81C1u); break;
-      case 2: rc = _lib.config(); break;
-      case 3: rc = _lib.claim(); break;
-      default: assert(false);
-    }
-    if (rc) return false;
-  }
-
+  if (_lib.init() != libulf::Error::ok ||
+      _lib.open(0x1FC9u, 0x81C1u) != libulf::Error::ok)
+    return false;
   return true;
 }
 
@@ -40,10 +30,7 @@ bool Base::connect() {
  * Disconnect device
  *
  */
-void Base::disconnect() {
-  _lib.release();
-  _lib.close();
-}
+void Base::disconnect() { _lib.close(); }
 
 /**
  * Check if the process is done
@@ -51,7 +38,19 @@ void Base::disconnect() {
  * \return true   Done
  * \return false  Busy
  */
-bool Base::done() { return _done; }
+bool Base::done() {
+  if (!_process.valid() ||
+      _process.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+    return true;
+
+  return false;
+}
+
+/**
+ * Mark process to abort
+ *
+ */
+void Base::abort() { _abort = true; }
 
 /**
  * Interface to register callable for UI updates
@@ -63,6 +62,40 @@ bool Base::done() { return _done; }
  */
 void Base::onUpdate(std::function<void(type::ProcessUpdate)> cb) {
   _updateCb = cb;
+}
+
+/**
+ * Ping device
+ *
+ * \details
+ * If the ping yields a result, it it pushed to the UI. Otherwise we can assume,
+ * that the any further work will fail anyway and abort.
+ *
+ * \throws ulf_error     If the communication failed
+ */
+void Base::ping() {
+  pushUI(
+    {.id = type::MessageID::None, .payload = std::move(_lib.com().ping())});
+}
+
+/**
+ * Reset Device
+ *
+ * \throws ulf_error     If the communication failed
+ */
+void Base::reset() {
+  _lib.com().reset();
+
+  if (!_abort) pushUI({.id = type::MessageID::Done, .payload = true});
+}
+
+/**
+ * Push an update to the UI (if possible)
+ *
+ * \param u Update
+ */
+void Base::pushUI(type::ProcessUpdate const& u) {
+  if (_updateCb) _updateCb(u);
 }
 
 } // namespace process

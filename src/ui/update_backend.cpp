@@ -82,7 +82,7 @@ void UpdateBackend::choose_file() {
 
   _path = zsuPath;
 
-  _zsu = std::make_shared<libklug::ZSU>(_path);
+  _zsu = std::make_shared<libulf::ZSU>(_path);
   if (!_zsu->valid()) {
     // Cant read file
     std::cerr << "Unable to read file";

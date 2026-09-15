@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include <libklug/libklug.hpp>
+#include <future>
+#include <ulf/cpp/libulf.hpp>
 #include "i_process.hpp"
 
 namespace process {
@@ -43,13 +44,21 @@ struct Base : IProcess {
   void disconnect();
 
   virtual bool done() override;
+  virtual void abort() override;
 
   virtual void onUpdate(std::function<void(type::ProcessUpdate)>) override;
 
 protected:
-  libklug::LibKLUG _lib; ///< Libklug handle
+  void ping();
+  void reset();
 
-  bool _done{false}; ///< Process done
+  void pushUI(type::ProcessUpdate const& u);
+
+  libulf::LibULF _lib; ///< Libulf handle
+
+  bool _abort{false}; /// Abort process
+
+  std::future<void> _process; ///< Process future
 
   std::function<void(type::ProcessUpdate)> _updateCb{}; ///< GUI update callback
 };

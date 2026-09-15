@@ -9,7 +9,7 @@
 #pragma once
 
 #include <functional>
-#include <libklug/libklug.hpp>
+#include <ulf/cpp/libulf.hpp>
 #include <vector>
 #include "include/process/base.hpp"
 #include "include/type/step.hpp"
@@ -23,11 +23,11 @@ namespace process::mdu_ein {
  * This class handles the MDU SoundLoad as a background process. Each stage of
  * the process is represented by a pair of *Action and *Result methods. Each
  * Action sets its corresponding Result handler, where the Resulthandler is
- * called from the LibKLUG callback after each transfer.
+ * called from the LibULF callback after each transfer.
  *
  * The process can be started using \ref SoundLoad::execute and aborted using
  * \ref SoundLoad::abort, which will quit the event loop AFTER the next result
- * is available. To change this behaviour, the LibKLUG interface needs to be
+ * is available. To change this behaviour, the LibULF interface needs to be
  * extended with an abort function.
  *
  * \note
@@ -40,59 +40,31 @@ namespace process::mdu_ein {
  */
 struct SoundLoad : public Base {
   SoundLoad(std::filesystem::path path);
+  SoundLoad(std::shared_ptr<libulf::ZPP> zpp);
   virtual ~SoundLoad() final;
 
   virtual bool execute();
-  virtual void abort();
 
 private:
-  void handle_result(res::Result r);
+  void load();
 
-  void pingAction();
-  void pingResult(res::Result const r);
+  void mode();
+  void enter();
+  void config();
+  void search();
+  void init();
+  void erase();
+  void write();
+  void end();
+  void exit();
 
-  void modeAction();
-  void modeResult(res::Result const r);
+  void lifesign();
 
-  void enterAction();
-  void enterResult(res::Result const r);
+  void checkAbort();
 
-  void configAction();
-  void configResult(res::Result const r);
+  std::shared_ptr<libulf::ZPP> _zpp; ///< ZPP instance
 
-  void searchAction();
-  void searchResult(res::Result const r);
-
-  void initAction();
-  void initResult(res::Result const r);
-
-  void eraseAction();
-  void eraseResult(res::Result const r);
-
-  void waitAction();
-  void waitResult(res::Result const r);
-
-  void updateAction();
-  void updateResult(res::Result const r);
-
-  void endAction();
-  void endResult(res::Result const r);
-
-  void exitAction();
-  void exitResult(res::Result const r);
-
-  void resetAction();
-  void resetResult(res::Result const r);
-
-  void (SoundLoad::*_state)(res::Result const){
-    &SoundLoad::modeResult}; ///< State (next *Result handler)
-
-  libklug::ZPP _zpp; ///< ZPP instance
-
-  int _err_cnt{0};       ///< Consecutive error counter
-  unsigned int _index{}; ///< Block index withing the ZPP
-
-  bool _abort{}; ///< Abort flag
+  int _err_cnt{0}; ///< Consecutive error counter
 };
 
 } // namespace process::mdu_ein
