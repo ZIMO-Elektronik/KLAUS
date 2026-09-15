@@ -9,7 +9,7 @@
 #pragma once
 
 #include <functional>
-#include <klug/cpp/libklug.hpp>
+#include <ulf/cpp/libulf.hpp>
 #include <vector>
 #include "include/process/base.hpp"
 #include "include/type/step.hpp"
@@ -23,11 +23,11 @@ namespace process::susiv2 {
  * This class handles the ZUSI SoundLoad as a background process. Each stage of
  * the process is represented by a pair of *Action and *Result methods. Each
  * Action sets its corresponding Result handler, where the Resulthandler is
- * called from the LibKLUG callback after each transfer.
+ * called from the LibULF callback after each transfer.
  *
  * The process can be started using \ref SoundLoad::execute and aborted using
  * \ref SoundLoad::abort, which will quit the event loop AFTER the next result
- * is available. To change this behaviour, the LibKLUG interface needs to be
+ * is available. To change this behaviour, the LibULF interface needs to be
  * extended with an abort function.
  *
  * \note
@@ -40,7 +40,7 @@ namespace process::susiv2 {
  */
 struct SoundLoad : public Base {
   SoundLoad(std::filesystem::path path);
-  SoundLoad(std::shared_ptr<libklug::ZPP> zpp);
+  SoundLoad(std::shared_ptr<libulf::ZPP> zpp);
   virtual ~SoundLoad() final;
 
   virtual bool execute();
@@ -56,7 +56,7 @@ private:
 
   void checkAbort();
 
-  std::shared_ptr<libklug::ZPP> _zpp; ///< ZPP instance
+  std::shared_ptr<libulf::ZPP> _zpp; ///< ZPP instance
 
   int _err_cnt{0}; ///< Consecutive error counter
 };

@@ -20,14 +20,14 @@ namespace process::mdu_ein {
  * \param path Path to ZPP file
  */
 SoundLoad::SoundLoad(std::filesystem::path path)
-  : _zpp{std::make_shared<libklug::ZPP>(path)} {}
+  : _zpp{std::make_shared<libulf::ZPP>(path)} {}
 
 /**
  * CTor
  *
  * \param zpp Shared pointer to ZPP
  */
-SoundLoad::SoundLoad(std::shared_ptr<libklug::ZPP> zpp) : _zpp{zpp} {}
+SoundLoad::SoundLoad(std::shared_ptr<libulf::ZPP> zpp) : _zpp{zpp} {}
 
 /**
  * DTor
@@ -89,7 +89,7 @@ void SoundLoad::load() {
  * Change mode to MDU_EIN
  *
  * \throws process_error  If the mode is unavailable
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::mode() {
   pushUI({.id = type::MessageID::Start});
@@ -103,7 +103,7 @@ void SoundLoad::mode() {
  * Enter Decoder(-s)
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::enter() {
   if (!_lib.com().mdu_ein())
@@ -121,12 +121,12 @@ void SoundLoad::enter() {
  * Maybe this should retry with a slower rate on fail
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::config() {
   pushUI({.id = type::MessageID::Init});
 
-  if (_lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Fast))
+  if (_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Fast))
     throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
                         "Unable to configure transfer rate"};
 }
@@ -139,7 +139,7 @@ void SoundLoad::config() {
  * something responds
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  *
  */
 void SoundLoad::search() {
@@ -159,7 +159,7 @@ void SoundLoad::search() {
  * Check if the ZPP can fit into the decoder
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::init() {
   if (!_lib.mdu_ein().zppValidQuery(*_zpp))
@@ -171,7 +171,7 @@ void SoundLoad::init() {
  * Erase decoder flash (and wait until done)
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::erase() {
   // Erase flash
@@ -203,7 +203,7 @@ void SoundLoad::erase() {
  * Perhaps we could retry the previous 2 blocks before aborting.
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::write() {
   unsigned int index{0u};
@@ -237,7 +237,7 @@ void SoundLoad::write() {
  * Formally end sound load
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::end() {
   if (!_lib.mdu_ein().zppUpdateEnd(*_zpp))
@@ -248,7 +248,7 @@ void SoundLoad::end() {
 /**
  * Exit sound load (for decoder)
  *
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::exit() { _lib.mdu_ein().zppExitReset(); }
 

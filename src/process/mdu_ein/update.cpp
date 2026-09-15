@@ -25,17 +25,17 @@ namespace process::mdu_ein {
 Update::Update(std::filesystem::path path,
                type::MDUEntryType entry_type,
                std::vector<uint32_t> decoder_ids)
-  : Base{}, _zsu{std::make_shared<libklug::ZSU>(path)},
-    _decoderIDs{decoder_ids}, _entryType{entry_type} {}
+  : Base{}, _zsu{std::make_shared<libulf::ZSU>(path)}, _decoderIDs{decoder_ids},
+    _entryType{entry_type} {}
 
 /**
  * CTor
  *
- * \param path        ZSU file (LibKLUG)
+ * \param path        ZSU file (LibULF)
  * \param entry_type  Entry type
  * \param decoder_ids List of decoder IDs (for entry)
  */
-Update::Update(std::shared_ptr<libklug::ZSU> zsu,
+Update::Update(std::shared_ptr<libulf::ZSU> zsu,
                type::MDUEntryType entry_type,
                std::vector<uint32_t> decoder_ids)
   : Base{}, _zsu{zsu}, _decoderIDs{decoder_ids}, _entryType{entry_type} {
@@ -101,7 +101,7 @@ void Update::update() {
  * Change mode to MDU_EIN
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Update::mode() {
   pushUI({.id = type::MessageID::Start});
@@ -119,7 +119,7 @@ void Update::mode() {
  * entered, in case it is empty, entry is done with ID and SN = 0.
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Update::enter() {
   assert(_entryType == type::MDUEntryType::MDU ||
@@ -166,12 +166,12 @@ void Update::enter() {
  * if this fails.
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Update::config() {
   pushUI({.id = type::MessageID::Init});
 
-  if (!_lib.mdu_ein().configTransferRate(libklug::mdu::Speed::Slow))
+  if (!_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Slow))
     throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
                         "Unable to set transfer rate"};
 }
@@ -185,7 +185,7 @@ void Update::config() {
  * exactly perform an update and just abort with `false`
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Update::search() {
   pushUI({.id = type::MessageID::SearchDecoder});
@@ -211,7 +211,7 @@ void Update::search() {
  * Initializes the Salsa20 encryption. If this fails, we abort with `false`
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Update::init() {
   if (!_lib.mdu_ein().zsuSalsa20Iv(_fwIt))
@@ -228,7 +228,7 @@ void Update::init() {
  * If this fails, we abort with `false`
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Update::erase() {
   pushUI({.id = type::MessageID::EraseFlash});
@@ -264,7 +264,7 @@ void Update::erase() {
  * Perhaps we could retry the previous 2 blocks before aborting.
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Update::write() {
   for (int index{0}; index < _fwIt.blockCount(); index++) {
@@ -296,7 +296,7 @@ void Update::write() {
  * checksum error and abort with `false`
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Update::verify() {
   pushUI({.id = type::MessageID::Verify});

@@ -20,8 +20,8 @@ Base::Base() {}
  * \return false  Not found or not connected
  */
 bool Base::connect() {
-  if (_lib.init() != libklug::Error::ok ||
-      _lib.open(0x1FC9u, 0x81C1u) != libklug::Error::ok)
+  if (_lib.init() != libulf::Error::ok ||
+      _lib.open(0x1FC9u, 0x81C1u) != libulf::Error::ok)
     return false;
   return true;
 }
@@ -71,7 +71,7 @@ void Base::onUpdate(std::function<void(type::ProcessUpdate)> cb) {
  * If the ping yields a result, it it pushed to the UI. Otherwise we can assume,
  * that the any further work will fail anyway and abort.
  *
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Base::ping() {
   pushUI(
@@ -81,7 +81,7 @@ void Base::ping() {
 /**
  * Reset Device
  *
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void Base::reset() {
   _lib.com().reset();

@@ -51,8 +51,8 @@ private:
   std::shared_ptr<ProcessManager> _pManager{
     std::make_shared<ProcessManager>()}; ///< ProcessManager
 
-  std::filesystem::path _path{};        ///< ZPP path
-  std::shared_ptr<libklug::ZPP> _zpp{}; ///< ZPP (from LibKLUG)
+  std::filesystem::path _path{};       ///< ZPP path
+  std::shared_ptr<libulf::ZPP> _zpp{}; ///< ZPP (from LibULF)
 
   helper::ProgressTracker _tracker{}; ///< Progress tracker (for estimate)
 };

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <future>
-#include <klug/cpp/libklug.hpp>
+#include <ulf/cpp/libulf.hpp>
 #include "i_process.hpp"
 
 namespace process {
@@ -54,7 +54,7 @@ protected:
 
   void pushUI(type::ProcessUpdate const& u);
 
-  libklug::LibKLUG _lib; ///< Libklug handle
+  libulf::LibULF _lib; ///< Libulf handle
 
   bool _abort{false}; /// Abort process
 

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <functional>
-#include <klug/cpp/libklug.hpp>
+#include <ulf/cpp/libulf.hpp>
 #include <vector>
 #include "include/process/base.hpp"
 #include "include/type/step.hpp"
@@ -23,11 +23,11 @@ namespace process::mdu_ein {
  * This class handles the MDU Update as a background process. Each stage of
  * the process is represented by a pair of *Action and *Result methods. Each
  * Action sets its corresponding Result handler, where the Resulthandler is
- * called from the LibKLUG callback after each transfer.
+ * called from the LibULF callback after each transfer.
  *
  * The process can be started using \ref Update::execute and aborted using
  * \ref Update::abort, which will quit the event loop AFTER the next result
- * is available. To change this behaviour, the LibKLUG interface needs to be
+ * is available. To change this behaviour, the LibULF interface needs to be
  * extended with an abort function.
  *
  * \note
@@ -40,7 +40,7 @@ struct Update : public Base {
   Update(std::filesystem::path path,
          type::MDUEntryType entry_type,
          std::vector<uint32_t> decoder_ids = {});
-  Update(std::shared_ptr<libklug::ZSU> zsu,
+  Update(std::shared_ptr<libulf::ZSU> zsu,
          type::MDUEntryType entry_type,
          std::vector<uint32_t> decoder_ids = {});
   virtual ~Update() final;
@@ -64,8 +64,8 @@ private:
 
   void checkAbort();
 
-  std::shared_ptr<libklug::ZSU> _zsu;                  ///< ZSU instance
-  libklug::ZSU::FirmwareIterator _fwIt{_zsu->begin()}; ///< Firmware iterator
+  std::shared_ptr<libulf::ZSU> _zsu;                  ///< ZSU instance
+  libulf::ZSU::FirmwareIterator _fwIt{_zsu->begin()}; ///< Firmware iterator
 
   type::MDUEntryType _entryType; ///< Entry type (MDU or DCC)
 

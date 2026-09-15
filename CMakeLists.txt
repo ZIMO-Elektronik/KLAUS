@@ -78,22 +78,21 @@ if(NOT TARGET tinyfiledialogs::tinyfiledialogs)
     master)
 endif()
 
-if(NOT TARGET KLUG::KLUG)
+if(NOT TARGET ULF::ULF)
   cpmaddpackage(
     NAME
-    KLUG
+    ULF
     GIT_REPOSITORY
-    https://gitea.zimo.at:3000/ZIMO/libklug.git
+    git@github.com:ZIMO-Elektronik/libULF.git
     SYSTEM
     YES
-    # VERSION 0.1.0
-    GIT_TAG
-    cleanup)
+    VERSION
+    0.2.0)
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE .)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint KLUG
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint ULF
                                                     ::tinyfiledialogs)
 slint_target_sources(${CMAKE_PROJECT_NAME} ui/app-window.slint)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY SLINT_EMBED_RESOURCES
@@ -127,7 +126,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 install(TARGETS ${CMAKE_PROJECT_NAME} RUNTIME DESTINATION bin)
 install(
-  TARGETS KLUG
+  TARGETS ULF
   LIBRARY DESTINATION lib # .so-Files
   RUNTIME DESTINATION bin # .dll-Files (to avoid linking issues)
   ARCHIVE DESTINATION lib # [.a/.lib]-Files

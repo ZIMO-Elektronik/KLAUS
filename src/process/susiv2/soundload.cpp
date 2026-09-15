@@ -18,14 +18,14 @@ namespace process::susiv2 {
  * \param path Path to ZPP file
  */
 SoundLoad::SoundLoad(std::filesystem::path path)
-  : _zpp{std::make_shared<libklug::ZPP>(path)} {}
+  : _zpp{std::make_shared<libulf::ZPP>(path)} {}
 
 /**
  * CTor
  *
  * \param zpp Shared pointer to ZPP
  */
-SoundLoad::SoundLoad(std::shared_ptr<libklug::ZPP> zpp) : _zpp{zpp} {}
+SoundLoad::SoundLoad(std::shared_ptr<libulf::ZPP> zpp) : _zpp{zpp} {}
 
 /**
  * DTor
@@ -83,7 +83,7 @@ void SoundLoad::load() {
  * Change mode to SUSIV2
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::mode() {
   pushUI({.id = type::MessageID::Start});
@@ -100,7 +100,7 @@ void SoundLoad::mode() {
  * Actually, this sets the max transfer speed available
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::features() {
   if (!_lib.susiv2().features())
@@ -115,7 +115,7 @@ void SoundLoad::features() {
  * This should update the UI while erasing. Maybe defer this to another thread
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::erase() {
   pushUI({.id = type::MessageID::EraseFlash});
@@ -138,7 +138,7 @@ void SoundLoad::erase() {
  * Perhaps we could retry the previous 2 blocks before aborting.
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::write() {
   for (unsigned int index{0}, max_index{_zpp->blocks()}; index < max_index;
@@ -165,7 +165,7 @@ void SoundLoad::write() {
  * Exit ZUSI mode (for decoder)
  *
  * \throws process_error  If the command failed
- * \throws klug_error     If the communication failed
+ * \throws ulf_error     If the communication failed
  */
 void SoundLoad::exit() {
   if (!_lib.susiv2().exit(true, true))

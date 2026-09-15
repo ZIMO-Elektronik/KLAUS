@@ -3,7 +3,7 @@
 #include <app-window.h>
 #include <slint.h>
 #include <chrono>
-#include <klug/cpp/libklug.hpp>
+#include <ulf/cpp/libulf.hpp>
 #include "i_backend.hpp"
 #include "include/process/mdu_ein/update.hpp"
 #include "include/type/step.hpp"
@@ -76,8 +76,8 @@ private:
   std::shared_ptr<ProcessManager> _pManager{
     std::make_shared<ProcessManager>()}; ///< ProcessManager
 
-  std::filesystem::path _path{};        ///< Path to ZSU
-  std::shared_ptr<libklug::ZSU> _zsu{}; ///< ZSU (from LibKLUG)
+  std::filesystem::path _path{};       ///< Path to ZSU
+  std::shared_ptr<libulf::ZSU> _zsu{}; ///< ZSU (from LibULF)
 
   helper::ProgressTracker _tracker{}; ///< ProgressTracker (for estimate)
 };
