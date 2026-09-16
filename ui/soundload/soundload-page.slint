@@ -5,21 +5,19 @@ import {
     ComboBox,
     Palette,
 } from "std-widgets.slint";
-import { ProgressPopup } from "../progress/progress_popup.slint";
-import { ProgressViewContext } from "../progress/progress_context.slint";
-import { ModeSelector, SoundLoadMode, ModeSelector } from "mode_selector.slint";
-import { HelpModeButton } from "../utility/help_popup/help_mode_button.slint";
+import { ProgressPopup } from "../progress/progress-popup.slint";
+import { ProgressViewContext } from "../progress/progress-context.slint";
+import { ModeSelector, SoundLoadMode, ModeSelector } from "mode-selector.slint";
+import { HelpModeButton } from "../utility/help-popup/help-mode-button.slint";
 import {
     OptionLevelSelector,
     OptionLevel,
-} from "../utility/option_level_selector/option_level_selector.slint";
-import { HelpPopup } from "../utility/help_popup/help_popup.slint";
-import { ProjectInfoPanel } from "project_info.slint";
+} from "../utility/option-level-selector/option-level-selector.slint";
+import { HelpPopup } from "../utility/help-popup/help-popup.slint";
+import { ProjectInfoPanel } from "project-info.slint";
 
 // Re-export
 export { SoundLoadMode }
-
-
 export component SoundLoadPage inherits Rectangle {
     in-out property <SoundLoadMode> mode: SoundLoadMode.ZUSI;
 

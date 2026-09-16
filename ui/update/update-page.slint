@@ -1,17 +1,17 @@
 import { Button, VerticalBox, HorizontalBox, Palette } from "std-widgets.slint";
-import { ProgressPopup } from "../progress/progress_popup.slint";
-import { ProgressViewContext } from "../progress/progress_context.slint";
-import { EntrySelector } from "entry_selector.slint";
+import { ProgressPopup } from "../progress/progress-popup.slint";
+import { ProgressViewContext } from "../progress/progress-context.slint";
+import { EntrySelector } from "entry-selector.slint";
 import { EntryType } from "entry.slint";
-import { FirmwareSelector } from "firmware_selector.slint";
+import { FirmwareSelector } from "firmware-selector.slint";
 import { FirmwareAdapter } from "firmware.slint";
 import {
     OptionLevelSelector,
     OptionLevel,
-} from "../utility/option_level_selector/option_level_selector.slint";
-import { HelpModeButton } from "../utility/help_popup/help_mode_button.slint";
-import { HelpPopup } from "../utility/help_popup/help_popup.slint";
-import { HelpButton } from "../utility/help_popup/help_button.slint";
+} from "../utility/option-level-selector/option-level-selector.slint";
+import { HelpModeButton } from "../utility/help-popup/help-mode-button.slint";
+import { HelpPopup } from "../utility/help-popup/help-popup.slint";
+import { HelpButton } from "../utility/help-popup/help-button.slint";
 
 export component UpdatePage inherits Rectangle {
     in property <bool> has-file: false;

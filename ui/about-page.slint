@@ -7,10 +7,10 @@ import {
     VerticalBox,
     Palette,
 } from "std-widgets.slint";
-import { AppContext } from "app_context.slint";
+import { AppContext } from "app-context.slint";
 import {
     DependencyBadge,
-} from "utility/dependency_badge/dependency_badge.slint";
+} from "utility/dependency-badge/dependency-badge.slint";
 export component AboutPage inherits Rectangle {
     callback open_website;
     callback open_support;
@@ -125,7 +125,7 @@ export component AboutPage inherits Rectangle {
 
                     DependencyBadge {
                         name: "libulf";
-                        link: "https://zimo.at";
+                        link: "https://github.com/ZIMO-Elektronik/libULF";
                         license: "LGPL3";
                     }
 
