@@ -52,33 +52,29 @@ void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
  *
  */
 void UpdateBackend::choose_file() {
-  // 1. Filter für den Dialog definieren
-  // tinyfiledialogs erwartet ein Array aus Zeichenketten für die Endungen
   char const* filterPatterns[] = {"*.zsu"};
 
-  // 2. Den Datei-Öffnen-Dialog aufrufen
-  char const* selectedPath = tinyfd_openFileDialog(
-    "ZSU-Datei auswählen", // Dialog-Titel
-    "",                    // Standard-Pfad (leer = aktuelles Verzeichnis)
-    1,                     // Anzahl der Filter-Muster im Array
-    filterPatterns,        // Das Filter-Array
-    "ZSU Dateien (*.zsu)", // Beschreibung des Filters für den Nutzer
-    0                      // 0 = Nur eine Datei auswählbar, 1 = Mehrfachauswahl
-  );
+  char const* selectedPath =
+    tinyfd_openFileDialog("Select a ZSU file",   // Dialog-Title
+                          "",                    // Standard-path (empty == cwd)
+                          1,                     // Filter count
+                          filterPatterns,        // Filter array
+                          "ZSU Dateien (*.zsu)", // Filter description
+                          0                      // 0 = Only one file selectable
+    );
 
-  // 3. Überprüfen, ob der Nutzer die Auswahl abgebrochen hat
+  // Check if the user has aborted the selection
   if (!selectedPath) {
     std::cout << "Auswahl wurde abgebrochen.\n";
     return;
   }
 
-  // 4. In std::filesystem::path konvertieren
   std::filesystem::path zsuPath(selectedPath);
 
-  // 5. Nutzen des Pfads (Beispiel-Ausgabe)
-  std::cout << "Erfolgreich ausgewählt!\n";
-  std::cout << "Absoluter Pfad: " << zsuPath << "\n";
-  std::cout << "Dateiname:      " << zsuPath.filename() << "\n";
+  // Print path
+  std::cout << "Selected\n";
+  std::cout << "Absolute path: " << zsuPath << "\n";
+  std::cout << "File name:     " << zsuPath.filename() << "\n";
 
   _path = zsuPath;
 
