@@ -11,8 +11,8 @@ export component HelpPopup inherits Rectangle {
     }
 
     popup := InfoPopup {
-        x: button.x + button.width + 5px;
-        y: button.y + 0px;
+        x: button.absolute-position.x - root.absolute-position.x + button.width + 5px;
+        y: button.absolute-position.y - root.absolute-position.y;
 
         info-text <=> help-text;
     }
