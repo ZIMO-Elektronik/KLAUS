@@ -56,8 +56,8 @@ bool ProcessManager::execute() {
 
     if (!success)
       // Push Error when we cant execute
-      // TODO: This shoud come from the process, for now we just assume the most
-      // likely cause: The device was not found.
+      // TODO: This should come from the process, for now we just assume the
+      // most likely cause: The device was not found.
       (*ui)->global<ProgressViewContext>().set_id(
         MessageIDAdapter::AbortDevice);
   }

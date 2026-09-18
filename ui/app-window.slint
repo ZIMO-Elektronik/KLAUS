@@ -30,7 +30,6 @@ export component AppWindow inherits Window {
     in property <string> zpp_author;
     in property <string> zpp_email;
 
-    // Globale Callbacks für C++ Registrierung
     callback change_page(AppPage);
 
     callback choose_file();
@@ -38,14 +37,14 @@ export component AppWindow inherits Window {
 
     HorizontalLayout {
 
-        // Linke Navigationsleiste
+        // NavBar (left)
         nav := NavigationBar {
             change-page(page) => {
                 root.change_page(page);
             }
         }
 
-        // Rechter Inhaltsbereich mit dynamischen Seiten
+        // Page (right)
         Rectangle {
             background: Palette.background;
 

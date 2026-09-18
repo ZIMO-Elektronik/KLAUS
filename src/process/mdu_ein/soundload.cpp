@@ -61,7 +61,7 @@ bool SoundLoad::execute() {
  */
 void SoundLoad::load() {
   try {
-    try { // Acual Update
+    try { // Actual Update
       ping();
       mode();
       enter();
@@ -135,7 +135,7 @@ void SoundLoad::config() {
  * Search decoder
  *
  * \note
- * Since we don't exacly have an ID list, we just ping 0 and check if
+ * Since we don't exactly have an ID list, we just ping 0 and check if
  * something responds
  *
  * \throws process_error  If the command failed
@@ -215,7 +215,7 @@ void SoundLoad::write() {
             .progress{static_cast<double>(index + 1.0) /
                       static_cast<double>(_zpp->blocks())}});
 
-    if (index % 64 == 0) lifesign();
+    if (index % 64 == 0) lifeSign();
 
     int tries{0};
     do {
@@ -256,7 +256,7 @@ void SoundLoad::exit() { _lib.mdu_ein().zppExitReset(); }
  * Pings all decoders to check if any answers
  *
  */
-void SoundLoad::lifesign() {
+void SoundLoad::lifeSign() {
   int tries{0};
   do {
     if (_lib.mdu_ein().ping(0u, 0u)) break;
@@ -265,7 +265,7 @@ void SoundLoad::lifesign() {
   if (tries >= 3)
     throw process_error{
       {.id = type::MessageID::AbortFlashWrite, .payload = true},
-      "Decoder not pingable"};
+      "Decoder can't be pinged"};
 }
 
 /**

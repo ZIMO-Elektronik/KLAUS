@@ -45,7 +45,7 @@ void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
 }
 
 /**
- * Choos file (UI)
+ * Choose file (UI)
  *
  * \details
  * Starts a blocking native file dialog and handles the result
@@ -55,17 +55,17 @@ void UpdateBackend::choose_file() {
   char const* filterPatterns[] = {"*.zsu"};
 
   char const* selectedPath =
-    tinyfd_openFileDialog("Select a ZSU file",   // Dialog-Title
-                          "",                    // Standard-path (empty == cwd)
-                          1,                     // Filter count
-                          filterPatterns,        // Filter array
-                          "ZSU Dateien (*.zsu)", // Filter description
-                          0                      // 0 = Only one file selectable
+    tinyfd_openFileDialog("Select a ZSU file", // Dialog-Title
+                          "",                  // Standard-path (empty == cwd)
+                          1,                   // Filter count
+                          filterPatterns,      // Filter array
+                          "ZSU files (*.zsu)", // Filter description
+                          0                    // 0 = Only one file selectable
     );
 
   // Check if the user has aborted the selection
   if (!selectedPath) {
-    std::cout << "Auswahl wurde abgebrochen.\n";
+    std::cout << "Selection aborted." << std::endl;
     return;
   }
 
@@ -97,7 +97,7 @@ void UpdateBackend::choose_file() {
  * Start process (UI)
  *
  * \details
- * Creats and starts a the selected process
+ * Creates and starts a the selected process
  *
  */
 void UpdateBackend::start_process() {

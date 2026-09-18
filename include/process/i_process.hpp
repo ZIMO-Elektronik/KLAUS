@@ -72,7 +72,7 @@ struct IProcess {
    * Currently, there is no deregister.. So the owner of the callable may not go
    * out of scope.a
    *
-   * \param function Update callable (e.g. a Lamda)
+   * \param function Update callable (e.g. a lambda)
    *
    */
   virtual void onUpdate(std::function<void(type::ProcessUpdate)>) = 0;

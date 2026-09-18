@@ -274,7 +274,7 @@ void Update::write() {
             .progress = static_cast<double>(index + 1.0) /
                         static_cast<double>(_fwIt.blockCount())});
 
-    if (index % 64 == 0) lifesign();
+    if (index % 64 == 0) lifeSign();
 
     int tries{0};
     do { // Retry up to 3 times
@@ -324,7 +324,7 @@ void Update::end() {
  * Pings selected decoder to check if any answers
  *
  */
-void Update::lifesign() {
+void Update::lifeSign() {
   int tries{0};
   do {
     if (_lib.mdu_ein().ping(0u, _fwIt.id())) break;
@@ -333,7 +333,7 @@ void Update::lifesign() {
   if (tries >= 3)
     throw process_error{
       {.id = type::MessageID::AbortFlashWrite, .payload = true},
-      "Decoder not pingable"};
+      "Decoder can't be pinged"};
 }
 
 /**

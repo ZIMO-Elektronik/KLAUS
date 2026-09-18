@@ -44,7 +44,7 @@ void SoundLoadBackend::connect(slint::ComponentHandle<AppWindow> window) {
 }
 
 /**
- * Choos file (UI)
+ * Choose file (UI)
  *
  * \details
  * Starts a blocking native file dialog and handles the result
@@ -54,17 +54,17 @@ void SoundLoadBackend::choose_file() {
   char const* filterPatterns[] = {"*.zpp"};
 
   char const* selectedPath =
-    tinyfd_openFileDialog("Select a ZPP file",   // Dialog-Title
-                          "",                    // Standard-path (empty == cwd)
-                          1,                     // Filter count
-                          filterPatterns,        // Filter array
-                          "ZPP Dateien (*.zpp)", // Filter description
-                          0                      // 0 = Only one file selectable
+    tinyfd_openFileDialog("Select a ZPP file", // Dialog-Title
+                          "",                  // Standard-path (empty == cwd)
+                          1,                   // Filter count
+                          filterPatterns,      // Filter array
+                          "ZPP files (*.zpp)", // Filter description
+                          0                    // 0 = Only one file selectable
     );
 
   // Check if the user has aborted the selection
   if (!selectedPath) {
-    std::cout << "Selection aborted\n";
+    std::cout << "Selection aborted" << std::endl;
     return;
   }
 
@@ -99,7 +99,7 @@ void SoundLoadBackend::choose_file() {
  * Start process (UI)
  *
  * \details
- * Creats and starts a the selected process
+ * Creates and starts a the selected process
  *
  */
 void SoundLoadBackend::start_process() {
