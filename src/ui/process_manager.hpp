@@ -13,11 +13,11 @@
 #include <concepts>
 #include <mutex>
 #include "app-window.h"
-#include "include/process/i_process.hpp"
-#include "include/type/step.hpp"
-#include "include/ui/helper/progress_tracker.hpp"
-#include "include/ui/i_backend.hpp"
+#include "process/i_process.hpp"
 #include "slint.h"
+#include "type/step.hpp"
+#include "ui/helper/progress_tracker.hpp"
+#include "ui/i_backend.hpp"
 
 namespace ui {
 

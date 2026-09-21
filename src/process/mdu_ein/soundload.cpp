@@ -6,11 +6,11 @@
  * \date    25.06.2026
  */
 
-#include "include/process/mdu_ein/soundload.hpp"
+#include "process/mdu_ein/soundload.hpp"
 #include <iostream>
 #include <thread>
-#include "include/process/process_error.hpp"
-#include "include/type/step.hpp"
+#include "process/process_error.hpp"
+#include "type/step.hpp"
 
 namespace process::mdu_ein {
 

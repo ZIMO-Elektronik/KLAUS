@@ -1,5 +1,5 @@
-#include "include/ui/process_manager.hpp"
-#include "include/ui/helper/message_id_map.hpp"
+#include "ui/process_manager.hpp"
+#include "ui/helper/message_id_map.hpp"
 
 namespace ui {
 

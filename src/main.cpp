@@ -1,10 +1,10 @@
 #include <cstdlib>
 #include <iostream>
 #include "app-window.h"
-// #include "include/ui/cv/cv_programmer.hpp"
+// #include "ui/cv/cv_programmer.hpp"
 
-#include "include/process/mdu_ein/update.hpp"
-#include "include/ui/app_backend.hpp"
+#include "process/mdu_ein/update.hpp"
+#include "ui/app_backend.hpp"
 
 #ifdef _WIN32
 #  include <windows.h>

@@ -6,7 +6,7 @@
  * \date    25.06.2026
  */
 
-#include "include/ui/app_backend.hpp"
+#include "ui/app_backend.hpp"
 
 // To safely convert the version string
 #define STRINGIFY(x) TO_STRING(x)

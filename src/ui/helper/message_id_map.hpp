@@ -11,7 +11,7 @@
 // #include <libintl.h>
 #include <string_view>
 #include "app-window.h"
-#include "include/type/step.hpp"
+#include "type/step.hpp"
 
 #define gettext(x) x
 

@@ -6,9 +6,9 @@
  * \date    25.06.2026
  */
 
-#include "include/process/susiv2/soundload.hpp"
+#include "process/susiv2/soundload.hpp"
 #include <iostream>
-#include "include/process/process_error.hpp"
+#include "process/process_error.hpp"
 
 namespace process::susiv2 {
 

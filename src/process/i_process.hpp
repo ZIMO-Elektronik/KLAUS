@@ -9,7 +9,7 @@
 #pragma once
 
 #include <functional>
-#include "include/type/step.hpp"
+#include "type/step.hpp"
 
 namespace process {
 

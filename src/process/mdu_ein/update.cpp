@@ -6,12 +6,12 @@
  * \date    25.06.2026
  */
 
-#include "include/process/mdu_ein/update.hpp"
+#include "process/mdu_ein/update.hpp"
 #include <algorithm>
 #include <future>
 #include <iostream>
 #include <thread>
-#include "include/process/process_error.hpp"
+#include "process/process_error.hpp"
 
 namespace process::mdu_ein {
 

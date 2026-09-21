@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdexcept>
-#include "include/type/step.hpp"
+#include "type/step.hpp"
 
 namespace process {
 

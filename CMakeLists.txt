@@ -90,7 +90,7 @@ if(NOT TARGET ULF::ULF)
     0.2.0)
 endif()
 
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE .)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint ULF
                                                     ::tinyfiledialogs)

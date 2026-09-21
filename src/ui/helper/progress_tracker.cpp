@@ -6,7 +6,7 @@
  * \date    25.06.2026
  */
 
-#include "include/ui/helper/progress_tracker.hpp"
+#include "ui/helper/progress_tracker.hpp"
 #include <iomanip>
 
 namespace ui::helper {

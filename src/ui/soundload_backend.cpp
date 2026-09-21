@@ -6,10 +6,10 @@
  * \date    25.06.2026
  */
 
-#include "include/ui/soundload_backend.hpp"
+#include "ui/soundload_backend.hpp"
 #include <tinyfiledialogs/tinyfiledialogs.h>
-#include "include/process/mdu_ein/soundload.hpp"
-#include "include/process/susiv2/soundload.hpp"
+#include "process/mdu_ein/soundload.hpp"
+#include "process/susiv2/soundload.hpp"
 
 namespace ui {
 

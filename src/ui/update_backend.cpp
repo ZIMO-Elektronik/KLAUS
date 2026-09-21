@@ -6,7 +6,7 @@
  * \date    25.06.2026
  */
 
-#include "include/ui/update_backend.hpp"
+#include "ui/update_backend.hpp"
 #include <tinyfiledialogs/tinyfiledialogs.h>
 
 namespace ui {
