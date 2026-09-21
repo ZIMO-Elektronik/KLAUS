@@ -1,19 +1,35 @@
 /**
+ * Copyright (C) 2026 [ZIMO Elektronik]
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://gnu.org>.
+ *
+ *
+ *
+ *
+ *
  * MessageID to string converter
  *
- * \file    include/ui/helper/message_id_to_string.hpp
+ * \file    ui/helper/message_id_to_string.hpp
  * \author  Jonas Gahlert
  * \date    24.06.2026
  */
 
 #pragma once
 
-// #include <libintl.h>
 #include <string_view>
 #include "app-window.h"
 #include "type/step.hpp"
-
-#define gettext(x) x
 
 namespace ui::helper {
 
@@ -23,10 +39,6 @@ namespace ui::helper {
  * \note
  * Because of the problems with gettext, this may become obsolete in favor of a
  * fluent-based translation system
- *
- * \note
- * The `gettext` macros in here are currently only for show. They are resolved
- * by the macro above since we cant have libintl while cross-compiling
  *
  * \param id MessageID
  *
