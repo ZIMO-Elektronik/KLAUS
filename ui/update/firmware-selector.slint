@@ -1,7 +1,7 @@
 import { ScrollView, VerticalBox } from "std-widgets.slint";
 import { FirmwareAdapter } from "firmware.slint";
-import { FirmwareEntry } from "firmware_entry.slint";
-import { HelpPopup } from "../utility/help_popup/help_popup.slint";
+import { FirmwareEntry } from "firmware-entry.slint";
+import { HelpPopup } from "../utility/help-popup/help-popup.slint";
 
 export component FirmwareSelector inherits Rectangle {
     in property <[FirmwareAdapter]> firmwares;
@@ -11,7 +11,7 @@ export component FirmwareSelector inherits Rectangle {
     horizontal-stretch: 1;
 
     HelpPopup {
-        help-text: "Choose a selection of decoder IDs (preferably your model) for the update. This can help if the update repeadetly fails at the entry";
+        help-text: "Choose a selection of decoder IDs (preferably your model) for the update. This can help if the update repeatedly fails at the entry";
         visible: root.help-mode;
 
         // This is placed relative to the center of the list container (the Rectangle). 

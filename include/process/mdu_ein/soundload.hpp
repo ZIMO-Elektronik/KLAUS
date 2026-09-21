@@ -58,7 +58,7 @@ private:
   void end();
   void exit();
 
-  void lifesign();
+  void lifeSign();
 
   void checkAbort();
 

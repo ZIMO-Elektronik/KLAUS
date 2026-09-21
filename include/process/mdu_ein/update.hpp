@@ -60,7 +60,7 @@ private:
   void verify();
   void end();
 
-  void lifesign();
+  void lifeSign();
 
   void checkAbort();
 

@@ -5,8 +5,10 @@ export component InfoPopup inherits PopupWindow {
 
     close-policy: close-on-click-outside;
 
-    // Das visuelle Kästchen im Popup
     Rectangle {
+        x: 0px;
+        y: 0px;
+
         width: layout.preferred-width;
         height: layout.preferred-height;
         background: Palette.color-scheme == ColorScheme.dark ? darkslategray : whitesmoke;

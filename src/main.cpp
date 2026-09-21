@@ -10,7 +10,7 @@
 #  include <windows.h>
 
 /**
- * Check if the programm is launched in a VM
+ * Check if the program is launched in a VM
  *
  * \return true   Supported
  * \return false  Not supported

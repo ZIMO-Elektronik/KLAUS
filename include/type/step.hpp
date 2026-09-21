@@ -21,7 +21,7 @@ namespace type {
  *
  */
 enum class MDUEntryType {
-  MDU,     ///< MDU (Powercycle) entry
+  MDU,     ///< MDU (PowerCycle) entry
   DCC_ZSU, ///< DCC ZSU (OpsMode) entry
   DCC_ZPP, ///< DCC ZPP (OpsMode) entry
 };

@@ -67,8 +67,7 @@ private:
         }
       }
     }
-    return decoder_ids; // std::move ist bei lokalen Variablen (NRVO) nicht
-                        // nötig
+    return decoder_ids;
   }
 
   slint::ComponentWeakHandle<AppWindow> _weakUi{}; ///< WeakHandle to the UI

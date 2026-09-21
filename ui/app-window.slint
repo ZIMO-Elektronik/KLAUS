@@ -1,16 +1,16 @@
-import { NavigationBar } from "navigation_bar.slint";
-import { UpdatePage } from "update/update_page.slint";
-import { SoundLoadPage, SoundLoadMode } from "soundload/soundload_page.slint";
+import { NavigationBar } from "navigation-bar.slint";
+import { UpdatePage } from "update/update-page.slint";
+import { SoundLoadPage, SoundLoadMode } from "soundload/soundload-page.slint";
 import { AppPage } from "types.slint";
 import { FirmwareAdapter } from "update/firmware.slint";
 import { EntryType } from "update/entry.slint";
-import { AboutPage } from "about_page.slint";
+import { AboutPage } from "about-page.slint";
 import { Palette } from "std-widgets.slint";
 
 // Re-export context
-import { ProgressViewContext } from "progress/progress_context.slint";
-import { AppContext } from "app_context.slint";
-import { MessageIDAdapter } from "progress/dynamic/step_text.slint";
+import { ProgressViewContext } from "progress/progress-context.slint";
+import { AppContext } from "app-context.slint";
+import { MessageIDAdapter } from "progress/dynamic/step-text.slint";
 export { ProgressViewContext, AppContext, MessageIDAdapter }
 export component AppWindow inherits Window {
     title: AppContext.tool-name-acronym;
@@ -30,7 +30,6 @@ export component AppWindow inherits Window {
     in property <string> zpp_author;
     in property <string> zpp_email;
 
-    // Globale Callbacks für C++ Registrierung
     callback change_page(AppPage);
 
     callback choose_file();
@@ -38,14 +37,14 @@ export component AppWindow inherits Window {
 
     HorizontalLayout {
 
-        // Linke Navigationsleiste
+        // NavBar (left)
         nav := NavigationBar {
             change-page(page) => {
                 root.change_page(page);
             }
         }
 
-        // Rechter Inhaltsbereich mit dynamischen Seiten
+        // Page (right)
         Rectangle {
             background: Palette.background;
 

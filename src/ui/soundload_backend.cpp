@@ -44,40 +44,36 @@ void SoundLoadBackend::connect(slint::ComponentHandle<AppWindow> window) {
 }
 
 /**
- * Choos file (UI)
+ * Choose file (UI)
  *
  * \details
  * Starts a blocking native file dialog and handles the result
  *
  */
 void SoundLoadBackend::choose_file() {
-  // 1. Filter für den Dialog definieren
-  // tinyfiledialogs erwartet ein Array aus Zeichenketten für die Endungen
   char const* filterPatterns[] = {"*.zpp"};
 
-  // 2. Den Datei-Öffnen-Dialog aufrufen
-  char const* selectedPath = tinyfd_openFileDialog(
-    "ZPP-Datei auswählen", // Dialog-Titel
-    "",                    // Standard-Pfad (leer = aktuelles Verzeichnis)
-    1,                     // Anzahl der Filter-Muster im Array
-    filterPatterns,        // Das Filter-Array
-    "ZPP Dateien (*.zpp)", // Beschreibung des Filters für den Nutzer
-    0                      // 0 = Nur eine Datei auswählbar, 1 = Mehrfachauswahl
-  );
+  char const* selectedPath =
+    tinyfd_openFileDialog("Select a ZPP file", // Dialog-Title
+                          "",                  // Standard-path (empty == cwd)
+                          1,                   // Filter count
+                          filterPatterns,      // Filter array
+                          "ZPP files (*.zpp)", // Filter description
+                          0                    // 0 = Only one file selectable
+    );
 
-  // 3. Überprüfen, ob der Nutzer die Auswahl abgebrochen hat
+  // Check if the user has aborted the selection
   if (!selectedPath) {
-    std::cout << "Auswahl wurde abgebrochen.\n";
+    std::cout << "Selection aborted" << std::endl;
     return;
   }
 
-  // 4. In std::filesystem::path konvertieren
   std::filesystem::path zppPath(selectedPath);
 
-  // 5. Nutzen des Pfads (Beispiel-Ausgabe)
-  std::cout << "Erfolgreich ausgewählt!\n";
-  std::cout << "Absoluter Pfad: " << zppPath << "\n";
-  std::cout << "Dateiname:      " << zppPath.filename() << "\n";
+  // Print path
+  std::cout << "Selected\n";
+  std::cout << "Absolute path: " << zppPath << "\n";
+  std::cout << "File name:     " << zppPath.filename() << "\n";
 
   _path = zppPath;
 
@@ -103,7 +99,7 @@ void SoundLoadBackend::choose_file() {
  * Start process (UI)
  *
  * \details
- * Creats and starts a the selected process
+ * Creates and starts a the selected process
  *
  */
 void SoundLoadBackend::start_process() {

@@ -1,0 +1,19 @@
+import { HelpButton } from "help-button.slint";
+import { InfoPopup } from "info-popup.slint";
+
+export component HelpPopup inherits Rectangle {
+    in property <string> help-text;
+
+    button := HelpButton {
+        clicked => {
+            popup.show();
+        }
+    }
+
+    popup := InfoPopup {
+        x: button.absolute-position.x - root.absolute-position.x + button.width + 5px;
+        y: button.absolute-position.y - root.absolute-position.y;
+
+        info-text <=> help-text;
+    }
+}
