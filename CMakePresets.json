@@ -75,12 +75,11 @@
             "displayName": "Release AMD64",
             "configurePreset": "release_amd64",
             "generators": [
-                "DEB",
-                "TGZ"
+                "TGZ",
+                "AppImage"
             ],
             "variables": {
-                "CPACK_DEBIAN_PACKAGE_MAINTAINER": "support@zimo.at",
-                "CPACK_DEBIAN_PACKAGE_SECTION": "dev"
+                "CPACK_PACKAGE_ICON": "zimo_logo.svg"
             }
         },
         {

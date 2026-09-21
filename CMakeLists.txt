@@ -145,8 +145,34 @@ install(
 
 if(UNIX AND NOT APPLE)
   # Install .deb specifics
-  install(FILES "data/z-klaus.desktop" DESTINATION share/applications)
-  install(FILES "data/zimo_logo.png" DESTINATION share/pixmaps)
+  install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
+  install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
+  install(FILES "data/zimo_logo.svg"
+          DESTINATION "share/icons/hicolor/scalable/apps")
+
+  install(
+    CODE [[
+    file(GET_RUNTIME_DEPENDENCIES
+        EXECUTABLES $<TARGET_FILE:z-klaus>
+        RESOLVED_DEPENDENCIES_VAR resolved_deps
+        UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+    )
+    foreach(lib ${resolved_deps})
+        # Don't include system libs (libpthread, etc.)
+        if(lib MATCHES "ld-linux" OR lib MATCHES "libc\\.so" OR lib MATCHES "libpthread\\.so" OR lib MATCHES "libdl\\.so")
+            continue()
+        endif()
+
+        # copy symlink
+        file(INSTALL ${lib} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
+        # resolve symlink
+        file(REAL_PATH ${lib} resolved_lib_path)
+
+        # copy resolved dependency
+        file(COPY ${resolved_lib_path} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+    endforeach()
+  ]])
 elseif(WIN32)
   install(FILES "data/zimo_logo.png" DESTINATION bin)
 
