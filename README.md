@@ -23,13 +23,13 @@ In order to build and pack this tool, a vew tools are needed
 
 The tool can be packaged into an installable pack to allow for easier deployment. The prerequisites depend on the target platform. Since the tool is as of now intended to be build on linux, this list is only for linux users.
 
-* NSIS
+* For windows
+  * [NSIS](https://github.com/NSIS-Dev/nsis)
+* For linux
+  * [appimagetool](https://github.com/AppImage/appimagetool)
+  * [patchelf](https://github.com/nixos/patchelf)
 
 All of the above can be installed with
-
-```sh
-sudo apt install nsis
-```
 
 ## Usage
 

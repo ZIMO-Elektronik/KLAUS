@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Version=0.0.0
+Version=1.0
 Name=KLAUS
-Comment=Eine tolle plattformübergreifende App
+Comment=A model train decoder update tool
 Exec=z-klaus
 Icon=zimo_logo
 Terminal=false
