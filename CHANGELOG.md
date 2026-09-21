@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.4
+
+- Build: Introduce AppImage build for linux
+- Chore: Cleaunup code (and include license)
+
 ## 0.0.3
 
 - Build: Update libklug -> libulf v0.2.0
