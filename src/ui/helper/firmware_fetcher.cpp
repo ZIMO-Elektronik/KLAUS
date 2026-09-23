@@ -1,8 +1,8 @@
 #include "firmware_fetcher.hpp"
 #include <algorithm>
-#include <ctre.hpp>
 #include <format>
 #include <fstream>
+#include <regex>
 #include <stdexcept>
 
 namespace ui::helper {
@@ -14,22 +14,19 @@ namespace dsw {
 /**
  * Class start pattern, groups to <class>
  */
-constexpr auto class_start_pattern{
-  ctll::fixed_string{"^\"(?!/)(?!.*\",\".*)(.*)\"$"}};
+std::regex class_start_pattern{"^\"(?!/)(?!.*\",\".*)([^\"]*)\"$"};
 
 /**
  * Class end pattern, groups to <class>
  */
-constexpr auto class_end_pattern{
-  ctll::fixed_string{"^\"/(?!.*\",\".*)(.*)\"$"}};
+std::regex class_end_pattern{"^\"/(?!.*\",\".*)([^\"]*)\"$"};
 
 /**
  * Class field pattern, groups to <key>, <value>
  */
-constexpr auto field_pattern{ctll::fixed_string{"^\"(.*)\",\"(.*)\""}};
+std::regex field_pattern{"^\"([^\"]*)\",\"([^\"]*)\""};
 
 File read(std::filesystem::path path) {
-  using namespace ctre::literals;
   using std::operator""sv;
 
   if (!exists(path))
@@ -50,11 +47,16 @@ File read(std::filesystem::path path) {
 
   std::string line{};
   while (std::getline(input, line)) {
-    std::string_view vline{line};
-    if (auto [whole_1, _class] = ctre::match<class_start_pattern>(line);
-        whole_1) {
+    if (!line.empty() && line.back() == '\r') { line.pop_back(); }
+
+    std::smatch words{};
+    std::regex_search(line, words, class_start_pattern);
+    if (!words.empty() && words.size() == 2uz) {
       // Start of a class
       if (group) throw std::format_error("Class begin inside of other class");
+
+      auto iter{++words.begin()};         // Skip whole match
+      auto const _class{(iter++)->str()}; // First submatch
 
       if (_class == "Decodersw"sv) group = DSW::Group::MX;
       else if (_class == "DecoderswMS"sv) group = DSW::Group::MS_MN_FS;
@@ -64,10 +66,17 @@ File read(std::filesystem::path path) {
       date = "";
       url = "";
 
-    } else if (auto [whole_2, key, value] = ctre::match<field_pattern>(line);
-               whole_2) {
+      continue;
+    }
+
+    std::regex_search(line, words, field_pattern);
+    if (!words.empty() && words.size() == 3uz) {
       // Field of a class
       if (!group) throw std::format_error("Field defined outside of class");
+
+      auto iter{++words.begin()};      // Skip whole match
+      auto const key{(iter++)->str()}; // First submatch
+      auto value{(iter++)->str()};     // Second submatch
 
       if (key == "Version"sv) {
         version = value;
@@ -76,6 +85,9 @@ File read(std::filesystem::path path) {
         date = value;
 
       } else if (key == "Location"sv) {
+        if (!value.starts_with("https")) {
+          value.insert(value.find_first_of(':'), 1u, 's');
+        }
         url.insert(0uz, value);
 
       } else if (key == "Datei"sv) {
@@ -83,10 +95,16 @@ File read(std::filesystem::path path) {
 
       } else throw std::format_error("Unsupported key");
 
-    } else if (auto [whole_3, class_] = ctre::match<class_end_pattern>(line);
-               whole_3) {
+      continue;
+    }
+
+    std::regex_search(line, words, class_end_pattern);
+    if (!words.empty() && words.size() == 2uz) {
       // End of a class
       if (!group) throw std::format_error("Class terminator outside of class");
+
+      auto iter{++words.begin()};         // Skip whole match
+      auto const class_{(iter++)->str()}; // First submatch
 
       switch (*group) {
         case DSW::Group::MX:
@@ -110,7 +128,10 @@ File read(std::filesystem::path path) {
                                 .url = std::move(url)});
       group.reset();
 
-    } else throw std::format_error("Unrecognized line format");
+      continue;
+    }
+
+    throw std::format_error("Unrecognized line format");
   }
 
   return output;
