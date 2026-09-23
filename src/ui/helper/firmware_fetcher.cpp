@@ -146,6 +146,8 @@ size_t Easy::write_fn(void* ptr, size_t size, size_t nmemb, FILE* stream) {
 std::filesystem::path FirmwareFetcher::fetchLatest() {
   detail::curl::Easy easy{};
 
+  std::filesystem::create_directory("./.cache");
+
   // Fetch version info
   easy.fetch(detail::dsw_version_path, detail::dsw_version_url);
 

@@ -23,6 +23,7 @@ export component UpdatePage inherits Rectangle {
     property <OptionLevel> option-level;
 
     callback choose-file();
+    callback fetch-file();
     callback start-process();
 
     VerticalLayout {
@@ -78,6 +79,22 @@ export component UpdatePage inherits Rectangle {
                                 enabled: !ProgressViewContext.is-process-running;
                                 clicked => {
                                     root.choose-file();
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 16px;
+                            HelpPopup {
+                                help-text: @tr("Fetches the latest MS/MN/FS update file (.zsu)");
+                                visible: help-mode-button.help-mode;
+                            }
+
+                            Button {
+                                text: @tr("Fetch latest");
+                                enabled: !ProgressViewContext.is-process-running;
+                                clicked => {
+                                    root.fetch-file();
                                 }
                             }
                         }

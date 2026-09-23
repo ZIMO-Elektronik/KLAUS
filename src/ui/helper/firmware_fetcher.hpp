@@ -57,7 +57,7 @@ struct FirmwareFetcher {
   FirmwareFetcher();
   ~FirmwareFetcher();
 
-  std::filesystem::path fetchLatest();
+  static std::filesystem::path fetchLatest();
 
 private:
 };
