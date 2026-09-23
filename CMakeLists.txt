@@ -22,6 +22,7 @@ add_executable(
   src/process/susiv2/soundload.cpp
   src/process/base.cpp
   src/ui/helper/progress_tracker.cpp
+  src/ui/helper/firmware_fetcher.cpp
   src/ui/process_manager.cpp
   src/ui/update_backend.cpp
   src/ui/soundload_backend.cpp
@@ -78,6 +79,25 @@ if(NOT TARGET tinyfiledialogs::tinyfiledialogs)
     master)
 endif()
 
+if(NOT TARGET curl::curl)
+  cpmaddpackage(
+    NAME
+    curl
+    GITHUB_REPOSITORY
+    curl/curl
+    SYSTEM
+    YES
+    GIT_TAG
+    curl-8_22_0
+    OPTIONS
+    "CURL_USE_LIBPSL OFF"
+    "BUILD_CURL_EXE OFF")
+endif()
+
+if(NOT TARGET ctre::ctre)
+  cpmaddpackage("gh:hanickadot/compile-time-regular-expressions@3.11.0")
+endif()
+
 if(NOT TARGET ULF::ULF)
   cpmaddpackage(
     NAME
@@ -92,8 +112,9 @@ endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint ULF
-                                                    ::tinyfiledialogs)
+target_link_libraries(
+  ${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint ULF ::tinyfiledialogs libcurl
+                                ctre::ctre)
 slint_target_sources(${CMAKE_PROJECT_NAME} ui/app-window.slint)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY SLINT_EMBED_RESOURCES
                                                    embed-files)
