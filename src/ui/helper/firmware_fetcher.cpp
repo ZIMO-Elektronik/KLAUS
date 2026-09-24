@@ -1,3 +1,30 @@
+/**
+ * Copyright (C) 2026 [ZIMO Elektronik]
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://gnu.org>.
+ *
+ *
+ *
+ *
+ *
+ * Firmware fetch helper
+ *
+ * \file    ui/helper/firmware_fetcher.cpp
+ * \author  Jonas Gahlert
+ * \date    24.09.2026
+ */
+
 #include "firmware_fetcher.hpp"
 #include <algorithm>
 #include <format>
@@ -26,6 +53,13 @@ std::regex class_end_pattern{"^\"/(?!.*\",\".*)([^\"]*)\"$"};
  */
 std::regex field_pattern{"^\"([^\"]*)\",\"([^\"]*)\""};
 
+/**
+ * Reads a File from given path
+ *
+ * \param path path to file
+ *
+ * \return File
+ */
 File read(std::filesystem::path path) {
   using std::operator""sv;
 
@@ -140,13 +174,31 @@ File read(std::filesystem::path path) {
 
 namespace curl {
 
+/**
+ * CTor
+ *
+ * \note
+ * Initializes a curl handle
+ */
 Easy::Easy() { curl = curl_easy_init(); }
 
+/**
+ * DTor
+ *
+ * \note
+ * Deletes the curl handle
+ */
 Easy::~Easy() {
   curl_easy_cleanup(curl);
   curl = nullptr;
 }
 
+/**
+ * Fetches a file from the given url to path
+ *
+ * \param path  File path
+ * \param url   Remote url
+ */
 void Easy::fetch(std::filesystem::path path, std::string_view url) {
   auto fp = fopen(path.string().data(), "wb");
   curl_easy_setopt(curl, CURLOPT_URL, url.data());
@@ -156,6 +208,16 @@ void Easy::fetch(std::filesystem::path path, std::string_view url) {
   fclose(fp);
 }
 
+/**
+ * Writes to file buffer
+ *
+ * \param ptr     Write data
+ * \param size    Write data size
+ * \param nmemb   Remaining data?
+ * \param stream  Stream to write into
+ *
+ * \return size_t Amount of data written
+ */
 size_t Easy::write_fn(void* ptr, size_t size, size_t nmemb, FILE* stream) {
   return fwrite(ptr, size, nmemb, stream);
 }
@@ -164,24 +226,33 @@ size_t Easy::write_fn(void* ptr, size_t size, size_t nmemb, FILE* stream) {
 
 } // namespace detail
 
+/**
+ * Fetches the latest ms decoder firmware
+ *
+ * \note
+ * This may later need extending to support mx decoders
+ *
+ * \return path to firmware
+ */
 std::filesystem::path FirmwareFetcher::fetchLatest() {
   detail::curl::Easy easy{};
 
-  std::filesystem::create_directory("./.cache");
+  std::filesystem::path cache_dir_path{detail::cache_dir()};
+  std::filesystem::create_directory(cache_dir_path);
 
   // Fetch version info
-  easy.fetch(detail::dsw_version_path, detail::dsw_version_url);
+  easy.fetch(detail::dsw_version_path(cache_dir_path), detail::dsw_version_url);
 
   // Parse version info
-  auto const file{detail::dsw::read(detail::dsw_version_path)};
+  auto const file{detail::dsw::read(detail::dsw_version_path(cache_dir_path))};
   auto const dsw{std::ranges::find_if(file.dsws, [](auto const& dsw) {
     return dsw.group == detail::dsw::DSW::Group::MS_MN_FS;
   })};
 
   // Fetch zsu file
-  easy.fetch(detail::zsu_file_path, dsw->url.data());
+  easy.fetch(detail::ms_zsu_file_path(cache_dir_path), dsw->url.data());
 
-  return detail::zsu_file_path;
+  return detail::ms_zsu_file_path(cache_dir_path);
 }
 
 } // namespace ui::helper

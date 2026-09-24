@@ -102,9 +102,16 @@ void UpdateBackend::choose_file() {
   open_file();
 }
 
+/**
+ * Fetches latest firmware file and open
+ */
 void UpdateBackend::fetch_file() {
-  _path = helper::FirmwareFetcher::fetchLatest();
-  open_file();
+  try {
+    _path = helper::FirmwareFetcher::fetchLatest();
+    open_file();
+  } catch (std::exception const& e) {
+    std::cerr << "Unable to fetch file. " << e.what();
+  }
 }
 
 /**
@@ -132,6 +139,9 @@ void UpdateBackend::start_process() {
   else std::cerr << "Manager is busy" << std::endl;
 }
 
+/**
+ * Opens and reads the file at _path
+ */
 void UpdateBackend::open_file() {
   _zsu = std::make_shared<libulf::ZSU>(_path);
   if (!_zsu->valid()) {
