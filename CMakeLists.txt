@@ -15,7 +15,7 @@ project(
   LANGUAGES CXX)
 
 add_executable(
-  ${CMAKE_PROJECT_NAME} # WIN32
+  ${CMAKE_PROJECT_NAME} WIN32
   src/main.cpp
   src/process/mdu_ein/update.cpp
   src/process/mdu_ein/soundload.cpp
@@ -97,10 +97,6 @@ if(NOT TARGET curl::curl)
     ${CURL_OPTIONS})
 endif()
 
-if(NOT TARGET ctre::ctre)
-  cpmaddpackage("gh:hanickadot/compile-time-regular-expressions@3.11.0")
-endif()
-
 if(NOT TARGET ULF::ULF)
   cpmaddpackage(
     NAME
@@ -115,9 +111,8 @@ endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
 
-target_link_libraries(
-  ${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint ULF ::tinyfiledialogs libcurl
-                                ctre::ctre)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint ULF
+                                                    ::tinyfiledialogs libcurl)
 slint_target_sources(${CMAKE_PROJECT_NAME} ui/app-window.slint)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY SLINT_EMBED_RESOURCES
                                                    embed-files)
