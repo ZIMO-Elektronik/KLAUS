@@ -99,7 +99,8 @@
                 "CPACK_NSIS_CREATE_ICONS_EXTRA": "CreateShortCut '$SMPROGRAMS\\\\z-klaus\\\\KLAUS.lnk' '$INSTDIR\\\\bin\\\\z-klaus.exe'",
                 "CPACK_NSIS_DELETE_ICONS_EXTRA": "Delete '$SMPROGRAMS\\\\z-klaus\\\\KLAUS.lnk'",
                 "CPACK_NSIS_EXTRA_INSTALL_COMMANDS": "CreateShortCut '$DESKTOP\\\\KLAUS.lnk' '$INSTDIR\\\\bin\\\\z-klaus.exe'",
-                "CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS": "Delete '$DESKTOP\\\\KLAUS.lnk'"
+                "CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS": "Delete '$DESKTOP\\\\KLAUS.lnk'",
+                "CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL": "ON"
             }
         }
     ],
