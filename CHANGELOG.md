@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.5
+
+- Feat: Button to fetch the latest ms firmware
+- Chore: Corrections for windows installer
+
 ## 0.0.4
 
 - Build: Introduce AppImage build for linux
