@@ -27,6 +27,7 @@
 
 #include "ui/update_backend.hpp"
 #include <tinyfiledialogs/tinyfiledialogs.h>
+#include "ui/helper/firmware_fetcher.hpp"
 
 namespace ui {
 
@@ -47,6 +48,7 @@ void UpdateBackend::connect(slint::ComponentHandle<AppWindow> window) {
   _weakUi = slint::ComponentWeakHandle<AppWindow>{window};
 
   window->on_choose_file([this]() { this->choose_file(); });
+  window->on_fetch_file([this]() { this->fetch_file(); });
   window->on_start_process([this]() { this->start_process(); });
 
   auto model{window->get_firmwares()};
@@ -97,19 +99,19 @@ void UpdateBackend::choose_file() {
 
   _path = zsuPath;
 
-  _zsu = std::make_shared<libulf::ZSU>(_path);
-  if (!_zsu->valid()) {
-    // Cant read file
-    std::cerr << "Unable to read file";
-    _zsu.reset();
-    return;
+  open_file();
+}
+
+/**
+ * Fetches latest firmware file and open
+ */
+void UpdateBackend::fetch_file() {
+  try {
+    _path = helper::FirmwareFetcher::fetchLatest();
+    open_file();
+  } catch (std::exception const& e) {
+    std::cerr << "Unable to fetch file. " << e.what() << std::endl;
   }
-
-  create_firmware_list();
-
-  if (auto ui{_weakUi.lock()}) { (*ui)->set_has_file(true); }
-
-  return;
 }
 
 /**
@@ -135,6 +137,25 @@ void UpdateBackend::start_process() {
         std::move(decoder_ids)))
     _pManager->execute();
   else std::cerr << "Manager is busy" << std::endl;
+}
+
+/**
+ * Opens and reads the file at _path
+ */
+void UpdateBackend::open_file() {
+  _zsu = std::make_shared<libulf::ZSU>(_path);
+  if (!_zsu->valid()) {
+    // Cant read file
+    std::cerr << "Unable to read file";
+    _zsu.reset();
+    return;
+  }
+
+  create_firmware_list();
+
+  if (auto ui{_weakUi.lock()}) { (*ui)->set_has_file(true); }
+
+  return;
 }
 
 /**

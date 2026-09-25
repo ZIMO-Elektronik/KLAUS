@@ -63,7 +63,10 @@ struct UpdateBackend : IBackend {
 
 private:
   void choose_file();
+  void fetch_file();
   void start_process();
+
+  void open_file();
 
   void create_firmware_list();
 

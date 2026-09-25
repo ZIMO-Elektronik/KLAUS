@@ -33,6 +33,7 @@ export component AppWindow inherits Window {
     callback change_page(AppPage);
 
     callback choose_file();
+    callback fetch_file();
     callback start_process();
 
     HorizontalLayout {
@@ -54,6 +55,9 @@ export component AppWindow inherits Window {
                 entry-type <=> root.entry-type;
                 choose-file => {
                     root.choose_file();
+                }
+                fetch-file => {
+                    root.fetch_file();
                 }
                 start-process => {
                     root.start_process();
