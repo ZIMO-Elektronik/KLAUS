@@ -15,7 +15,7 @@ project(
   LANGUAGES CXX)
 
 add_executable(
-  ${CMAKE_PROJECT_NAME} WIN32
+  ${CMAKE_PROJECT_NAME} # WIN32
   src/main.cpp
   src/process/mdu_ein/update.cpp
   src/process/mdu_ein/soundload.cpp
@@ -80,6 +80,10 @@ if(NOT TARGET tinyfiledialogs::tinyfiledialogs)
 endif()
 
 if(NOT TARGET curl::curl)
+  set(CURL_OPTIONS "CURL_USE_LIBPSL OFF" "BUILD_CURL_EXE OFF")
+  if(WIN32)
+    list(APPEND CURL_OPTIONS "CURL_USE_SCHANNEL ON")
+  endif()
   cpmaddpackage(
     NAME
     curl
@@ -90,8 +94,7 @@ if(NOT TARGET curl::curl)
     GIT_TAG
     curl-8_22_0
     OPTIONS
-    "CURL_USE_LIBPSL OFF"
-    "BUILD_CURL_EXE OFF")
+    ${CURL_OPTIONS})
 endif()
 
 if(NOT TARGET ctre::ctre)

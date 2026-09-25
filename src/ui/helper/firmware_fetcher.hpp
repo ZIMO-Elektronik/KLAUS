@@ -45,8 +45,7 @@ namespace detail {
  * Maybe we should add a fallback in case this is not writeable...
  */
 constexpr std::filesystem::path cache_dir() {
-  auto path{std::filesystem::temp_directory_path()};
-  return path.append("z-klaus/");
+  return std::filesystem::temp_directory_path() / "z-klaus";
 }
 
 /**
@@ -56,8 +55,8 @@ constexpr std::filesystem::path cache_dir() {
  *
  * \return dir path with file name appended
  */
-constexpr std::filesystem::path& dsw_version_path(std::filesystem::path& dir) {
-  return dir.append("dsw_version.txt");
+constexpr std::filesystem::path dsw_version_path(std::filesystem::path dir) {
+  return dir / "dsw_version.txt";
 }
 
 /**
@@ -67,8 +66,8 @@ constexpr std::filesystem::path& dsw_version_path(std::filesystem::path& dir) {
  *
  * \return dir path with file name appended
  */
-constexpr std::filesystem::path& ms_zsu_file_path(std::filesystem::path& dir) {
-  return dir.append("ms.zsu");
+constexpr std::filesystem::path ms_zsu_file_path(std::filesystem::path dir) {
+  return dir / "ms.zsu";
 }
 
 /**

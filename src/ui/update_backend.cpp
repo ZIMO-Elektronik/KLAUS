@@ -110,7 +110,7 @@ void UpdateBackend::fetch_file() {
     _path = helper::FirmwareFetcher::fetchLatest();
     open_file();
   } catch (std::exception const& e) {
-    std::cerr << "Unable to fetch file. " << e.what();
+    std::cerr << "Unable to fetch file. " << e.what() << std::endl;
   }
 }
 

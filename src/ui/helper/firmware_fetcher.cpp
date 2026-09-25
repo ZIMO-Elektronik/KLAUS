@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <format>
 #include <fstream>
+#include <iostream>
 #include <regex>
 #include <stdexcept>
 
@@ -202,9 +203,14 @@ Easy::~Easy() {
 void Easy::fetch(std::filesystem::path path, std::string_view url) {
   auto fp = fopen(path.string().data(), "wb");
   curl_easy_setopt(curl, CURLOPT_URL, url.data());
+  curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_fn);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
   auto const res = curl_easy_perform(curl);
+  if (res != CURLE_OK) {
+    std::cerr << "Curl error: " << res << std::endl;
+    throw std::domain_error{"Unable to fetch URL"};
+  }
   fclose(fp);
 }
 
