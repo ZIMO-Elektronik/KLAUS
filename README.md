@@ -7,9 +7,11 @@ A small cross-platform UI application to use in conjunction with the ZIMO MXULF 
 This tool was developed to allow users of Linux desktop to update their decoders without the need of a VM. In theory, this tool should also compile for
 MacOS, but no such toolchain was implemented to date (partially because of limited test hardware...).
 
+Furthermore, KLAUS is a proof-of-concept work for [libULF](https://github.com/ZIMO-Elektronik/libULF). 
+
 ## Prerequisites
 
-In order to build and pack this tool, a vew tools are needed
+In order to build and package KLAUS, a vew tools are needed
 
 ### Build
 
@@ -28,8 +30,6 @@ The tool can be packaged into an installable pack to allow for easier deployment
 * For linux
   * [appimagetool](https://github.com/AppImage/appimagetool)
   * [patchelf](https://github.com/nixos/patchelf)
-
-All of the above can be installed with
 
 ## Usage
 
