@@ -3,7 +3,7 @@
   "doxdocgen.file.fileTemplate": "\\file {indent:9}{name}",
   "doxdocgen.file.versionTag": "\\version 0.1",
   "doxdocgen.file.copyrightTag": [
-    "Copyright (C) {year} [ZIMO Elektronik]",
+    "Copyright (C) {year} ZIMO Elektronik",
     "",
     "This program is free software: you can redistribute it and/or modify",
     "it under the terms of the GNU General Public License as published",

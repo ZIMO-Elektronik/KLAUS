@@ -18,17 +18,15 @@
  *
  *
  *
- * Firmware struct
+ * App page enum
  *
- * \file    ui/update/firmware.slint
+ * \file    ui/app-page.slint
  * \author  Jonas Gahlert
  * \date    01.10.2026
  */
 
-export struct FirmwareAdapter {
-    decoder-name: string,
-    decoder-id: [int],
-    major-version: string,
-    minor-version: string,
-    selected: bool,
+export enum AppPage {
+    Update,
+    Soundload,
+    About,
 }
