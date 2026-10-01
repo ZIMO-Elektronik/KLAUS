@@ -58,7 +58,7 @@ cpack --preset release_amd64_windows
 Or as an AIO workflow
 
 ```sh
-### Linux (.deb and .tar.gz)
+### Linux (.AppImage and .tar.gz)
 cmake --workflow --preset build-and-pack-linux
 
 ### Windows (.exe and .zip)
