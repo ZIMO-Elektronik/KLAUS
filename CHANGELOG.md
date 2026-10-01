@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.0.6
+
+- Fix: Correct firmware id selection coloring in dark mode
+
 ## 0.0.5
 
 - Feat: Button to fetch the latest ms firmware
