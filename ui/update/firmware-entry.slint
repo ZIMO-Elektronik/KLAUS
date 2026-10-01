@@ -26,7 +26,7 @@
  */
 
 import { FirmwareAdapter } from "firmware.slint";
-import { HorizontalBox, CheckBox } from "std-widgets.slint";
+import { HorizontalBox, CheckBox, Palette } from "std-widgets.slint";
 
 export component FirmwareEntry {
     in property <string> name: "MS9000";
@@ -36,10 +36,13 @@ export component FirmwareEntry {
     in property <bool> is-even: true;
     in property <bool> show-box: true;
 
+    property <color> even-background: Palette.color-scheme == ColorScheme.dark ? Colors.black : Colors.white;
+    property <color> uneven-background: Palette.color-scheme == ColorScheme.dark ? Colors.transparent : Colors.lightgray;
+
     callback selected(bool);
 
     Rectangle {
-        background: is-even ? white : lightgray;
+        background: is-even ? even-background : uneven-background;
         max-width: 300px;
 
         HorizontalLayout {
