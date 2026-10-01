@@ -3,6 +3,7 @@
 ## 0.0.6
 
 - Fix: Correct firmware id selection coloring in dark mode
+- Build: Update libULF -> v0.2.1
 
 ## 0.0.5
 

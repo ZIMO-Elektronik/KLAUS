@@ -106,7 +106,7 @@ if(NOT TARGET ULF::ULF)
     SYSTEM
     YES
     VERSION
-    0.2.0)
+    0.2.1)
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
