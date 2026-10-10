@@ -18,6 +18,7 @@ In order to build and package KLAUS, a vew tools are needed
 * **[cmake](https://cmake.org/download/)** (3.25 or newer)
 * **[vcpkg](https://vcpkg.io)**
 * A C++ compiler that supports C++ 23
+* Rust
 
 ### Pack
 
@@ -34,23 +35,18 @@ The tool can be packaged into an installable pack to allow for easier deployment
 To only build the tool it is enough to execute the target presets
 
 ```sh
-### For linux
-cmake --preset release_amd64
-cmake --build --preset release_amd64
-
-### Or for windows
-cmake --preset release_amd64_windows
-cmake --build --preset release_amd64_windows
+cmake --preset release && cmake --build --preset release
 ```
 
 If a package is required, this can either be done by executing the additional pack preset
 
 ```sh
-### For linux
-cpack --preset release_amd64
+### Of course packages are platform dependent, so we need platform specific presets
+## For linux (AppImage and Archive)
+cpack --preset release_linux
 
-### Or for windows
-cpack --preset release_amd64_windows
+## For windows (Installer and Archive)
+cpack --preset release_windows
 ```
 
 Or as an AIO workflow
@@ -61,8 +57,10 @@ cmake --workflow --preset build-and-pack-linux
 
 ### Windows (.exe and .zip)
 cmake --workflow --preset build-and-pack-windows
-
 ```
+
+> !NOTE
+> For some reason, on windows VCPKG defaults to MSVC even if the cmake install detects MinGW as compiler. This will lead to ABI issues. Resulting, for a toolchain not dependent on MSVC, the VCPKG triplet needs to be selected explicitly. An example would be the 'release_amd64_windows_ci' preset chain (for the same reason) 
 
 ## Translation
 

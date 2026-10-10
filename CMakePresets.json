@@ -13,8 +13,9 @@
             "displayName": "Base Preset",
             "description": "Base Preset providing base config",
             "generator": "Ninja",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "binaryDir": "build",
             "cacheVariables": {
-                "CPM_SOURCE_CACHE": "${sourceDir}/build/.cpm_packages",
                 "CMAKE_BUILD_PARALLEL_LEVEL": "16"
             }
         },
@@ -39,26 +40,31 @@
             }
         },
         {
-            "name": "debug_amd64",
-            "displayName": "Debug AMD64",
-            "description": "Debug build for AMD64 architecture",
-            "binaryDir": "${sourceDir}/build/linux",
+            "name": "debug",
+            "displayName": "Debug",
+            "description": "Configure debug build",
             "inherits": "debug_base"
         },
         {
-            "name": "release_amd64",
-            "displayName": "Release AMD64",
-            "description": "Release build for AMD64 architecture",
-            "binaryDir": "${sourceDir}/build/linux",
-            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "name": "release",
+            "displayName": "Release",
+            "description": "Configure release build",
             "inherits": "release_base"
+        },
+        {
+            "name": "debug_osx",
+            "displayName": "Debug OSX",
+            "description": "Configure debug build for OSX",
+            "inherits": "debug_base",
+            "cacheVariables": {
+                "LIBULF_BACKEND_LIBSERIALPORT": "OFF",
+                "LIBULF_BACKEND_LIBUSB": "ON"
+            }
         },
         {
             "name": "release_osx",
             "displayName": "Release OSX",
-            "description": "Release build for OSX",
-            "binaryDir": "${sourceDir}/build/osx",
-            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "description": "Configure release build for OSX",
             "inherits": "release_base",
             "cacheVariables": {
                 "LIBULF_BACKEND_LIBSERIALPORT": "OFF",
@@ -66,32 +72,80 @@
             }
         },
         {
+            "name": "release_amd64_windows_ci",
+            "displayName": "Release AMD64 Windows (CI)",
+            "description": "CI specialized preset to deal with vcpkg 'features'",
+            "inherits": "release_base",
+            "cacheVariables": {
+                "VCPKG_HOST_TRIPLET": "x64-mingw-dynamic",
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-dynamic"
+            }
+        },
+        {
             "name": "debug_amd64_windows",
             "displayName": "Debug AMD64 Windows",
             "description": "Cross-Compiled Debug build for Windows on AMD64 architecture",
-            "binaryDir": "${sourceDir}/build/windows",
-            "toolchainFile": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
-            "inherits": "debug_base"
+            "inherits": "debug_base",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-cross",
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/.vcpkg/triplets/",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw-windows-toolchain.cmake"
+            }
         },
         {
             "name": "release_amd64_windows",
             "displayName": "Release AMD64 Windows",
             "description": "Cross-Compiled Release build for Windows on AMD64 architecture",
-            "binaryDir": "${sourceDir}/build/windows",
-            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "inherits": "release_base",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-windows-cross",
                 "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/.vcpkg/triplets/",
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw-windows-toolchain.cmake"
-            },
-            "inherits": "release_base"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "displayName": "Debug Build",
+            "configurePreset": "debug"
+        },
+        {
+            "name": "release",
+            "displayName": "Release Build",
+            "configurePreset": "release"
+        },
+        {
+            "name": "release_amd64_windows_ci",
+            "displayName": "Release Build for AMD64 Windows (CI)",
+            "configurePreset": "release_amd64_windows_ci"
+        },
+        {
+            "name": "debug_amd64_windows",
+            "displayName": "Debug Build for AMD64 Windows",
+            "configurePreset": "debug_amd64_windows"
+        },
+        {
+            "name": "release_amd64_windows",
+            "displayName": "Release Build for AMD64 Windows",
+            "configurePreset": "release_amd64_windows"
+        },
+        {
+            "name": "debug_osx",
+            "displayName": "Debug Build for OSX",
+            "configurePreset": "debug_osx"
+        },
+        {
+            "name": "release_osx",
+            "displayName": "Release Build for OSX",
+            "configurePreset": "release_osx"
         }
     ],
     "packagePresets": [
         {
-            "name": "release_amd64",
+            "name": "release_linux",
             "displayName": "Release AMD64",
-            "configurePreset": "release_amd64",
+            "configurePreset": "release",
             "generators": [
                 "TGZ",
                 "AppImage"
@@ -99,6 +153,24 @@
             "variables": {
                 "CPACK_PACKAGE_ICON": "zimo_logo.svg"
             }
+        },
+        {
+            "name": "release_windows",
+            "displayName": "Release Windows",
+            "configurePreset": "release",
+            "generators": [
+                "ZIP",
+                "NSIS"
+            ]
+        },
+        {
+            "name": "release_amd64_windows_ci",
+            "displayName": "Release AMD64 Windows (CI)",
+            "configurePreset": "release_amd64_windows_ci",
+            "generators": [
+                "ZIP",
+                "NSIS"
+            ]
         },
         {
             "name": "release_amd64_windows",
@@ -118,23 +190,6 @@
             ]
         }
     ],
-    "buildPresets": [
-        {
-            "name": "release_amd64",
-            "displayName": "Release AMD64",
-            "configurePreset": "release_amd64"
-        },
-        {
-            "name": "release_amd64_windows",
-            "displayName": "Release AMD64 Windows",
-            "configurePreset": "release_amd64_windows"
-        },
-        {
-            "name": "release_osx",
-            "displayName": "Release OSX",
-            "configurePreset": "release_osx"
-        }
-    ],
     "workflowPresets": [
         {
             "name": "build-and-pack-linux",
@@ -142,21 +197,57 @@
             "steps": [
                 {
                     "type": "configure",
-                    "name": "release_amd64"
+                    "name": "release"
                 },
                 {
                     "type": "build",
-                    "name": "release_amd64"
+                    "name": "release"
                 },
                 {
                     "type": "package",
-                    "name": "release_amd64"
+                    "name": "release_linux"
                 }
             ]
         },
         {
             "name": "build-and-pack-windows",
             "description": "Builds and packs the Windows version of this tool",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release"
+                },
+                {
+                    "type": "build",
+                    "name": "release"
+                },
+                {
+                    "type": "package",
+                    "name": "release_windows"
+                }
+            ]
+        },
+        {
+            "name": "build-and-pack-amd64-windows-ci",
+            "description": "Builds and packs a cross-compiled Windows version of this tool",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release_amd64_windows_ci"
+                },
+                {
+                    "type": "build",
+                    "name": "release_amd64_windows_ci"
+                },
+                {
+                    "type": "package",
+                    "name": "release_amd64_windows_ci"
+                }
+            ]
+        },
+        {
+            "name": "build-and-pack-amd64-windows",
+            "description": "Builds and packs a cross-compiled Windows version of this tool",
             "steps": [
                 {
                     "type": "configure",

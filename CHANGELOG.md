@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.0.7
+
+- Fix: MDU soundload not starting (at all)
+- Build: Native windows MinGW build. 
+
 ## 0.0.6
 
 - Fix: Correct firmware id selection coloring in dark mode
