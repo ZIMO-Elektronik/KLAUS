@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
   CMakeModules
   GIT_REPOSITORY "https://github.com/ZIMO-Elektronik/CMakeModules"
-  GIT_TAG v0.12.4
+  GIT_TAG v0.13.0
   SOURCE_DIR ${CMAKE_BINARY_DIR}/CMakeModules)
 FetchContent_MakeAvailable(CMakeModules)
 
@@ -98,15 +98,7 @@ if(NOT TARGET curl::curl)
 endif()
 
 if(NOT TARGET ULF::ULF)
-  cpmaddpackage(
-    NAME
-    ULF
-    GIT_REPOSITORY
-    git@github.com:ZIMO-Elektronik/libULF.git
-    SYSTEM
-    YES
-    VERSION
-    0.2.1)
+  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.2.1")
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
@@ -163,6 +155,8 @@ install(
   "^libstdc\\+\\+")
 
 if(UNIX AND NOT APPLE)
+  find_package(appimagetool)
+
   # Install .deb specifics
   install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
   install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
