@@ -50,7 +50,20 @@
             "displayName": "Release AMD64",
             "description": "Release build for AMD64 architecture",
             "binaryDir": "${sourceDir}/build/linux",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "inherits": "release_base"
+        },
+        {
+            "name": "release_osx",
+            "displayName": "Release OSX",
+            "description": "Release build for OSX",
+            "binaryDir": "${sourceDir}/build/osx",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "inherits": "release_base",
+            "cacheVariables": {
+                "LIBULF_BACKEND_LIBSERIALPORT": "OFF",
+                "LIBULF_BACKEND_LIBUSB": "ON"
+            }
         },
         {
             "name": "debug_amd64_windows",
@@ -65,7 +78,12 @@
             "displayName": "Release AMD64 Windows",
             "description": "Cross-Compiled Release build for Windows on AMD64 architecture",
             "binaryDir": "${sourceDir}/build/windows",
-            "toolchainFile": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-cross",
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/.vcpkg/triplets/",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw-windows-toolchain.cmake"
+            },
             "inherits": "release_base"
         }
     ],
@@ -87,21 +105,17 @@
             "displayName": "Release AMD64 Windows",
             "configurePreset": "release_amd64_windows",
             "generators": [
-                "NSIS",
-                "ZIP"
-            ],
-            "variables": {
-                "CPACK_NSIS_MODIFY_PATH": "OFF",
-                "CPACK_NSIS_DISPLAY_NAME": "z-klaus",
-                "CPACK_NSIS_PACKAGE_NAME": "z-klaus",
-                "CPACK_NSIS_MUI_ICON": "${sourceDir}/data/zimo_logo.ico",
-                "CPACK_NSIS_MUI_UNIICON": "${sourceDir}/data/zimo_logo.ico",
-                "CPACK_NSIS_CREATE_ICONS_EXTRA": "CreateShortCut '$SMPROGRAMS\\\\z-klaus\\\\KLAUS.lnk' '$INSTDIR\\\\bin\\\\z-klaus.exe'",
-                "CPACK_NSIS_DELETE_ICONS_EXTRA": "Delete '$SMPROGRAMS\\\\z-klaus\\\\KLAUS.lnk'",
-                "CPACK_NSIS_EXTRA_INSTALL_COMMANDS": "CreateShortCut '$DESKTOP\\\\KLAUS.lnk' '$INSTDIR\\\\bin\\\\z-klaus.exe'",
-                "CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS": "Delete '$DESKTOP\\\\KLAUS.lnk'",
-                "CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL": "ON"
-            }
+                "ZIP",
+                "NSIS"
+            ]
+        },
+        {
+            "name": "release_osx",
+            "displayName": "Release OSX",
+            "configurePreset": "release_osx",
+            "generators": [
+                "Bundle"
+            ]
         }
     ],
     "buildPresets": [
@@ -114,6 +128,11 @@
             "name": "release_amd64_windows",
             "displayName": "Release AMD64 Windows",
             "configurePreset": "release_amd64_windows"
+        },
+        {
+            "name": "release_osx",
+            "displayName": "Release OSX",
+            "configurePreset": "release_osx"
         }
     ],
     "workflowPresets": [
@@ -150,6 +169,24 @@
                 {
                     "type": "package",
                     "name": "release_amd64_windows"
+                }
+            ]
+        },
+        {
+            "name": "build-and-pack-osx",
+            "description": "Builds and packs the OSX version of this tool",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release_osx"
+                },
+                {
+                    "type": "build",
+                    "name": "release_osx"
+                },
+                {
+                    "type": "package",
+                    "name": "release_osx"
                 }
             ]
         }

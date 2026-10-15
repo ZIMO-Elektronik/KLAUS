@@ -16,6 +16,7 @@ In order to build and package KLAUS, a vew tools are needed
 ### Build
 
 * **[cmake](https://cmake.org/download/)** (3.25 or newer)
+* **[vcpkg](https://vcpkg.io)**
 * A C++ compiler that supports C++ 23
 
 ### Pack
