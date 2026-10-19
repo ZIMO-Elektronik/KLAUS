@@ -1,6 +1,6 @@
 # KLAUS (KLUG Lite Audioload and Update Software)
 
-A small cross-platform UI application to use in conjunction with the ZIMO MXULF and KLUG.
+A small cross-platform UI application to use in conjunction with the ZIMO MXULF and KLUG. Prebuilt binaries are available on the [releases](https://github.com/ZIMO-Elektronik/KLAUS/releases/latest) page. 
 
 ## About
 
@@ -17,9 +17,6 @@ In order to build and package KLAUS, a vew tools are needed
 
 * **[cmake](https://cmake.org/download/)** (3.25 or newer)
 * A C++ compiler that supports C++ 23
-
-> [!NOTE]
-> I think some slint dependency must also be installed, something like libopengl-dev or simmilar?
 
 ### Pack
 
