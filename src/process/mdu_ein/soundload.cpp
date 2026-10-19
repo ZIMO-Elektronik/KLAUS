@@ -91,7 +91,8 @@ void SoundLoad::load() {
       write();
       end();
     } catch (process_error const& e) {
-      std::cerr << e.what();
+      std::cerr << e.what() << std::endl;
+      _abort = true;
       pushUI(static_cast<type::ProcessUpdate>(e));
     }
 
@@ -99,7 +100,7 @@ void SoundLoad::load() {
     exit();
     reset();
   } catch (std::exception const& e) {
-    std::cerr << e.what();
+    std::cerr << e.what() << std::endl;
     pushUI({.id = type::MessageID::AbortUnresponsive, .payload = true});
   }
 }
@@ -125,7 +126,7 @@ void SoundLoad::mode() {
  * \throws ulf_error     If the communication failed
  */
 void SoundLoad::enter() {
-  if (!_lib.com().mdu_ein())
+  if (!_lib.mdu_ein().enterDCCZPP())
     throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
                         "Unable to enter decoders"};
 }
@@ -145,7 +146,7 @@ void SoundLoad::enter() {
 void SoundLoad::config() {
   pushUI({.id = type::MessageID::Init});
 
-  if (_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Fast))
+  if (!_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Fast))
     throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
                         "Unable to configure transfer rate"};
 }
@@ -194,7 +195,7 @@ void SoundLoad::init() {
  */
 void SoundLoad::erase() {
   // Erase flash
-  if (_lib.mdu_ein().zppErase(*_zpp))
+  if (!_lib.mdu_ein().zppErase(*_zpp))
     throw process_error{
       {.id = type::MessageID::AbortFlashErase, .payload = true},
       "Unable to erase decoder flash"};
