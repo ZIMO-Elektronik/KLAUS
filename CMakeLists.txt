@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.21)
 
+project(z-klaus LANGUAGES CXX)
+
+# Because of some override when using vcpkg, we can't fetch CMakeModules before
+# the project call. The effect is an ininite recursion within either
+# add_executable or find_package
 include(FetchContent)
 FetchContent_Declare(
   CMakeModules
@@ -7,12 +12,11 @@ FetchContent_Declare(
   GIT_TAG v0.12.4
   SOURCE_DIR ${CMAKE_BINARY_DIR}/CMakeModules)
 FetchContent_MakeAvailable(CMakeModules)
-
 version_from_git()
-project(
-  z-klaus
-  VERSION ${VERSION_FROM_GIT}
-  LANGUAGES CXX)
+set(CMAKE_PROJECT_VERSION ${VERSION_FROM_GIT})
+set(CMAKE_PROJECT_VERSION_MAJOR ${VERSION_MAJOR_FROM_GIT})
+set(CMAKE_PROJECT_VERSION_MINOR ${VERSION_MINOR_FROM_GIT})
+set(CMAKE_PROJECT_VERSION_PATCH ${VERSION_PATCH_FROM_GIT})
 
 add_executable(
   ${CMAKE_PROJECT_NAME} WIN32
@@ -33,101 +37,27 @@ add_executable(
 target_compile_definitions(${CMAKE_PROJECT_NAME}
                            PRIVATE PROJECT_VERSION=${VERSION_FROM_GIT})
 
-FetchContent_Declare(
-  Slint
-  GIT_REPOSITORY https://github.com/slint-ui/slint.git
-  # `release/1` will auto-upgrade to the latest Slint >= 1.0.0 and < 2.0.0
-  # `release/1.0` will auto-upgrade to the latest Slint >= 1.0.0 and < 1.1.0
-  GIT_TAG release/1
-  SOURCE_SUBDIR api/cpp)
-FetchContent_MakeAvailable(Slint)
-
 set(SLINT_OPTIONS "SLINT_BUILD_EXAMPLES ON")
 
-if(WIN32)
-  list(
-    APPEND
-    SLINT_OPTIONS
-    "SLINT_FEATURE_RENDERER_FEMTOVG OFF"
-    "SLINT_FEATURE_RENDERER_SOFTWARE ON"
-    "SLINT_FEATURE_RENDERER_WINIT_SKIA ON"
-    "SLINT_FEATURE_BACKEND_WINIT ON"
-    "SKIA_GN_ARGS win_vc=\"\"")
-endif()
+find_package(tinyfiledialogs CONFIG REQUIRED)
+find_package(CURL REQUIRED)
 
 if(NOT TARGET Slint::Slint)
-  cpmaddpackage(
-    NAME
-    Slint
-    GITHUB_REPOSITORY
-    slint-ui/slint
-    GIT_TAG
-    release/1
-    OPTIONS
-    ${SLINT_OPTIONS})
-endif()
-
-if(NOT TARGET tinyfiledialogs::tinyfiledialogs)
-  cpmaddpackage(
-    NAME
-    Tinyfiledialogs
-    GITHUB_REPOSITORY
-    D31m05z/tinyfiledialogs
-    SYSTEM
-    YES
-    GIT_TAG
-    master)
-endif()
-
-if(NOT TARGET curl::curl)
-  set(CURL_OPTIONS "CURL_USE_LIBPSL OFF" "BUILD_CURL_EXE OFF")
-  if(WIN32)
-    list(APPEND CURL_OPTIONS "CURL_USE_SCHANNEL ON")
-  endif()
-  cpmaddpackage(
-    NAME
-    curl
-    GITHUB_REPOSITORY
-    curl/curl
-    SYSTEM
-    YES
-    GIT_TAG
-    curl-8_22_0
-    OPTIONS
-    ${CURL_OPTIONS})
+  cpmaddpackage("gh:slint-ui/slint#release/1")
 endif()
 
 if(NOT TARGET ULF::ULF)
-  cpmaddpackage(
-    NAME
-    ULF
-    GIT_REPOSITORY
-    git@github.com:ZIMO-Elektronik/libULF.git
-    SYSTEM
-    YES
-    VERSION
-    0.2.1)
+  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.2.1")
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint ULF
-                                                    ::tinyfiledialogs libcurl)
+target_link_libraries(
+  ${CMAKE_PROJECT_NAME} PRIVATE Slint::Slint ULF
+                                tinyfiledialogs::tinyfiledialogs CURL::libcurl)
 slint_target_sources(${CMAKE_PROJECT_NAME} ui/app-window.slint)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY SLINT_EMBED_RESOURCES
                                                    embed-files)
-
-# On Windows, copy the Slint DLL next to the application binary so that it's
-# found.
-if(WIN32)
-  add_custom_command(
-    TARGET ${CMAKE_PROJECT_NAME}
-    POST_BUILD
-    COMMAND
-      ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${CMAKE_PROJECT_NAME}>
-      $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>
-    COMMAND_EXPAND_LISTS)
-endif()
 
 if(PROJECT_IS_TOP_LEVEL)
   file(
@@ -143,24 +73,12 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 # ---- CPack instructions ----
 
-install(TARGETS ${CMAKE_PROJECT_NAME} RUNTIME DESTINATION bin)
 install(
-  TARGETS ULF
+  TARGETS z-klaus
   LIBRARY DESTINATION lib # .so-Files
   RUNTIME DESTINATION bin # .dll-Files (to avoid linking issues)
   ARCHIVE DESTINATION lib # [.a/.lib]-Files
 )
-install(
-  RUNTIME_DEPENDENCY_SET
-  deps
-  DESTINATION
-  lib
-  PRE_EXCLUDE_REGEXES
-  "^libpthread"
-  "^libc\\."
-  "^libm\\."
-  "^libgcc"
-  "^libstdc\\+\\+")
 
 if(UNIX AND NOT APPLE)
   # Install .deb specifics
@@ -207,27 +125,70 @@ if(UNIX AND NOT APPLE)
 elseif(WIN32)
   install(FILES "data/zimo_logo.png" DESTINATION bin)
 
-  # Move misplaced DLLs to bin dir for Windows
-  install(
-    CODE [[
-        file(GLOB_RECURSE _misplaced_dlls "${CMAKE_INSTALL_PREFIX}/lib/*.dll")
-        if(_misplaced_dlls)
-            message(STATUS "Fixing Windows DLL paths for third-party libraries...")
-            file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/bin")
+  if(${CMAKE_CROSSCOMPILING})
+    find_file(
+      SLINT_DLL
+      NAMES slint_cpp.dll
+      PATHS ${CMAKE_BINARY_DIR}/bin/ REQUIRED)
 
-            foreach(_dll ${_misplaced_dlls})
-                get_filename_component(_dll_name "${_dll}" NAME)
-                file(RENAME "${_dll}" "${CMAKE_INSTALL_PREFIX}/bin/${_dll_name}")
-            endforeach()
-        endif()
-    ]])
+    if(LIBULF_BACKEND_LIBUSB)
+      set(USB_BACKEND "usb-1.0")
+    elseif(LIBULF_BACKEND_LIBSERIALPORT)
+      set(USB_BACKEND "libserialport")
+    endif()
+
+    # Not really cross-platform, well have to think of somethign better
+    set(MINGW_LIB_DIR "/usr/x86_64-w64-mingw32/lib")
+    install(FILES "${MINGW_LIB_DIR}/libwinpthread-1.dll" ${SLINT_DLL}
+            DESTINATION bin)
+    install(TARGETS ULF ${USB_BACKEND})
+  else()
+    install(
+      CODE [[
+        file(GET_RUNTIME_DEPENDENCIES
+        EXECUTABLES $<TARGET_FILE:z-klaus>
+        RESOLVED_DEPENDENCIES_VAR resolved_deps
+        UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+        )
+        foreach(dll ${resolved_deps})
+          # copy symlink
+          file(INSTALL ${dll} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+        endforeach()
+      ]])
+  endif()
 endif()
 
 set(CPACK_PACKAGE_NAME ${CMAKE_PROJECT_NAME})
 set(CPACK_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
+set(CPACK_PACKAGE_FILE_NAME
+    ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}${CMAKE_SYSTEM_PROCESSOR}
+)
 set(CPACK_PACKAGE_VENDOR "ZIMO-Elektronik")
 set(CPACK_PACKAGE_DESCRIPTION "A cross-platform decoder update utility")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "z-klaus")
 set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
+
+set(CPACK_NSIS_MODIFY_PATH OFF)
+set(CPACK_NSIS_DISPLAY_NAME z-klaus)
+set(CPACK_NSIS_PACKAGE_NAME z-klaus)
+set(CPACK_NSIS_MUI_ICON ${CMAKE_SOURCE_DIR}/data/zimo_logo.ico)
+set(CPACK_NSIS_MUI_UNIICON ${CMAKE_SOURCE_DIR}/data/zimo_logo.ico)
+set(CPACK_NSIS_CREATE_ICONS_EXTRA
+    "CreateShortCut '$SMPROGRAMS\\\\z-klaus\\\\KLAUS.lnk' '$INSTDIR\\\\bin\\\\z-klaus.exe'"
+)
+set(CPACK_NSIS_DELETE_ICONS_EXTRA
+    "Delete '$SMPROGRAMS\\\\z-klaus\\\\KLAUS.lnk'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
+    "CreateShortCut '$DESKTOP\\\\KLAUS.lnk' '$INSTDIR\\\\bin\\\\z-klaus.exe'")
+set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\KLAUS.lnk'")
+set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+
+set(CPACK_DMG_NAME z-klaus)
+set(CPACK_DMG_ICON ${CMAKE_SOURCE_DIR}/data/zimo_logo.svg)
+set(CPACK_DMG_PLIST ${CMAKE_SOURCE_DIR}/data/Entitlements.plist)
+
+set(CPACK_BUNDLE_NAME z-klaus)
+set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/data/zimo_logo.svg)
+set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/data/Entitlements.plist)
 
 include(CPack)
