@@ -80,51 +80,64 @@ install(
   ARCHIVE DESTINATION lib # [.a/.lib]-Files
 )
 
-if(UNIX AND NOT APPLE)
-  find_package(appimagetool)
+if(UNIX)
+  if(APPLE)
+    set(SLINT_LIB ${Slint_BINARY_DIR}/libslint_cpp.dylib)
 
-  install(PROGRAMS "data/AppRun" DESTINATION ".")
-  install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
-  install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
-  install(FILES "data/zimo_logo.png" DESTINATION ".")
-  install(FILES "data/zimo_logo.svg"
-          DESTINATION "share/icons/hicolor/scalable/apps")
+    if(TARGET usb-1.0)
+      set(USB_BACKEND usb-1.0)
+    else()
+      set(USB_BACKEND libserialport)
+    endif()
 
-  # Check filter lists at
-  # https://github.com/AppImageCommunity/pkg2appimage/blob/master/excludelist#L18
-  install(
-    CODE [[
-    file(GET_RUNTIME_DEPENDENCIES
-        EXECUTABLES $<TARGET_FILE:z-klaus>
-        RESOLVED_DEPENDENCIES_VAR resolved_deps
-        UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
-    )
-    foreach(lib ${resolved_deps})
-        # Don't include system libs (libpthread, etc.)
-        if(lib MATCHES "ld-linux(-[a-zA-Z0-9_-]+)?\\.so"
-              OR lib MATCHES "libc\\.so"
-              OR lib MATCHES "libpthread\\.so"
-              OR lib MATCHES "libdl\\.so"
-              OR lib MATCHES "libexpat\\.so"
-              OR lib MATCHES "libfontconfig\\.so"
-              OR lib MATCHES "libfreetype\\.so"
-              OR lib MATCHES "libgcc_s\\.so"
-              OR lib MATCHES "libm\\.so"
-              OR lib MATCHES "libstdc\\+\\+\\.so"
-              OR lib MATCHES "libz\\.so")
-            continue()
-        endif()
+    install(TARGETS ${USB_BACKEND})
+    install(FILES ${SLINT_LIB} DESTINATION lib)
+  else()
+    find_package(appimagetool)
 
-        # copy symlink
-        file(INSTALL ${lib} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+    install(PROGRAMS "data/AppRun" DESTINATION ".")
+    install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
+    install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
+    install(FILES "data/zimo_logo.png" DESTINATION ".")
+    install(FILES "data/zimo_logo.svg"
+            DESTINATION "share/icons/hicolor/scalable/apps")
 
-        # resolve symlink
-        file(REAL_PATH ${lib} resolved_lib_path)
+    # Check filter lists at
+    # https://github.com/AppImageCommunity/pkg2appimage/blob/master/excludelist#L18
+    install(
+      CODE [[
+      file(GET_RUNTIME_DEPENDENCIES
+          EXECUTABLES $<TARGET_FILE:z-klaus>
+          RESOLVED_DEPENDENCIES_VAR resolved_deps
+          UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+      )
+      foreach(lib ${resolved_deps})
+          # Don't include system libs (libpthread, etc.)
+          if(lib MATCHES "ld-linux(-[a-zA-Z0-9_-]+)?\\.so"
+                OR lib MATCHES "libc\\.so"
+                OR lib MATCHES "libpthread\\.so"
+                OR lib MATCHES "libdl\\.so"
+                OR lib MATCHES "libexpat\\.so"
+                OR lib MATCHES "libfontconfig\\.so"
+                OR lib MATCHES "libfreetype\\.so"
+                OR lib MATCHES "libgcc_s\\.so"
+                OR lib MATCHES "libm\\.so"
+                OR lib MATCHES "libstdc\\+\\+\\.so"
+                OR lib MATCHES "libz\\.so")
+              continue()
+          endif()
 
-        # copy resolved dependency
-        file(COPY ${resolved_lib_path} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-    endforeach()
-  ]])
+          # copy symlink
+          file(INSTALL ${lib} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
+          # resolve symlink
+          file(REAL_PATH ${lib} resolved_lib_path)
+
+          # copy resolved dependency
+          file(COPY ${resolved_lib_path} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+      endforeach()
+    ]])
+  endif()
 elseif(WIN32)
   install(FILES "data/zimo_logo.png" DESTINATION bin)
 
