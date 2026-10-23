@@ -9,7 +9,7 @@ include(FetchContent)
 FetchContent_Declare(
   CMakeModules
   GIT_REPOSITORY "https://github.com/ZIMO-Elektronik/CMakeModules"
-  GIT_TAG v0.12.4
+  GIT_TAG v0.13.0
   SOURCE_DIR ${CMAKE_BINARY_DIR}/CMakeModules)
 FetchContent_MakeAvailable(CMakeModules)
 version_from_git()
@@ -74,13 +74,15 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 # ---- CPack instructions ----
 
 install(
-  TARGETS z-klaus
+  TARGETS z-klaus ULF
   LIBRARY DESTINATION lib # .so-Files
   RUNTIME DESTINATION bin # .dll-Files (to avoid linking issues)
   ARCHIVE DESTINATION lib # [.a/.lib]-Files
 )
 
 if(UNIX AND NOT APPLE)
+  find_package(appimagetool)
+
   # Install .deb specifics
   install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
   install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
@@ -123,45 +125,58 @@ if(UNIX AND NOT APPLE)
     endforeach()
   ]])
 elseif(WIN32)
+  set(SLINT_DLL ${CMAKE_BINARY_DIR}/bin/slint_cpp.dll)
+  if(TARGET usb-1.0)
+    set(USB_BACKEND usb-1.0)
+  else()
+    set(USB_BACKEND libserialport)
+  endif()
   install(FILES "data/zimo_logo.png" DESTINATION bin)
+  install(TARGETS ULF ${USB_BACKEND} DESTINATION bin)
+  install(FILES ${SLINT_DLL} DESTINATION bin)
 
   if(${CMAKE_CROSSCOMPILING})
-    find_file(
-      SLINT_DLL
-      NAMES slint_cpp.dll
-      PATHS ${CMAKE_BINARY_DIR}/bin/ REQUIRED)
-
-    if(LIBULF_BACKEND_LIBUSB)
-      set(USB_BACKEND "usb-1.0")
-    elseif(LIBULF_BACKEND_LIBSERIALPORT)
-      set(USB_BACKEND "libserialport")
-    endif()
-
     # Not really cross-platform, well have to think of somethign better
     set(MINGW_LIB_DIR "/usr/x86_64-w64-mingw32/lib")
-    install(FILES "${MINGW_LIB_DIR}/libwinpthread-1.dll" ${SLINT_DLL}
-            DESTINATION bin)
-    install(TARGETS ULF ${USB_BACKEND})
+    install(FILES "${MINGW_LIB_DIR}/libwinpthread-1.dll" DESTINATION bin)
   else()
+    get_filename_component(COMPILER_BIN_DIR ${CMAKE_CXX_COMPILER} DIRECTORY
+                           CACHE PATH)
+    cmake_policy(SET CMP0207 NEW)
+
     install(
-      CODE [[
+      CODE "
+        cmake_policy(SET CMP0207 NEW)
+
+        # Determine dependencies
         file(GET_RUNTIME_DEPENDENCIES
-        EXECUTABLES $<TARGET_FILE:z-klaus>
-        RESOLVED_DEPENDENCIES_VAR resolved_deps
-        UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+          EXECUTABLES $<TARGET_FILE:${CMAKE_PROJECT_NAME}>
+          RESOLVED_DEPENDENCIES_VAR resolved_deps
+          UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+          DIRECTORIES \"${COMPILER_BIN_DIR}\"
+          PRE_INCLUDE_REGEXES \".*\"
+          PRE_EXCLUDE_REGEXES \"^.*[Ss]ystem32.*\$\"
         )
-        foreach(dll ${resolved_deps})
-          # copy symlink
-          file(INSTALL ${dll} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+
+        # Install dependencies EXCEPT those in system32
+        foreach(dll \${resolved_deps})
+          get_filename_component(dir \"\${dll}\" DIRECTORY)
+          if(NOT dir MATCHES \"^.*[Ss]ystem32.*\$\")
+            file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/bin\" TYPE FILE FILES \"\${dll}\")
+          endif()
         endforeach()
-      ]])
+
+        foreach(dll \${unresolved_deps})
+          message(WARNING \"Unresolved dll: \${dll}\")
+        endforeach()
+      ")
   endif()
 endif()
 
 set(CPACK_PACKAGE_NAME ${CMAKE_PROJECT_NAME})
 set(CPACK_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
 set(CPACK_PACKAGE_FILE_NAME
-    ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}${CMAKE_SYSTEM_PROCESSOR}
+    ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}
 )
 set(CPACK_PACKAGE_VENDOR "ZIMO-Elektronik")
 set(CPACK_PACKAGE_DESCRIPTION "A cross-platform decoder update utility")
