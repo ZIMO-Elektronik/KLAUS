@@ -80,9 +80,11 @@ install(
   ARCHIVE DESTINATION lib # [.a/.lib]-Files
 )
 
-if(UNIX AND NOT APPLE)
+
+if(UNIX)
   if (APPLE)
-    set(SLINT_LIB ${CMAKE_BINARY_DIR}/lib/slint.dylib)
+    set(SLINT_LIB ${Slint_BINARY_DIR}/libslint_cpp.dylib)
+
     if(TARGET usb-1.0)
       set(USB_BACKEND usb-1.0)
     else()
@@ -90,7 +92,7 @@ if(UNIX AND NOT APPLE)
     endif()
 
     install(TARGETS ${USB_BACKEND})
-    install(FILES ${SLINT_LIB})
+    install(FILES ${SLINT_LIB} DESTINATION lib)
   else()
     find_package(appimagetool)
 
