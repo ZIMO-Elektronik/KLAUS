@@ -10,15 +10,109 @@ on:
   workflow_call:
 
 jobs:
-  linux:
+  #linux:
+  #  strategy: 
+  #    matrix: 
+  #      include: 
+  #        - os: ubuntu-24.04
+  #          label: "Linux-x86-64"
+  #        - os: ubuntu-24.04-arm
+  #          label: "Linux-arm64"
+  #      
+  #  runs-on: ${{ matrix.os }}
+  #  name: Build ${{ matrix.label }}
+  #  steps:
+  #    - uses: actions/checkout@v6
+  #      with:
+  #        fetch-depth: 0
+  #    - uses: jwlawson/actions-setup-cmake@v2
+  #      with:
+  #        cmake-version: 4.4.4
+  #    - name: Install prerequisites
+  #      run: |
+  #        sudo apt update -y
+  #        sudo apt install -y libfontconfig1-dev ninja-build patchelf pkg-config
+  #    - name: Setup VCPKG
+  #      run: |
+  #        git clone https://github.com/microsoft/vcpkg.git
+  #        cd vcpkg; ./bootstrap-vcpkg.sh -disableMetrics
+  #        echo "VCPKG_ROOT=$PWD" >> $GITHUB_ENV
+  #    - name: Build project
+  #      run: cmake --workflow --preset build-and-pack-linux
+  #    - name: Find AppImage and archive
+  #      run: |
+  #        echo "APPIMAGE_NAME=$(find build -type f -name "z-klaus-*.AppImage" -printf "%f" -quit)" >> $GITHUB_ENV
+  #        echo "APPIMAGE_PATH=$(find build -type f -name "z-klaus-*.AppImage" -print -quit)" >> $GITHUB_ENV
+  #        echo "ARCHIVE_NAME=$(find build -type f -name "z-klaus-*.tar.gz" -printf "%f" -quit)" >> $GITHUB_ENV
+  #        echo "ARCHIVE_PATH=$(find build -type f -name "z-klaus-*.tar.gz" -print -quit)" >> $GITHUB_ENV
+  #    - name: Release AppImage    
+  #      uses: svenstaro/upload-release-action@v2
+  #      if: github.ref_type == 'tag'
+  #      with:
+  #        tag: ${{ github.ref }}
+  #        file: ${{ env.APPIMAGE_PATH }}
+  #    - name: Release tar.gz archive    
+  #      uses: svenstaro/upload-release-action@v2
+  #      if: github.ref_type == 'tag'
+  #      with:
+  #        tag: ${{ github.ref }}
+  #        file: ${{ env.ARCHIVE_PATH }}
+  #windows: 
+  #  strategy: 
+  #    matrix: 
+  #      include: 
+  #        - os: windows-latest
+  #          label: Windows-x86-64
+  #  
+  #  runs-on: ${{ matrix.os }}
+  #  name: Build ${{ matrix.label }}
+  #  steps: 
+  #    - uses: actions/checkout@v6
+  #      with:
+  #        fetch-depth: 0
+  #    - uses: jwlawson/actions-setup-cmake@v2
+  #      with:
+  #        cmake-version: 4.4.4
+  #    - name: Install prerequisites
+  #      run: |
+  #        winget install -e --id NSIS.NSIS -h --accept-package-agreements --accept-source-agreements
+  #    - name: Setup VCPKG
+  #      run: |
+  #        git clone https://github.com/microsoft/vcpkg.git
+  #        cd vcpkg; .\bootstrap-vcpkg.bat -disableMetrics
+  #        Add-Content -Path $env:GITHUB_ENV -Value "VCPKG_ROOT=$PWD"
+  #    - name: Build project
+  #      run: |
+  #        cmake --workflow --preset build-and-pack-amd64-windows-ci
+  #    - name: Find installer and archive
+  #      run: |
+  #        $installerName = (Get-ChildItem -Path "build" -Filter "z-klaus-*.exe" -File -Recurse | Select-Object -First 1).Name
+  #        $installerPath = (Get-ChildItem -Path "build" -Filter "z-klaus-*.exe" -File -Recurse | Select-Object -First 1).FullName
+  #        $archiveName = (Get-ChildItem -Path "build" -Filter "z-klaus-*.zip" -File -Recurse | Select-Object -First 1).Name
+  #        $archivePath = (Get-ChildItem -Path "build" -Filter "z-klaus-*.zip" -File -Recurse | Select-Object -First 1).FullName
+  #        Add-Content -Path $env:GITHUB_ENV -Value "INSTALLER_NAME=$installerName"
+  #        Add-Content -Path $env:GITHUB_ENV -Value "INSTALLER_PATH=$installerPath"
+  #        Add-Content -Path $env:GITHUB_ENV -Value "ARCHIVE_NAME=$archiveName"
+  #        Add-Content -Path $env:GITHUB_ENV -Value "ARCHIVE_PATH=$archivePath"
+  #    - name: Release Installer    
+  #      uses: svenstaro/upload-release-action@v2
+  #      if: github.ref_type == 'tag'
+  #      with:
+  #        tag: ${{ github.ref }}
+  #        file: ${{ env.INSTALLER_PATH }}
+  #    - name: Release zip archive    
+  #      uses: svenstaro/upload-release-action@v2
+  #      if: github.ref_type == 'tag'
+  #      with:
+  #        tag: ${{ github.ref }}
+  #        file: ${{ env.ARCHIVE_PATH }}
+  osx: 
     strategy: 
       matrix: 
         include: 
-          - os: ubuntu-24.04
-            label: "Linux-x86-64"
-          - os: ubuntu-24.04-arm
-            label: "Linux-arm64"
-        
+          - os: macos-15
+            label: MacOS arm64
+    
     runs-on: ${{ matrix.os }}
     name: Build ${{ matrix.label }}
     steps:
@@ -30,80 +124,24 @@ jobs:
           cmake-version: 4.4.4
       - name: Install prerequisites
         run: |
-          sudo apt update -y
-          sudo apt install -y libfontconfig1-dev ninja-build patchelf pkg-config
+          brew install gcc findutils
       - name: Setup VCPKG
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           cd vcpkg; ./bootstrap-vcpkg.sh -disableMetrics
           echo "VCPKG_ROOT=$PWD" >> $GITHUB_ENV
       - name: Build project
-        run: cmake --workflow --preset build-and-pack-linux
-      - name: Find AppImage and archive
+        run: cmake --workflow --preset build-and-pack-osx
+        env: 
+          CC: gcc
+          CXX: g++
+      - name: Find Bundle
         run: |
-          echo "APPIMAGE_NAME=$(find build -type f -name "z-klaus-*.AppImage" -printf "%f" -quit)" >> $GITHUB_ENV
-          echo "APPIMAGE_PATH=$(find build -type f -name "z-klaus-*.AppImage" -print -quit)" >> $GITHUB_ENV
-          echo "ARCHIVE_NAME=$(find build -type f -name "z-klaus-*.tar.gz" -printf "%f" -quit)" >> $GITHUB_ENV
-          echo "ARCHIVE_PATH=$(find build -type f -name "z-klaus-*.tar.gz" -print -quit)" >> $GITHUB_ENV
-      - name: Release AppImage    
-        uses: svenstaro/upload-release-action@v2
-        if: github.ref_type == 'tag'
+          echo "BUNDLE_NAME=$(gfind build -type f -name "z-klaus-*.dmg" -printf "%f" -quit)" >> $GITHUB_ENV
+          echo "BUNDLE_PATH=$(gfind build -type f -name "z-klaus-*.dmg" -print -quit)" >> $GITHUB_ENV
+      - name: Upload Bundle    
+        uses: actions/upload-artifact@v7
         with:
-          tag: ${{ github.ref }}
-          file: ${{ env.APPIMAGE_PATH }}
-      - name: Release tar.gz archive    
-        uses: svenstaro/upload-release-action@v2
-        if: github.ref_type == 'tag'
-        with:
-          tag: ${{ github.ref }}
-          file: ${{ env.ARCHIVE_PATH }}
-  windows: 
-    strategy: 
-      matrix: 
-        include: 
-          - os: windows-latest
-            label: Windows-x86-64
-    
-    runs-on: ${{ matrix.os }}
-    name: Build ${{ matrix.label }}
-    steps: 
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: 4.4.4
-      - name: Install prerequisites
-        run: |
-          winget install -e --id NSIS.NSIS -h --accept-package-agreements --accept-source-agreements
-      - name: Setup VCPKG
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          cd vcpkg; .\bootstrap-vcpkg.bat -disableMetrics
-          Add-Content -Path $env:GITHUB_ENV -Value "VCPKG_ROOT=$PWD"
-      - name: Build project
-        run: |
-          cmake --workflow --preset build-and-pack-amd64-windows-ci
-      - name: Find installer and archive
-        run: |
-          $installerName = (Get-ChildItem -Path "build" -Filter "z-klaus-*.exe" -File -Recurse | Select-Object -First 1).Name
-          $installerPath = (Get-ChildItem -Path "build" -Filter "z-klaus-*.exe" -File -Recurse | Select-Object -First 1).FullName
-          $archiveName = (Get-ChildItem -Path "build" -Filter "z-klaus-*.zip" -File -Recurse | Select-Object -First 1).Name
-          $archivePath = (Get-ChildItem -Path "build" -Filter "z-klaus-*.zip" -File -Recurse | Select-Object -First 1).FullName
-          Add-Content -Path $env:GITHUB_ENV -Value "INSTALLER_NAME=$installerName"
-          Add-Content -Path $env:GITHUB_ENV -Value "INSTALLER_PATH=$installerPath"
-          Add-Content -Path $env:GITHUB_ENV -Value "ARCHIVE_NAME=$archiveName"
-          Add-Content -Path $env:GITHUB_ENV -Value "ARCHIVE_PATH=$archivePath"
-      - name: Release Installer    
-        uses: svenstaro/upload-release-action@v2
-        if: github.ref_type == 'tag'
-        with:
-          tag: ${{ github.ref }}
-          file: ${{ env.INSTALLER_PATH }}
-      - name: Release zip archive    
-        uses: svenstaro/upload-release-action@v2
-        if: github.ref_type == 'tag'
-        with:
-          tag: ${{ github.ref }}
-          file: ${{ env.ARCHIVE_PATH }}
+          name: ${{ env.BUNDLE_NAME }}
+          path: ${{ env.BUNDLE_PATH }}
 
