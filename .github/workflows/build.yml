@@ -110,7 +110,7 @@ jobs:
     strategy: 
       matrix: 
         include: 
-          - os: macos-latest
+          - os: macos-15
             label: MacOS arm64
     
     runs-on: ${{ matrix.os }}
@@ -132,10 +132,13 @@ jobs:
           echo "VCPKG_ROOT=$PWD" >> $GITHUB_ENV
       - name: Build project
         run: cmake --workflow --preset build-and-pack-osx
+        env: 
+          CC: gcc
+          CXX: g++
       - name: Find Bundle
         run: |
-          echo "BUNDLE_NAME=$(gfind build -type f -name "z-klaus-*.app" -printf "%f" -quit)" >> $GITHUB_ENV
-          echo "BUNDLE_PATH=$(gfind build -type f -name "z-klaus-*.app" -print -quit)" >> $GITHUB_ENV
+          echo "BUNDLE_NAME=$(gfind build -type f -name "z-klaus-*.dmg" -printf "%f" -quit)" >> $GITHUB_ENV
+          echo "BUNDLE_PATH=$(gfind build -type f -name "z-klaus-*.dmg" -print -quit)" >> $GITHUB_ENV
       - name: Upload Bundle    
         uses: actions/upload-artifact@v7
         with:
