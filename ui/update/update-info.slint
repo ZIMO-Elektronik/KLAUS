@@ -1,0 +1,38 @@
+/**
+ * Copyright (C) 2026 ZIMO Elektronik
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://gnu.org>.
+ *
+ *
+ *
+ *
+ *
+ * Update info struct
+ *
+ * \file    ui/update/update-info.slint
+ * \author  Jonas Gahlert
+ * \date    29.10.2026
+ */
+
+export enum FileType { Local, Online }
+export enum FirmwareType { MS-MN-FS, MX }
+export struct UpdateInfo {
+    file-type: FileType,
+    firmware-type: FirmwareType,
+    file-name: string,
+    version-major: int,
+    version-minor: int,
+    version-patch: int,
+    version-extension: string,
+}
