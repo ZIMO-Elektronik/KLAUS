@@ -39,9 +39,12 @@ import {
 import { HelpModeButton } from "../utility/help-popup/help-mode-button.slint";
 import { HelpPopup } from "../utility/help-popup/help-popup.slint";
 import { HelpButton } from "../utility/help-popup/help-button.slint";
+import { UpdateInfoPanel } from "update-info-panel.slint";
+import { UpdateInfo } from "update-info.slint";
 
 export component UpdatePage inherits Rectangle {
-    in property <bool> has-file: false;
+    in property <bool> has-file: true;
+    in property <UpdateInfo> update-info;
 
     in property <[FirmwareAdapter]> firmwares;
 
@@ -162,6 +165,10 @@ export component UpdatePage inherits Rectangle {
                 if root.option-level == OptionLevel.Expert: FirmwareSelector {
                     firmwares <=> root.firmwares;
                     help-mode <=> help-mode-button.help-mode;
+                }
+
+                if root.option-level != OptionLevel.Expert && root.has-file: UpdateInfoPanel {
+                    update-info <=> root.update-info;
                 }
             }
         }

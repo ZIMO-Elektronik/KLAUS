@@ -99,7 +99,7 @@ void UpdateBackend::choose_file() {
 
   _path = zsuPath;
 
-  open_file();
+  open_file(true);
 }
 
 /**
@@ -108,7 +108,7 @@ void UpdateBackend::choose_file() {
 void UpdateBackend::fetch_file() {
   try {
     _path = helper::FirmwareFetcher::fetchLatest();
-    open_file();
+    open_file(false);
   } catch (std::exception const& e) {
     std::cerr << "Unable to fetch file. " << e.what() << std::endl;
   }
@@ -141,8 +141,10 @@ void UpdateBackend::start_process() {
 
 /**
  * Opens and reads the file at _path
+ *
+ * \param local Update file is local
  */
-void UpdateBackend::open_file() {
+void UpdateBackend::open_file(bool local) {
   _zsu = std::make_shared<libulf::ZSU>(_path);
   if (!_zsu->valid()) {
     // Cant read file
@@ -151,6 +153,7 @@ void UpdateBackend::open_file() {
     return;
   }
 
+  create_update_info(local);
   create_firmware_list();
 
   if (auto ui{_weakUi.lock()}) { (*ui)->set_has_file(true); }
@@ -159,7 +162,28 @@ void UpdateBackend::open_file() {
 }
 
 /**
- * Create firmware list
+ * Creates update info and updates UI
+ *
+ * \param local Update file is local
+ *
+ * \todo In theory we could iterate since MX zsu files may supply different
+ *       versions
+ */
+void UpdateBackend::create_update_info(bool local) {
+  auto const iter{_zsu->begin()};
+  UpdateInfo info{};
+
+  info.file_type = local ? FileType::Local : FileType::Online;
+  info.file_name = local ? _path.filename().c_str() : "";
+  info.firmware_type = FirmwareType::MSMNFS;
+  info.version_major = std::stoi(iter.versionMajor().data());
+  info.version_minor = std::stoi(iter.versionMinor().data());
+
+  if (auto ui{_weakUi.lock()}) { (*ui)->set_update_info(info); }
+}
+
+/**
+ * Creates firmware list and updates UI
  *
  * \details
  * This iterates through all available firmwares in the ZSU file and creates a

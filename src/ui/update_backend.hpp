@@ -66,8 +66,9 @@ private:
   void fetch_file();
   void start_process();
 
-  void open_file();
+  void open_file(bool local);
 
+  void create_update_info(bool local);
   void create_firmware_list();
 
   template<bool check_selected>

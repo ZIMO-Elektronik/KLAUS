@@ -1,0 +1,73 @@
+/**
+ * Copyright (C) 2026 ZIMO Elektronik
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://gnu.org>.
+ *
+ *
+ *
+ *
+ *
+ * Update info component
+ *
+ * \file    ui/update/update-info.slint
+ * \author  Jonas Gahlert
+ * \date    29.10.2026
+ */
+
+import { VerticalBox, Palette } from "std-widgets.slint";
+import { UpdateInfo, FileType, FirmwareType } from "update-info.slint";
+export component UpdateInfoPanel inherits Rectangle {
+    in property <UpdateInfo> update-info;
+
+    private property <string> file-type: update-info.file-type == FileType.Local ? @tr("Local") : @tr("Official");
+    private property <string> firmware-type: update-info.firmware-type == FirmwareType.MS-MN-FS ? "MS-MN-FS" : "MX";
+
+    VerticalLayout {
+        height: 100%;
+
+        alignment: LayoutAlignment.start;
+
+        Rectangle {
+            background: Palette.alternate-background;
+
+            VerticalLayout {
+                alignment: start;
+                padding: 12px;
+                Text {
+                    text: @tr("Update information");
+                    font-size: 20px;
+                }
+
+                VerticalBox {
+                    padding: 16px;
+
+                    Text {
+                        text: file-type + " " + firmware-type;
+                        font-italic: true;
+                    }
+
+                    if update-info.file-type == FileType.Local: Text {
+                        text: @tr("File: {}", update-info.file-name);
+                        font-italic: true;
+                    }
+
+                    Text {
+                        text: @tr("Version: {}", update-info.version-major + "." + update-info.version-minor);
+                        font-italic: true;
+                    }
+                }
+            }
+        }
+    }
+}
