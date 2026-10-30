@@ -47,7 +47,7 @@ if(NOT TARGET Slint::Slint)
 endif()
 
 if(NOT TARGET ULF::ULF)
-  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.2.1")
+  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.3.0")
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
@@ -83,7 +83,6 @@ install(
 if(UNIX AND NOT APPLE)
   find_package(appimagetool)
 
-  # Install .deb specifics
   install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
   install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
   install(FILES "data/zimo_logo.svg"
@@ -125,20 +124,30 @@ if(UNIX AND NOT APPLE)
     endforeach()
   ]])
 elseif(WIN32)
-  set(SLINT_DLL ${CMAKE_BINARY_DIR}/bin/slint_cpp.dll)
-  if(TARGET usb-1.0)
-    set(USB_BACKEND usb-1.0)
-  else()
-    set(USB_BACKEND libserialport)
-  endif()
   install(FILES "data/zimo_logo.png" DESTINATION bin)
-  install(TARGETS ULF ${USB_BACKEND} DESTINATION bin)
-  install(FILES ${SLINT_DLL} DESTINATION bin)
+
+  install(FILES $<TARGET_RUNTIME_DLLS:z-klaus> DESTINATION bin)
+  install(FILES $<TARGET_RUNTIME_DLLS:ULF> DESTINATION bin)
 
   if(${CMAKE_CROSSCOMPILING})
-    # Not really cross-platform, well have to think of somethign better
-    set(MINGW_LIB_DIR "/usr/x86_64-w64-mingw32/lib")
-    install(FILES "${MINGW_LIB_DIR}/libwinpthread-1.dll" DESTINATION bin)
+    # Depends on the actual compiler lib dir being set in `CMAKE_LIBRARY_PATH`
+    install(
+      CODE "
+      # Determine and install dependencies
+      file(GET_RUNTIME_DEPENDENCIES
+        EXECUTABLES $<TARGET_FILE:${CMAKE_PROJECT_NAME}>
+        RESOLVED_DEPENDENCIES_VAR resolved_deps
+        UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+        DIRECTORIES ${CMAKE_LIBRARY_PATH}
+      )
+      foreach(dll \${resolved_deps})
+        file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/bin\" TYPE FILE FILES \"\${dll}\")
+      endforeach()
+
+      if(${unresolved_deps})
+        message(WARNING \"Unresolved dependencies. Note, that system32 dependencies will always be unresolved when cross-compiling\")
+      endif()
+    ")
   else()
     get_filename_component(COMPILER_BIN_DIR ${CMAKE_CXX_COMPILER} DIRECTORY
                            CACHE PATH)
