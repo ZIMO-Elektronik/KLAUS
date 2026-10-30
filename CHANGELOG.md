@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.8.0
+
+- Build: Fix failing AppImage build
+- Build: Update libULF -> v0.3.0
+
 ## 0.0.7
 
 - Fix: MDU soundload not starting (at all)

@@ -89,7 +89,8 @@
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-windows-cross",
                 "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/.vcpkg/triplets/",
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw-windows-toolchain.cmake"
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
+                "CPM_libULF_SOURCE": "${sourceDir}/../libULF"
             }
         },
         {
@@ -100,7 +101,8 @@
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-windows-cross",
                 "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/.vcpkg/triplets/",
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw-windows-toolchain.cmake"
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw-windows-toolchain.cmake",
+                "CPM_libULF_SOURCE": "${sourceDir}/../libULF"
             }
         }
     ],

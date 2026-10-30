@@ -31,7 +31,7 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt update -y
-          sudo apt install -y libfontconfig1-dev ninja-build patchelf pkg-config
+          sudo apt install -y libfontconfig1-dev ninja-build patchelf pkg-config libudev-dev
       - name: Setup VCPKG
         run: |
           git clone https://github.com/microsoft/vcpkg.git
