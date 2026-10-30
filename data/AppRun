@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -e
+
+this_dir="$(readlink -f "$(dirname "$0")")"
+exec "$this_dir/bin/z-klaus" "$@"
