@@ -2,6 +2,7 @@
 
 ## 0.8.0
 
+- Build: MinGW cross-build collects dependencies
 - Build: Fix failing AppImage build
 - Build: Update libULF -> v0.3.0
 

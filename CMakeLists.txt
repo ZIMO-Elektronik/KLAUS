@@ -86,6 +86,7 @@ if(UNIX AND NOT APPLE)
   install(PROGRAMS "data/AppRun" DESTINATION ".")
   install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
   install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
+  install(FILES "data/zimo_logo.png" DESTINATION ".")
   install(FILES "data/zimo_logo.svg"
           DESTINATION "share/icons/hicolor/scalable/apps")
 
