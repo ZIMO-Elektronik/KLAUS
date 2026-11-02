@@ -31,7 +31,7 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt update -y
-          sudo apt install -y libfontconfig1-dev ninja-build patchelf pkg-config
+          sudo apt install -y libfontconfig1-dev ninja-build patchelf pkg-config libudev-dev
       - name: Setup VCPKG
         run: |
           git clone https://github.com/microsoft/vcpkg.git
@@ -57,6 +57,11 @@ jobs:
         with:
           tag: ${{ github.ref }}
           file: ${{ env.ARCHIVE_PATH }}
+      - name: Upload AppImage    
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.APPIMAGE_NAME }}
+          path: ${{ env.APPIMAGE_PATH }}
   windows: 
     strategy: 
       matrix: 
@@ -106,4 +111,8 @@ jobs:
         with:
           tag: ${{ github.ref }}
           file: ${{ env.ARCHIVE_PATH }}
-
+      - name: Upload Installer    
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.INSTALLER_NAME }}
+          path: ${{ env.INSTALLER_PATH }}
