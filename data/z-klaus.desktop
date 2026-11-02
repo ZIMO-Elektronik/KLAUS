@@ -6,4 +6,4 @@ Comment=A model train decoder update tool
 Exec=z-klaus
 Icon=zimo_logo
 Terminal=false
-Categories=Utility;Development;
+Categories=Utility

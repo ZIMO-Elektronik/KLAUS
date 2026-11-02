@@ -83,7 +83,7 @@ install(
 if(UNIX AND NOT APPLE)
   find_package(appimagetool)
 
-  # Install .deb specifics
+  install(PROGRAMS "data/AppRun" DESTINATION ".")
   install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
   install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
   install(FILES "data/zimo_logo.svg"
@@ -178,10 +178,13 @@ set(CPACK_PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
 set(CPACK_PACKAGE_FILE_NAME
     ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}
 )
+set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/data/zimo_logo.png")
 set(CPACK_PACKAGE_VENDOR "ZIMO-Elektronik")
 set(CPACK_PACKAGE_DESCRIPTION "A cross-platform decoder update utility")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "z-klaus")
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+
+set(CPACK_APPIMAGE_NO_APPSTREAM TRUE)
 
 set(CPACK_NSIS_MODIFY_PATH OFF)
 set(CPACK_NSIS_DISPLAY_NAME z-klaus)
