@@ -112,6 +112,8 @@ jobs:
         include: 
           - os: macos-15
             label: MacOS arm64
+          - os: macos-15-intel
+            label: MacOS amd64
     
     runs-on: ${{ matrix.os }}
     name: Build ${{ matrix.label }}
