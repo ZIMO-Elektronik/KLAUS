@@ -44,7 +44,7 @@ namespace detail {
  * \todo
  * Maybe we should add a fallback in case this is not writeable...
  */
-constexpr std::filesystem::path cache_dir() {
+static std::filesystem::path cache_dir() {
   return std::filesystem::temp_directory_path() / "z-klaus";
 }
 
@@ -55,7 +55,7 @@ constexpr std::filesystem::path cache_dir() {
  *
  * \return dir path with file name appended
  */
-constexpr std::filesystem::path dsw_version_path(std::filesystem::path dir) {
+static std::filesystem::path dsw_version_path(std::filesystem::path dir) {
   return dir / "dsw_version.txt";
 }
 
@@ -66,7 +66,7 @@ constexpr std::filesystem::path dsw_version_path(std::filesystem::path dir) {
  *
  * \return dir path with file name appended
  */
-constexpr std::filesystem::path ms_zsu_file_path(std::filesystem::path dir) {
+static std::filesystem::path ms_zsu_file_path(std::filesystem::path dir) {
   return dir / "ms.zsu";
 }
 
@@ -77,7 +77,7 @@ constexpr std::filesystem::path ms_zsu_file_path(std::filesystem::path dir) {
  *
  * \return dir path with file name appended
  */
-constexpr std::filesystem::path& mx_zsu_file_path(std::filesystem::path& dir) {
+static std::filesystem::path& mx_zsu_file_path(std::filesystem::path& dir) {
   return dir.append("mx.zsu");
 }
 
