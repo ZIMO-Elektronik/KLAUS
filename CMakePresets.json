@@ -186,7 +186,7 @@
             "displayName": "Release OSX",
             "configurePreset": "release_osx",
             "generators": [
-                "Bundle"
+                "DragNDrop"
             ]
         }
     ],

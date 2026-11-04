@@ -19,7 +19,7 @@ set(CMAKE_PROJECT_VERSION_MINOR ${VERSION_MINOR_FROM_GIT})
 set(CMAKE_PROJECT_VERSION_PATCH ${VERSION_PATCH_FROM_GIT})
 
 add_executable(
-  ${CMAKE_PROJECT_NAME} WIN32
+  ${CMAKE_PROJECT_NAME} WIN32 MACOSX_BUNDLE
   src/main.cpp
   src/process/mdu_ein/update.cpp
   src/process/mdu_ein/soundload.cpp
@@ -47,7 +47,7 @@ if(NOT TARGET Slint::Slint)
 endif()
 
 if(NOT TARGET ULF::ULF)
-  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.3.0")
+  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.3.1")
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
@@ -74,24 +74,22 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 # ---- CPack instructions ----
 
 install(
-  TARGETS z-klaus ULF
+  TARGETS z-klaus
   LIBRARY DESTINATION lib # .so-Files
   RUNTIME DESTINATION bin # .dll-Files (to avoid linking issues)
   ARCHIVE DESTINATION lib # [.a/.lib]-Files
+  BUNDLE DESTINATION .
 )
 
 if(UNIX)
   if(APPLE)
-    set(SLINT_LIB ${Slint_BINARY_DIR}/libslint_cpp.dylib)
+    set(APP "\${CMAKE_INSTALL_PREFIX}/${CMAKE_PROJECT_NAME}.app")
+    set(DIRS "${Slint_BINARY_DIR}" "${libULF_BINARY_DIR}" "${usb-1.0_BINARY_DIR}")
 
-    if(TARGET usb-1.0)
-      set(USB_BACKEND usb-1.0)
-    else()
-      set(USB_BACKEND libserialport)
-    endif()
-
-    install(TARGETS ${USB_BACKEND})
-    install(FILES ${SLINT_LIB} DESTINATION lib)
+    install(CODE "
+      include(BundleUtilities)
+      fixup_bundle(\"${APP}\" \"\" \"${DIRS}\")
+    ")
   else()
     find_package(appimagetool)
 
@@ -225,12 +223,12 @@ set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
 set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\KLAUS.lnk'")
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 
-set(CPACK_DMG_NAME z-klaus)
-set(CPACK_DMG_ICON ${CMAKE_SOURCE_DIR}/data/zimo_logo.svg)
-set(CPACK_DMG_PLIST ${CMAKE_SOURCE_DIR}/data/Entitlements.plist)
+set(CPACK_DMG_VOLUME_NAME z-klaus)
+set(CPACK_DMG_BACKGROUND_IMAGE ${CMAKE_SOURCE_DIR}/data/zimo_logo.svg)
 
+## .app bundle needs some more work
 set(CPACK_BUNDLE_NAME z-klaus)
 set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/data/zimo_logo.svg)
-set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/data/Entitlements.plist)
+set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/data/Info.plist)
 
 include(CPack)
