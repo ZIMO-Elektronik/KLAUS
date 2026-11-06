@@ -86,7 +86,7 @@ if(UNIX)
     set(APP "\${CMAKE_INSTALL_PREFIX}/${CMAKE_PROJECT_NAME}.app")
     set(DIRS "${Slint_BINARY_DIR}" "${libULF_BINARY_DIR}" "${usb-1.0_BINARY_DIR}" "${serialport_BINARY_DIR}")
 
-    message(STATUS "Libserialport dir: ${serialport_BINARY_DIR}")
+    install(FILES ${CMAKE_SOURCE_DIR}/data/zimo_logo.icns DESTINATION ${CMAKE_PROJECT_NAME}.app/Contents/Resources/)
 
     install(CODE "
       include(BundleUtilities)
@@ -226,7 +226,7 @@ set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\KLAUS.lnk'")
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 
 set(CPACK_DMG_VOLUME_NAME z-klaus)
-set(CPACK_DMG_BACKGROUND_IMAGE ${CMAKE_SOURCE_DIR}/data/zimo_logo.svg)
+set(CPACK_DMG_BACKGROUND_IMAGE ${CMAKE_SOURCE_DIR}/data/zimo_logo.icns)
 
 ## .app bundle needs some more work
 set(CPACK_BUNDLE_NAME z-klaus)
