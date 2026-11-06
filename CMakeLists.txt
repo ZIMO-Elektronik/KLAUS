@@ -47,7 +47,7 @@ if(NOT TARGET Slint::Slint)
 endif()
 
 if(NOT TARGET ULF::ULF)
-  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.3.1")
+  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.3.2")
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
@@ -84,7 +84,9 @@ install(
 if(UNIX)
   if(APPLE)
     set(APP "\${CMAKE_INSTALL_PREFIX}/${CMAKE_PROJECT_NAME}.app")
-    set(DIRS "${Slint_BINARY_DIR}" "${libULF_BINARY_DIR}" "${usb-1.0_BINARY_DIR}")
+    set(DIRS "${Slint_BINARY_DIR}" "${libULF_BINARY_DIR}" "${usb-1.0_BINARY_DIR}" "${serialport_BINARY_DIR}")
+
+    message(STATUS "Libserialport dir: ${serialport_BINARY_DIR}")
 
     install(CODE "
       include(BundleUtilities)

@@ -62,16 +62,6 @@
             }
         },
         {
-            "name": "release_osx",
-            "displayName": "Release OSX",
-            "description": "Configure release build for OSX",
-            "inherits": "release_base",
-            "cacheVariables": {
-                "LIBULF_BACKEND_LIBSERIALPORT": "OFF",
-                "LIBULF_BACKEND_LIBUSB": "ON"
-            }
-        },
-        {
             "name": "release_amd64_windows_ci",
             "displayName": "Release AMD64 Windows (CI)",
             "description": "CI specialized preset to deal with vcpkg 'features'",
@@ -134,11 +124,6 @@
             "name": "debug_osx",
             "displayName": "Debug Build for OSX",
             "configurePreset": "debug_osx"
-        },
-        {
-            "name": "release_osx",
-            "displayName": "Release Build for OSX",
-            "configurePreset": "release_osx"
         }
     ],
     "packagePresets": [
@@ -153,6 +138,14 @@
             "variables": {
                 "CPACK_PACKAGE_ICON": "zimo_logo.svg"
             }
+        },
+        {
+            "name": "release_osx",
+            "displayName": "Release OSX",
+            "configurePreset": "release",
+            "generators": [
+                "DragNDrop"
+            ]
         },
         {
             "name": "release_windows",
@@ -179,14 +172,6 @@
             "generators": [
                 "ZIP",
                 "NSIS"
-            ]
-        },
-        {
-            "name": "release_osx",
-            "displayName": "Release OSX",
-            "configurePreset": "release_osx",
-            "generators": [
-                "DragNDrop"
             ]
         }
     ],
@@ -269,11 +254,11 @@
             "steps": [
                 {
                     "type": "configure",
-                    "name": "release_osx"
+                    "name": "release"
                 },
                 {
                     "type": "build",
-                    "name": "release_osx"
+                    "name": "release"
                 },
                 {
                     "type": "package",
