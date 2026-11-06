@@ -226,7 +226,8 @@ set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\KLAUS.lnk'")
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 
 set(CPACK_DMG_VOLUME_NAME z-klaus)
-set(CPACK_DMG_BACKGROUND_IMAGE ${CMAKE_SOURCE_DIR}/data/zimo_logo.icns)
+#set(CPACK_DMG_DS_STORE ${CMAKE_SOURCE_DIR}/data/.DS_Store)
+#set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${CMAKE_SOURCE_DIR}/data/dmg_setup.scpt)
 
 ## .app bundle needs some more work
 set(CPACK_BUNDLE_NAME z-klaus)
