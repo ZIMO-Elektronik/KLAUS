@@ -19,7 +19,7 @@ set(CMAKE_PROJECT_VERSION_MINOR ${VERSION_MINOR_FROM_GIT})
 set(CMAKE_PROJECT_VERSION_PATCH ${VERSION_PATCH_FROM_GIT})
 
 add_executable(
-  ${CMAKE_PROJECT_NAME} WIN32
+  ${CMAKE_PROJECT_NAME} WIN32 MACOSX_BUNDLE
   src/main.cpp
   src/process/mdu_ein/update.cpp
   src/process/mdu_ein/soundload.cpp
@@ -47,7 +47,7 @@ if(NOT TARGET Slint::Slint)
 endif()
 
 if(NOT TARGET ULF::ULF)
-  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.3.0")
+  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.3.2")
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)
@@ -74,57 +74,70 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 # ---- CPack instructions ----
 
 install(
-  TARGETS z-klaus ULF
+  TARGETS z-klaus
   LIBRARY DESTINATION lib # .so-Files
   RUNTIME DESTINATION bin # .dll-Files (to avoid linking issues)
   ARCHIVE DESTINATION lib # [.a/.lib]-Files
+  BUNDLE DESTINATION .
 )
 
-if(UNIX AND NOT APPLE)
-  find_package(appimagetool)
+if(UNIX)
+  if(APPLE)
+    set(APP "\${CMAKE_INSTALL_PREFIX}/${CMAKE_PROJECT_NAME}.app")
+    set(DIRS "${Slint_BINARY_DIR}" "${libULF_BINARY_DIR}" "${usb-1.0_BINARY_DIR}" "${serialport_BINARY_DIR}")
 
-  install(PROGRAMS "data/AppRun" DESTINATION ".")
-  install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
-  install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
-  install(FILES "data/zimo_logo.png" DESTINATION ".")
-  install(FILES "data/zimo_logo.svg"
-          DESTINATION "share/icons/hicolor/scalable/apps")
+    install(FILES ${CMAKE_SOURCE_DIR}/data/zimo_logo.icns DESTINATION ${CMAKE_PROJECT_NAME}.app/Contents/Resources/)
 
-  # Check filter lists at
-  # https://github.com/AppImageCommunity/pkg2appimage/blob/master/excludelist#L18
-  install(
-    CODE [[
-    file(GET_RUNTIME_DEPENDENCIES
-        EXECUTABLES $<TARGET_FILE:z-klaus>
-        RESOLVED_DEPENDENCIES_VAR resolved_deps
-        UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
-    )
-    foreach(lib ${resolved_deps})
-        # Don't include system libs (libpthread, etc.)
-        if(lib MATCHES "ld-linux(-[a-zA-Z0-9_-]+)?\\.so"
-              OR lib MATCHES "libc\\.so"
-              OR lib MATCHES "libpthread\\.so"
-              OR lib MATCHES "libdl\\.so"
-              OR lib MATCHES "libexpat\\.so"
-              OR lib MATCHES "libfontconfig\\.so"
-              OR lib MATCHES "libfreetype\\.so"
-              OR lib MATCHES "libgcc_s\\.so"
-              OR lib MATCHES "libm\\.so"
-              OR lib MATCHES "libstdc\\+\\+\\.so"
-              OR lib MATCHES "libz\\.so")
-            continue()
-        endif()
+    install(CODE "
+      include(BundleUtilities)
+      fixup_bundle(\"${APP}\" \"\" \"${DIRS}\")
+    ")
+  else()
+    find_package(appimagetool)
 
-        # copy symlink
-        file(INSTALL ${lib} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+    install(PROGRAMS "data/AppRun" DESTINATION ".")
+    install(FILES "data/z-klaus.desktop" DESTINATION "share/applications")
+    install(FILES "data/zimo_logo.png" DESTINATION "share/pixmaps")
+    install(FILES "data/zimo_logo.png" DESTINATION ".")
+    install(FILES "data/zimo_logo.svg"
+            DESTINATION "share/icons/hicolor/scalable/apps")
 
-        # resolve symlink
-        file(REAL_PATH ${lib} resolved_lib_path)
+    # Check filter lists at
+    # https://github.com/AppImageCommunity/pkg2appimage/blob/master/excludelist#L18
+    install(
+      CODE [[
+      file(GET_RUNTIME_DEPENDENCIES
+          EXECUTABLES $<TARGET_FILE:z-klaus>
+          RESOLVED_DEPENDENCIES_VAR resolved_deps
+          UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+      )
+      foreach(lib ${resolved_deps})
+          # Don't include system libs (libpthread, etc.)
+          if(lib MATCHES "ld-linux(-[a-zA-Z0-9_-]+)?\\.so"
+                OR lib MATCHES "libc\\.so"
+                OR lib MATCHES "libpthread\\.so"
+                OR lib MATCHES "libdl\\.so"
+                OR lib MATCHES "libexpat\\.so"
+                OR lib MATCHES "libfontconfig\\.so"
+                OR lib MATCHES "libfreetype\\.so"
+                OR lib MATCHES "libgcc_s\\.so"
+                OR lib MATCHES "libm\\.so"
+                OR lib MATCHES "libstdc\\+\\+\\.so"
+                OR lib MATCHES "libz\\.so")
+              continue()
+          endif()
 
-        # copy resolved dependency
-        file(COPY ${resolved_lib_path} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-    endforeach()
-  ]])
+          # copy symlink
+          file(INSTALL ${lib} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
+          # resolve symlink
+          file(REAL_PATH ${lib} resolved_lib_path)
+
+          # copy resolved dependency
+          file(COPY ${resolved_lib_path} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+      endforeach()
+    ]])
+  endif()
 elseif(WIN32)
   install(FILES "data/zimo_logo.png" DESTINATION bin)
 
@@ -212,12 +225,13 @@ set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS
 set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\KLAUS.lnk'")
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 
-set(CPACK_DMG_NAME z-klaus)
-set(CPACK_DMG_ICON ${CMAKE_SOURCE_DIR}/data/zimo_logo.svg)
-set(CPACK_DMG_PLIST ${CMAKE_SOURCE_DIR}/data/Entitlements.plist)
+set(CPACK_DMG_VOLUME_NAME z-klaus)
+#set(CPACK_DMG_DS_STORE ${CMAKE_SOURCE_DIR}/data/.DS_Store)
+#set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${CMAKE_SOURCE_DIR}/data/dmg_setup.scpt)
 
+## .app bundle needs some more work
 set(CPACK_BUNDLE_NAME z-klaus)
 set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/data/zimo_logo.svg)
-set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/data/Entitlements.plist)
+set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/data/Info.plist)
 
 include(CPack)
