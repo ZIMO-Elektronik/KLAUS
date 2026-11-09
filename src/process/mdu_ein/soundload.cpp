@@ -135,18 +135,19 @@ void SoundLoad::enter() {
  * Configure Transfer Rate
  *
  * \details
- * This configures the Transfer rate to `Fast`.
- *
- * \todo
- * Maybe this should retry with a slower rate on fail
+ * This configures the Transfer rate to the fastest possible speed, starting
+ * with `Fast`.
  *
  * \throws process_error  If the command failed
- * \throws ulf_error     If the communication failed
+ * \throws ulf_error      If the communication failed
  */
 void SoundLoad::config() {
   pushUI({.id = type::MessageID::Init});
 
-  if (!_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Fast))
+  if (!_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Fast) &&
+      !_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Medium) &&
+      !_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Slow) &&
+      !_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Default))
     throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
                         "Unable to configure transfer rate"};
 }
