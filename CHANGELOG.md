@@ -2,10 +2,11 @@
 
 ## 0.0.8
 
+- UI: Display basic .zsu information
+- Fix: MDU speed selection aborting if fastest is unavailable.
 - Build: MinGW cross-build collects dependencies
 - Build: Fix failing AppImage build
 - Build: Update libULF -> v0.3.0
-- Fix: MDU speed selection aborting if fastest is unavailable.
 
 ## 0.0.7
 
