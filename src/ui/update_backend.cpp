@@ -174,7 +174,7 @@ void UpdateBackend::create_update_info(bool local) {
   UpdateInfo info{};
 
   info.file_type = local ? FileType::Local : FileType::Online;
-  info.file_name = {_path.filename().c_str()};
+  info.file_name = slint::SharedString{_path.filename().u8string()};
   info.firmware_type = FirmwareType::MSMNFS;
   info.version_major = std::stoi(iter.versionMajor().data());
   info.version_minor = std::stoi(iter.versionMinor().data());
