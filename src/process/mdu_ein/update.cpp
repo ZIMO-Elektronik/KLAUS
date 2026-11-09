@@ -180,9 +180,8 @@ void Update::enter() {
  * Configure Transfer Rate
  *
  * \details
- * This configures the Transfer rate to `Slow`. Since currently no Decoders
- * need a speed slower than `Slow`, we assume that the Update will fail anyway
- * if this fails.
+ * This configures the Transfer rate to the fastest possible speed, starting
+ * with `Slow`.
  *
  * \throws process_error  If the command failed
  * \throws ulf_error     If the communication failed
@@ -190,7 +189,8 @@ void Update::enter() {
 void Update::config() {
   pushUI({.id = type::MessageID::Init});
 
-  if (!_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Slow))
+  if (!_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Slow) &&
+      !_lib.mdu_ein().configTransferRate(libulf::mdu::Speed::Default))
     throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
                         "Unable to set transfer rate"};
 }
