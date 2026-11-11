@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
 
+set(CMAKE_INSTALL_RPATH "\$ORIGIN" "\$ORIGIN/../lib")
+
 project(z-klaus LANGUAGES CXX)
 
 # Because of some override when using vcpkg, we can't fetch CMakeModules before
@@ -68,9 +70,6 @@ if(PROJECT_IS_TOP_LEVEL)
   add_clang_format_target(KLUGFormat OPTIONS -i FILES ${SRC})
 endif()
 
-set(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib")
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-
 # ---- CPack instructions ----
 
 install(
@@ -78,17 +77,19 @@ install(
   LIBRARY DESTINATION lib # .so-Files
   RUNTIME DESTINATION bin # .dll-Files (to avoid linking issues)
   ARCHIVE DESTINATION lib # [.a/.lib]-Files
-  BUNDLE DESTINATION .
-)
+  BUNDLE DESTINATION .)
 
 if(UNIX)
   if(APPLE)
     set(APP "\${CMAKE_INSTALL_PREFIX}/${CMAKE_PROJECT_NAME}.app")
-    set(DIRS "${Slint_BINARY_DIR}" "${libULF_BINARY_DIR}" "${usb-1.0_BINARY_DIR}" "${serialport_BINARY_DIR}")
+    set(DIRS "${Slint_BINARY_DIR}" "${libULF_BINARY_DIR}"
+             "${usb-1.0_BINARY_DIR}" "${serialport_BINARY_DIR}")
 
-    install(FILES ${CMAKE_SOURCE_DIR}/data/zimo_logo.icns DESTINATION ${CMAKE_PROJECT_NAME}.app/Contents/Resources/)
+    install(FILES ${CMAKE_SOURCE_DIR}/data/zimo_logo.icns
+            DESTINATION ${CMAKE_PROJECT_NAME}.app/Contents/Resources/)
 
-    install(CODE "
+    install(
+      CODE "
       include(BundleUtilities)
       fixup_bundle(\"${APP}\" \"\" \"${DIRS}\")
     ")
@@ -226,10 +227,10 @@ set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\KLAUS.lnk'")
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 
 set(CPACK_DMG_VOLUME_NAME z-klaus)
-#set(CPACK_DMG_DS_STORE ${CMAKE_SOURCE_DIR}/data/.DS_Store)
-#set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${CMAKE_SOURCE_DIR}/data/dmg_setup.scpt)
+# set(CPACK_DMG_DS_STORE ${CMAKE_SOURCE_DIR}/data/.DS_Store)
+# set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${CMAKE_SOURCE_DIR}/data/dmg_setup.scpt)
 
-## .app bundle needs some more work
+# .app bundle needs some more work
 set(CPACK_BUNDLE_NAME z-klaus)
 set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/data/zimo_logo.svg)
 set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/data/Info.plist)
