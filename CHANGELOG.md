@@ -6,7 +6,8 @@
 - Fix: MDU speed selection aborting if fastest is unavailable.
 - Build: MinGW cross-build collects dependencies
 - Build: Fix failing AppImage build
-- Build: Update libULF -> v0.3.0
+- Build: Update libULF -> v0.3.2
+- Build: Add an OSX build
 
 ## 0.0.7
 
