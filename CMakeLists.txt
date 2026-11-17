@@ -49,7 +49,7 @@ if(NOT TARGET Slint::Slint)
 endif()
 
 if(NOT TARGET ULF::ULF)
-  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.3.2")
+  cpmaddpackage("gh:ZIMO-Elektronik/libULF@0.4.0")
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE src)

@@ -170,14 +170,15 @@ void UpdateBackend::open_file(bool local) {
  *       versions
  */
 void UpdateBackend::create_update_info(bool local) {
-  auto const iter{_zsu->begin()};
+  auto firmwares{_zsu->firmwares()};
+  auto firmware{firmwares.front()};
   UpdateInfo info{};
 
   info.file_type = local ? FileType::Local : FileType::Online;
   info.file_name = slint::SharedString{_path.filename().u8string()};
   info.firmware_type = FirmwareType::MSMNFS;
-  info.version_major = std::stoi(iter.versionMajor().data());
-  info.version_minor = std::stoi(iter.versionMinor().data());
+  info.version_major = std::stoi(firmware.versionMajor().data());
+  info.version_minor = std::stoi(firmware.versionMinor().data());
 
   if (auto ui{_weakUi.lock()}) { (*ui)->set_update_info(info); }
 }
@@ -193,24 +194,23 @@ void UpdateBackend::create_update_info(bool local) {
 void UpdateBackend::create_firmware_list() {
   auto model{std::make_shared<slint::VectorModel<FirmwareAdapter>>()};
 
-  auto iter{_zsu->begin()};
-  auto const end{_zsu->end()};
-
-  do {
+  auto firmwares{_zsu->firmwares()};
+  for (auto firmware : firmwares) {
     auto id_model{std::make_shared<slint::VectorModel<int>>()};
-    auto const id{iter.id()};
+    auto const id{firmware.id()};
 
     for (uint8_t i{0u}; i < sizeof(uint32_t); i++) {
       int byte_val = static_cast<int>((id >> (i * 8)) & 0xFF);
       id_model->push_back(byte_val);
     }
 
-    model->push_back(FirmwareAdapter{.decoder_name = iter.name().substr(
-                                       0, iter.name().find_first_of("-") + 2uz),
-                                     .decoder_id = id_model,
-                                     .major_version = iter.versionMajor(),
-                                     .minor_version = iter.versionMinor()});
-  } while (++iter != end);
+    model->push_back(FirmwareAdapter{
+      .decoder_name =
+        firmware.name().substr(0, firmware.name().find_first_of("-") + 2uz),
+      .decoder_id = id_model,
+      .major_version = firmware.versionMajor(),
+      .minor_version = firmware.versionMinor()});
+  }
 
   auto filter_model{std::make_shared<slint::SortModel<FirmwareAdapter>>(
     model, [](FirmwareAdapter const& lhs, FirmwareAdapter const& rhs) {

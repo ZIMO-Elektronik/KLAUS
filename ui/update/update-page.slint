@@ -36,6 +36,10 @@ import {
     OptionLevelSelector,
     OptionLevel,
 } from "../utility/option-level-selector/option-level-selector.slint";
+import {
+    DecoderTypeSelector,
+    DecoderType,
+} from "../utility/decoder-type/decoder-type-selector.slint";
 import { HelpModeButton } from "../utility/help-popup/help-mode-button.slint";
 import { HelpPopup } from "../utility/help-popup/help-popup.slint";
 import { HelpButton } from "../utility/help-popup/help-button.slint";
@@ -49,6 +53,7 @@ export component UpdatePage inherits Rectangle {
     in property <[FirmwareAdapter]> firmwares;
 
     in-out property <EntryType> entry-type;
+    in-out property <DecoderType> decoder-type;
 
     property <OptionLevel> option-level;
 
@@ -92,40 +97,42 @@ export component UpdatePage inherits Rectangle {
                     spacing: 15px;
                     alignment: start;
 
-                    // File selector
                     HorizontalLayout {
-                        spacing: 10px;
                         alignment: start;
+                        spacing: 16px;
 
-                        HorizontalLayout {
-                            spacing: 16px;
-                            HelpPopup {
-                                help-text: @tr("Opens a file dialog and requires you to choose an update file (.zsu)");
-                                visible: help-mode-button.help-mode;
-                            }
+                        HelpPopup {
+                            help-text: @tr("Fetches the latest MS/MN/FS update file (.zsu)");
+                            visible: help-mode-button.help-mode;
+                        }
 
-                            Button {
-                                text: @tr("Choose file");
-                                enabled: !ProgressViewContext.is-process-running;
-                                clicked => {
-                                    root.choose-file();
-                                }
+                        Button {
+                            text: @tr("Fetch latest");
+                            enabled: !ProgressViewContext.is-process-running;
+                            clicked => {
+                                root.fetch-file();
                             }
                         }
 
-                        HorizontalLayout {
-                            spacing: 16px;
-                            HelpPopup {
-                                help-text: @tr("Fetches the latest MS/MN/FS update file (.zsu)");
-                                visible: help-mode-button.help-mode;
-                            }
+                        DecoderTypeSelector {
+                            selected-decoder-type <=> root.decoder-type;
+                        }
+                    }
 
-                            Button {
-                                text: @tr("Fetch latest");
-                                enabled: !ProgressViewContext.is-process-running;
-                                clicked => {
-                                    root.fetch-file();
-                                }
+                    HorizontalLayout {
+                        alignment: start;
+                        spacing: 16px;
+
+                        HelpPopup {
+                            help-text: @tr("Opens a file dialog and requires you to choose an update file (.zsu)");
+                            visible: help-mode-button.help-mode;
+                        }
+
+                        Button {
+                            text: @tr("Choose file");
+                            enabled: !ProgressViewContext.is-process-running;
+                            clicked => {
+                                root.choose-file();
                             }
                         }
                     }
@@ -134,6 +141,7 @@ export component UpdatePage inherits Rectangle {
                     HorizontalLayout {
                         alignment: start;
                         spacing: 16px;
+
                         HelpPopup {
                             help-text: @tr("Begin the update procedure. Ensure, that the decoder is properly connected to the update device before clicking here");
                             visible: help-mode-button.help-mode;
@@ -148,9 +156,10 @@ export component UpdatePage inherits Rectangle {
                         }
                     }
 
-                    if root.option-level == OptionLevel.Advanced || root.option-level == OptionLevel.Expert:
+                    if root.decoder-type == DecoderType.MS-MN-FS && (root.option-level == OptionLevel.Advanced || root.option-level == OptionLevel.Expert):
                     HorizontalLayout {
                         spacing: 16px;
+
                         HelpPopup {
                             help-text: @tr("Choose the entry used to begin the update sequence.");
                             visible: help-mode-button.help-mode;
@@ -177,6 +186,7 @@ export component UpdatePage inherits Rectangle {
     // Dock progress at the bottom
     VerticalLayout {
         alignment: end;
+
         ProgressPopup { }
     }
 }

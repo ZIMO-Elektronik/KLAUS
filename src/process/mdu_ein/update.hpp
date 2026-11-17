@@ -72,19 +72,18 @@ private:
   void mode();
   void enter();
   void config();
-  void search();
-  void init();
-  void erase();
-  void write();
-  void verify();
+  libulf::ZSU::Firmware search();
+  void init(libulf::ZSU::Firmware& fw);
+  void erase(libulf::ZSU::Firmware& fw);
+  void write(libulf::ZSU::Firmware& fw);
+  void verify(libulf::ZSU::Firmware& fw);
   void end();
 
-  void lifeSign();
+  void lifeSign(libulf::ZSU::Firmware& fw);
 
   void checkAbort();
 
-  std::shared_ptr<libulf::ZSU> _zsu;                  ///< ZSU instance
-  libulf::ZSU::FirmwareIterator _fwIt{_zsu->begin()}; ///< Firmware iterator
+  std::shared_ptr<libulf::ZSU> _zsu; ///< ZSU instance
 
   type::MDUEntryType _entryType; ///< Entry type (MDU or DCC)
 

@@ -1,0 +1,19 @@
+import { DecoderType } from "decoder-type.slint";
+import { ComboBox } from "std-widgets.slint";
+export { DecoderType } /// Re-Export
+export component DecoderTypeSelector {
+    in-out property <DecoderType> selected-decoder-type;
+
+    preferred-height: box.preferred-height;
+    preferred-width: box.preferred-width;
+
+    box := ComboBox {
+        model: ["MS-MN-FS", "MX"];
+        init => {
+            self.current-index = root.selected-decoder-type == DecoderType.MS-MN-FS ? 0 : 1;
+        }
+        selected => {
+            root.selected-decoder-type = self.current-index == 0 ? DecoderType.MS-MN-FS : DecoderType.MX;
+        }
+    }
+}

@@ -40,6 +40,10 @@ import {
     OptionLevelSelector,
     OptionLevel,
 } from "../utility/option-level-selector/option-level-selector.slint";
+import {
+    DecoderTypeSelector,
+    DecoderType,
+} from "../utility/decoder-type/decoder-type-selector.slint";
 import { HelpPopup } from "../utility/help-popup/help-popup.slint";
 import { ProjectInfoPanel } from "project-info.slint";
 
@@ -47,6 +51,7 @@ import { ProjectInfoPanel } from "project-info.slint";
 export { SoundLoadMode }
 export component SoundLoadPage inherits Rectangle {
     in-out property <SoundLoadMode> mode: SoundLoadMode.ZUSI;
+    in-out property <DecoderType> decoder-type;
 
     property <OptionLevel> option-level;
 
@@ -133,10 +138,38 @@ export component SoundLoadPage inherits Rectangle {
                     selected-mode <=> root.mode;
                 }
             }
+
+            HorizontalLayout {
+                spacing: 16px;
+                alignment: start;
+
+                HelpPopup {
+                    help-text: @tr("Choose the type of decoder to load.");
+                    visible: help-mode-button.help-mode;
+                }
+
+                HorizontalLayout {
+                    spacing: 10px;
+                    alignment: start;
+
+                    Text {
+                        Text {
+                            text: @tr("Type");
+                            font-size: 16px;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    DecoderTypeSelector {
+                        selected-decoder-type <=> root.decoder-type;
+                    }
+                }
+            }
         }
 
         if root.has-file: VerticalBox {
             padding: 20px;
+
             ProjectInfoPanel {
                 name: root.project-name;
                 author: root.project-author;
@@ -148,6 +181,7 @@ export component SoundLoadPage inherits Rectangle {
     // Dock progress at the bottom
     VerticalLayout {
         alignment: end;
+
         ProgressPopup { }
     }
 }

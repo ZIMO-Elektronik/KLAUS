@@ -96,11 +96,11 @@ void Update::update() {
       mode();
       enter();
       config();
-      search();
-      init();
-      erase();
-      write();
-      verify();
+      auto firmware{search()};
+      init(firmware);
+      erase(firmware);
+      write(firmware);
+      verify(firmware);
     } catch (process_error const& e) {
       std::cerr << e.what() << std::endl;
       pushUI(static_cast<type::ProcessUpdate>(e));
@@ -206,17 +206,15 @@ void Update::config() {
  * \throws process_error  If the command failed
  * \throws ulf_error     If the communication failed
  */
-void Update::search() {
+libulf::ZSU::Firmware Update::search() {
   pushUI({.id = type::MessageID::SearchDecoder});
 
-  do {
-    unsigned int tries{0u};
-    do {
-      if (_lib.mdu_ein().ping(0, _fwIt.id())) { // Found
-        return;
-      }
-    } while (++tries < 3u);
-  } while (++_fwIt != _zsu->end());
+  auto firmwares{_zsu->firmwares()};
+  for (auto const firmware : firmwares) {
+    for (int tries{0}; tries < 3; tries++) {
+      if (_lib.mdu_ein().ping(0, firmware.id())) return firmware;
+    }
+  }
 
   throw process_error{
     {.id = type::MessageID::AbortDecoderSearch, .payload = true},
@@ -232,8 +230,8 @@ void Update::search() {
  * \throws process_error  If the command failed
  * \throws ulf_error     If the communication failed
  */
-void Update::init() {
-  if (!_lib.mdu_ein().zsuSalsa20Iv(_fwIt))
+void Update::init(libulf::ZSU::Firmware& fw) {
+  if (!_lib.mdu_ein().zsuSalsa20Iv(fw))
     throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
                         "Unable to initialize the Salsa20 encryption"};
 }
@@ -249,10 +247,10 @@ void Update::init() {
  * \throws process_error  If the command failed
  * \throws ulf_error     If the communication failed
  */
-void Update::erase() {
+void Update::erase(libulf::ZSU::Firmware& fw) {
   pushUI({.id = type::MessageID::EraseFlash});
 
-  if (!_lib.mdu_ein().zsuErase(_fwIt))
+  if (!_lib.mdu_ein().zsuErase(fw))
     throw process_error{
       {.id = type::MessageID::AbortFlashErase, .payload = true},
       "Unable to start flash erase"};
@@ -285,19 +283,19 @@ void Update::erase() {
  * \throws process_error  If the command failed
  * \throws ulf_error     If the communication failed
  */
-void Update::write() {
-  for (int index{0}; index < _fwIt.blockCount(); index++) {
+void Update::write(libulf::ZSU::Firmware& fw) {
+  for (int index{0}; index < fw.blockCount(); index++) {
     checkAbort();
 
     pushUI({.id = type::MessageID::WriteFlash,
             .progress = static_cast<double>(index + 1.0) /
-                        static_cast<double>(_fwIt.blockCount())});
+                        static_cast<double>(fw.blockCount())});
 
-    if (index % 64 == 0) lifeSign();
+    if (index % 64 == 0) lifeSign(fw);
 
     int tries{0};
     do { // Retry up to 3 times
-      if (_lib.mdu_ein().zsuUpdate(_fwIt, static_cast<uint32_t>(index))) break;
+      if (_lib.mdu_ein().zsuUpdate(fw, static_cast<uint32_t>(index))) break;
     } while (++tries < 3);
 
     if (tries >= 3)
@@ -317,10 +315,10 @@ void Update::write() {
  * \throws process_error  If the command failed
  * \throws ulf_error     If the communication failed
  */
-void Update::verify() {
+void Update::verify(libulf::ZSU::Firmware& fw) {
   pushUI({.id = type::MessageID::Verify});
 
-  if (!_lib.mdu_ein().zsuCrc32Start(_fwIt))
+  if (!_lib.mdu_ein().zsuCrc32Start(fw))
     throw process_error{{.id = type::MessageID::AbortVerify, .payload = true},
                         "Unable to start CRC verification"};
 }
@@ -343,10 +341,10 @@ void Update::end() {
  * Pings selected decoder to check if any answers
  *
  */
-void Update::lifeSign() {
+void Update::lifeSign(libulf::ZSU::Firmware& fw) {
   int tries{0};
   do {
-    if (_lib.mdu_ein().ping(0u, _fwIt.id())) break;
+    if (_lib.mdu_ein().ping(0u, fw.id())) break;
   } while (tries < 3);
 
   if (tries >= 3)

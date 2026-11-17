@@ -229,12 +229,12 @@ void SoundLoad::erase() {
 void SoundLoad::write() {
   unsigned int index{0u};
 
-  for (int index{0}; index < _zpp->blocks(); index++) {
+  for (int index{0}; index < _zpp->blockCount(); index++) {
     checkAbort();
 
     pushUI({.id = type::MessageID::WriteFlash,
             .progress{static_cast<double>(index + 1.0) /
-                      static_cast<double>(_zpp->blocks())}});
+                      static_cast<double>(_zpp->blockCount())}});
 
     if (index % 64 == 0) lifeSign();
 
@@ -250,7 +250,7 @@ void SoundLoad::write() {
         "Too many consecutive errors"};
 
     // Check if done
-    if (index >= _zpp->blocks()) break;
+    if (index >= _zpp->blockCount()) break;
   }
 }
 

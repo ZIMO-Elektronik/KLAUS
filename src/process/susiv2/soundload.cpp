@@ -160,13 +160,13 @@ void SoundLoad::erase() {
  * \throws ulf_error     If the communication failed
  */
 void SoundLoad::write() {
-  for (unsigned int index{0}, max_index{_zpp->blocks()}; index < max_index;
+  for (unsigned int index{0}, max_index{_zpp->blockCount()}; index < max_index;
        index++) {
     checkAbort();
 
     pushUI({.id = type::MessageID::WriteFlash,
             .progress{static_cast<double>(index + 1.0) /
-                      static_cast<double>(_zpp->blocks())}});
+                      static_cast<double>(_zpp->blockCount())}});
 
     int tries{0};
     do {
