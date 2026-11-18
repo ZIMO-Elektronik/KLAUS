@@ -139,7 +139,7 @@ export component SoundLoadPage inherits Rectangle {
                 }
             }
 
-            HorizontalLayout {
+            if (root.mode != SoundLoadMode.ZUSI): HorizontalLayout {
                 spacing: 16px;
                 alignment: start;
 
@@ -149,7 +149,7 @@ export component SoundLoadPage inherits Rectangle {
                 }
 
                 HorizontalLayout {
-                    spacing: 10px;
+                    spacing: 16px;
                     alignment: start;
 
                     Text {

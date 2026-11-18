@@ -23,6 +23,8 @@ set(CMAKE_PROJECT_VERSION_PATCH ${VERSION_PATCH_FROM_GIT})
 add_executable(
   ${CMAKE_PROJECT_NAME} WIN32 MACOSX_BUNDLE
   src/main.cpp
+  src/process/decup_ein/soundload.cpp
+  src/process/decup_ein/update.cpp
   src/process/mdu_ein/update.cpp
   src/process/mdu_ein/soundload.cpp
   src/process/susiv2/soundload.cpp
