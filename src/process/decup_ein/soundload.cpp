@@ -6,6 +6,8 @@ SoundLoad::SoundLoad(std::filesystem::path path) {}
 
 SoundLoad::SoundLoad(std::shared_ptr<libulf::ZPP> zpp) {}
 
+SoundLoad::~SoundLoad() { disconnect(); }
+
 bool SoundLoad::execute() {
   if (_zpp == nullptr || !_zpp->valid() || !connect()) { return false; }
 

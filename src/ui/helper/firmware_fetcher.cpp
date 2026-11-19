@@ -233,14 +233,32 @@ size_t Easy::write_fn(void* ptr, size_t size, size_t nmemb, FILE* stream) {
 } // namespace detail
 
 /**
- * Fetches the latest ms decoder firmware
- *
- * \note
- * This may later need extending to support mx decoders
+ * Fetches the latest MS MN FS decoder firmware
  *
  * \return path to firmware
  */
-std::filesystem::path FirmwareFetcher::fetchLatest() {
+std::filesystem::path FirmwareFetcher::fetchLatestMS() {
+  return fetchLatest(detail::dsw::DSW::Group::MS_MN_FS);
+}
+
+/**
+ * Fetches the latest MX decoder firmware
+ *
+ * \return path to firmware
+ */
+std::filesystem::path FirmwareFetcher::fetchLatestMX() {
+  return fetchLatest(detail::dsw::DSW::Group::MX);
+}
+
+/**
+ * Fetches the latest decoder firmware
+ *
+ * \param grp Firmware group to fetch (MS or MX)
+ *
+ * \return path to firmware
+ */
+std::filesystem::path
+FirmwareFetcher::fetchLatest(detail::dsw::DSW::Group grp) {
   detail::curl::Easy easy{};
 
   std::filesystem::path cache_dir_path{detail::cache_dir()};
@@ -251,14 +269,13 @@ std::filesystem::path FirmwareFetcher::fetchLatest() {
 
   // Parse version info
   auto const file{detail::dsw::read(detail::dsw_version_path(cache_dir_path))};
-  auto const dsw{std::ranges::find_if(file.dsws, [](auto const& dsw) {
-    return dsw.group == detail::dsw::DSW::Group::MS_MN_FS;
-  })};
+  auto const dsw{std::ranges::find_if(
+    file.dsws, [grp](auto const& dsw) { return dsw.group == grp; })};
 
   // Fetch zsu file
-  easy.fetch(detail::ms_zsu_file_path(cache_dir_path), dsw->url.data());
+  easy.fetch(detail::zsu_file_path(cache_dir_path), dsw->url.data());
 
-  return detail::ms_zsu_file_path(cache_dir_path);
+  return detail::zsu_file_path(cache_dir_path);
 }
 
 } // namespace ui::helper

@@ -60,9 +60,9 @@ namespace process::mdu_ein {
 struct SoundLoad : public Base {
   SoundLoad(std::filesystem::path path);
   SoundLoad(std::shared_ptr<libulf::ZPP> zpp);
-  virtual ~SoundLoad() final;
+  virtual ~SoundLoad();
 
-  virtual bool execute();
+  virtual bool execute() override;
 
 private:
   void load();

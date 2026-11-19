@@ -27,6 +27,7 @@
 
 #include "ui/update_backend.hpp"
 #include <tinyfiledialogs/tinyfiledialogs.h>
+#include "process/decup_ein/update.hpp"
 #include "ui/helper/firmware_fetcher.hpp"
 
 namespace ui {
@@ -107,8 +108,13 @@ void UpdateBackend::choose_file() {
  */
 void UpdateBackend::fetch_file() {
   try {
-    _path = helper::FirmwareFetcher::fetchLatest();
-    open_file(false);
+    if (auto ui{_weakUi.lock()}) {
+
+      _path = (*ui)->get_decoder_type() == DecoderType::MSMNFS
+                ? helper::FirmwareFetcher::fetchLatestMS()
+                : helper::FirmwareFetcher::fetchLatestMX();
+      open_file(false);
+    }
   } catch (std::exception const& e) {
     std::cerr << "Unable to fetch file. " << e.what() << std::endl;
   }
@@ -126,17 +132,29 @@ void UpdateBackend::start_process() {
   /// an entry on ID 0 in that case.
   auto decoder_ids{prepare_selected_firmware_list<true>()};
 
-  EntryType entry_type{EntryType::MDU};
+  auto const type{_zsu->firmwares().front().type()};
 
-  if (auto ui{_weakUi.lock()}) { entry_type = (*ui)->get_entry_type(); }
+  if (type == 1 || type == 2) {
+    // MX Firmware
+    if (_pManager->emplace<process::decup_ein::Update>(_zsu))
+      _pManager->execute();
+    else std::cerr << "Manager is busy" << std::endl;
+  } else if (type == 3) {
+    // MS MN FS firmware
+    EntryType entry_type{EntryType::MDU};
 
-  if (_pManager->emplace<process::mdu_ein::Update>(
-        _zsu,
-        entry_type == EntryType::MDU ? type::MDUEntryType::MDU
-                                     : type::MDUEntryType::DCC_ZSU,
-        std::move(decoder_ids)))
-    _pManager->execute();
-  else std::cerr << "Manager is busy" << std::endl;
+    if (auto ui{_weakUi.lock()}) { entry_type = (*ui)->get_entry_type(); }
+
+    if (_pManager->emplace<process::mdu_ein::Update>(
+          _zsu,
+          entry_type == EntryType::MDU ? type::MDUEntryType::MDU
+                                       : type::MDUEntryType::DCC_ZSU,
+          std::move(decoder_ids)))
+      _pManager->execute();
+    else std::cerr << "Manager is busy" << std::endl;
+  } else {
+    std::cerr << "Unknown decoder type" << std::endl;
+  }
 }
 
 /**
@@ -176,7 +194,10 @@ void UpdateBackend::create_update_info(bool local) {
 
   info.file_type = local ? FileType::Local : FileType::Online;
   info.file_name = slint::SharedString{_path.filename().u8string()};
-  info.firmware_type = FirmwareType::MSMNFS;
+  info.firmware_type = firmware.type() == 1   ? FirmwareType::MX
+                       : firmware.type() == 2 ? FirmwareType::MX
+                       : firmware.type() == 3 ? FirmwareType::MSMNFS
+                                              : FirmwareType::Unknown;
   info.version_major = std::stoi(firmware.versionMajor().data());
   info.version_minor = std::stoi(firmware.versionMinor().data());
 

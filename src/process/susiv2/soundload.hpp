@@ -62,7 +62,7 @@ struct SoundLoad : public Base {
   SoundLoad(std::shared_ptr<libulf::ZPP> zpp);
   virtual ~SoundLoad() final;
 
-  virtual bool execute();
+  virtual bool execute() override;
 
 private:
   void load();

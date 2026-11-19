@@ -64,7 +64,7 @@ struct Update : public Base {
          std::vector<uint32_t> decoder_ids = {});
   virtual ~Update() final;
 
-  virtual bool execute();
+  virtual bool execute() override;
 
 private:
   void update();

@@ -66,19 +66,8 @@ static std::filesystem::path dsw_version_path(std::filesystem::path dir) {
  *
  * \return dir path with file name appended
  */
-static std::filesystem::path ms_zsu_file_path(std::filesystem::path dir) {
-  return dir / "ms.zsu";
-}
-
-/**
- * Appends the mx decoder zsu file name to the given path
- *
- * \param dir directory (including ending slash)
- *
- * \return dir path with file name appended
- */
-static std::filesystem::path& mx_zsu_file_path(std::filesystem::path& dir) {
-  return dir.append("mx.zsu");
+static std::filesystem::path zsu_file_path(std::filesystem::path dir) {
+  return dir / "update.zsu";
 }
 
 /**
@@ -156,7 +145,11 @@ private:
  * Static class to fetch the latest decoder firmware
  */
 struct FirmwareFetcher {
-  static std::filesystem::path fetchLatest();
+  static std::filesystem::path fetchLatestMS();
+  static std::filesystem::path fetchLatestMX();
+
+private:
+  static std::filesystem::path fetchLatest(detail::dsw::DSW::Group grp);
 };
 
 } // namespace ui::helper

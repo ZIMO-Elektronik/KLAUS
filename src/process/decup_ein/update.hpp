@@ -37,10 +37,10 @@ namespace process::decup_ein {
  */
 struct Update : public Base {
   Update(std::filesystem::path path);
-  Update(std::shared_ptr<libulf::ZPP> zpp);
+  Update(std::shared_ptr<libulf::ZSU> zsu);
   virtual ~Update() final;
 
-  virtual bool execute();
+  virtual bool execute() override;
 
 private:
   void update();
@@ -50,6 +50,7 @@ private:
   libulf::ZSU::Firmware search();
   void setup(libulf::ZSU::Firmware& fw);
   void write(libulf::ZSU::Firmware& fw);
+  void end();
 
   void checkAbort();
 

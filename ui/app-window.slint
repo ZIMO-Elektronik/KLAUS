@@ -39,6 +39,7 @@ import { ProgressViewContext } from "progress/progress-context.slint";
 import { AppContext } from "app-context.slint";
 import { MessageIDAdapter } from "progress/dynamic/step-text.slint";
 import { UpdateInfo } from "update/update-info.slint";
+import { DecoderType } from "utility/decoder-type/decoder-type-selector.slint";
 export { ProgressViewContext, AppContext, MessageIDAdapter }
 export component AppWindow inherits Window {
     title: AppContext.tool-name-acronym;
@@ -50,6 +51,7 @@ export component AppWindow inherits Window {
     in property <[FirmwareAdapter]> firmwares;
     in property <[FirmwareAdapter]> filtered-firmwares;
     in-out property <EntryType> entry-type;
+    in-out property <DecoderType> decoder-type;
 
     in-out property active-page <=> nav.active-page;
 
@@ -83,6 +85,7 @@ export component AppWindow inherits Window {
                 has-file <=> root.has-file;
                 firmwares <=> root.filtered_firmwares;
                 entry-type <=> root.entry-type;
+                decoder-type <=> root.decoder-type;
                 update-info <=> root.update-info;
                 choose-file => {
                     root.choose_file();
@@ -98,6 +101,7 @@ export component AppWindow inherits Window {
             if root.active-page == AppPage.Soundload: SoundLoadPage {
                 has-file <=> root.has-file;
                 mode <=> root.sound-load-mode;
+                decoder-type <=> root.decoder-type;
                 project-name: root.zpp_name;
                 project-author: root.zpp_author;
                 project-email: root.zpp_email;
