@@ -69,6 +69,7 @@ private:
 
   void mode();
   void features();
+  void init();
   void erase();
   void write();
   void exit();

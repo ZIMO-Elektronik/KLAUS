@@ -82,6 +82,7 @@ void SoundLoad::load() {
       ping();
       mode();
       features();
+      init();
       erase();
       write();
     } catch (process_error const& e) {
@@ -125,6 +126,19 @@ void SoundLoad::features() {
   if (!_lib.susiv2().features())
     throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
                         "Unable to request features"};
+}
+
+/**
+ * Checks the project load code
+ *
+ * \throws process_error  If the load code is invalid
+ * \throws ulf_error      If the communication failed
+ */
+void SoundLoad::init() {
+  if (!_lib.susiv2().zppLcDcQuery(*_zpp))
+    throw process_error{
+      {.id = type::MessageID::AbortInvalidLoadCode, .payload = true},
+      "Invalid load code"};
 }
 
 /**

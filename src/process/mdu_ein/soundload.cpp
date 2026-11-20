@@ -177,7 +177,7 @@ void SoundLoad::search() {
 }
 
 /**
- * Check if the ZPP can fit into the decoder
+ * Check if the ZPP can fit into the decoder and checks load code
  *
  * \throws process_error  If the command failed
  * \throws ulf_error     If the communication failed
@@ -186,6 +186,11 @@ void SoundLoad::init() {
   if (!_lib.mdu_ein().zppValidQuery(*_zpp))
     throw process_error{{.id = type::MessageID::AbortInit, .payload = true},
                         "Not enough space in flash"};
+
+  if (!_lib.mdu_ein().zppLcDcQuery(*_zpp))
+    throw process_error{
+      {.id = type::MessageID::AbortInvalidLoadCode, .payload = true},
+      "Invalid load code"};
 }
 
 /**

@@ -73,6 +73,8 @@ static MessageIDAdapter message_id_map(type::MessageID id) {
     case MessageID::Done: return MessageIDAdapter::Done;
     case MessageID::Abort: return MessageIDAdapter::Abort;
     case MessageID::AbortInit: return MessageIDAdapter::AbortInit;
+    case MessageID::AbortInvalidLoadCode:
+      return MessageIDAdapter::AbortInvalidLoadCode;
     case MessageID::AbortDecoderSearch:
       return MessageIDAdapter::AbortDecoderSearch;
     case MessageID::AbortFlashErase: return MessageIDAdapter::AbortFlashErase;

@@ -49,6 +49,7 @@ export enum MessageIDAdapter {
     Abort,
     AbortDevice,
     AbortInit,
+    AbortInvalidLoadCode,
     AbortDecoderSearch,
     AbortFlashErase,
     AbortFlashWrite,
@@ -86,6 +87,7 @@ export component StepText inherits Text {
         id == MessageIDAdapter.Abort ? @tr("Aborted") :
         id == MessageIDAdapter.AbortDevice ? @tr("No device found") :
         id == MessageIDAdapter.AbortInit ? @tr("Unable to setup process") :
+        id == MessageIDAdapter.AbortInvalidLoadCode ? @tr("Invalid load code") :
         id == MessageIDAdapter.AbortDecoderSearch ? @tr("No decoder found") :
         id == MessageIDAdapter.AbortFlashErase ? @tr("Unable to erase flash") :
         id == MessageIDAdapter.AbortFlashWrite ? @tr("Unable to write flash") :

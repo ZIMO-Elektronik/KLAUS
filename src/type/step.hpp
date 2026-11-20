@@ -82,6 +82,7 @@ enum class MessageID {
 
   Abort,
   AbortInit,
+  AbortInvalidLoadCode,
   AbortDecoderSearch,
   AbortFlashErase,
   AbortFlashWrite,
