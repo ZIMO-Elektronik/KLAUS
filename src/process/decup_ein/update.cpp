@@ -23,6 +23,7 @@ bool Update::execute() {
 void Update::update() {
   try {
     try {
+      ping();
       mode();
       enter();
       auto fw{search()};
