@@ -213,6 +213,8 @@ void UpdateBackend::create_update_info(bool local) {
  *
  */
 void UpdateBackend::create_firmware_list() {
+  using std::operator""sv;
+
   auto model{std::make_shared<slint::VectorModel<FirmwareAdapter>>()};
 
   auto firmwares{_zsu->firmwares()};
@@ -225,9 +227,13 @@ void UpdateBackend::create_firmware_list() {
       id_model->push_back(byte_val);
     }
 
+    auto const type{firmware.type()};
     model->push_back(FirmwareAdapter{
       .decoder_name =
-        firmware.name().substr(0, firmware.name().find_first_of("-") + 2uz),
+        type == 1 || type == 2 ? firmware.name()
+        : type == 3
+          ? firmware.name().substr(0, firmware.name().find_first_of("-") + 2uz)
+          : ""sv,
       .decoder_id = id_model,
       .major_version = firmware.versionMajor(),
       .minor_version = firmware.versionMinor()});
